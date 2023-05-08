@@ -1,0 +1,16 @@
+version: '1.0'
+
+services:
+  app:
+    image: x-canvas
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: x-canvas-dev
+    volumes:
+      - '.:/app'
+      - '/app/node_modules'
+    command: sh -c "npm run dev"
+    ports:
+      - '8080:3000'
+    tty: true
