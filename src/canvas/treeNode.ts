@@ -1,16 +1,16 @@
-export type TreeNodeChildren = Array<TreeNode>
+export type TreeNodeChildren = Array<any> | string
 
 export interface TreeNode {
   __v_isTreeNode: boolean
-  _children: TreeNode[]
+  _children: TreeNodeChildren
   parent: TreeNode | null
   root: TreeNode | null
-  prev: TreeNode | null
-  next: TreeNode | null
+  prev: TreeNode | string | null
+  next: TreeNode | string | null
   children: TreeNodeChildren
-  context: any
+  // parent: TreeNode | null
   _setParent(node: TreeNode): void
-  _setSibling(prev: TreeNode | null, next: TreeNode | null): void
+  _setSibling(prev: TreeNode | string | null, next: TreeNode | null): void
   hasChildren(): boolean
   appendChild(child: TreeNode): void
   prependChild(child: TreeNode): void
@@ -28,44 +28,50 @@ export function isEndNode(node) {
   return node.parent && !node.next && !node.hasChildren()
 }
 
-export function createTreeNode(context) {
+export function createTreeNode(children: TreeNodeChildren = []) {
   const treeNode: TreeNode = {
     __v_isTreeNode: true,
-    _children: [] as TreeNode[],
+    _children: children,
     parent: null,
     root: null,
     prev: null,
     next: null,
-    context,
 
     get children() {
-      return treeNode.hasChildren() ? treeNode._children : []
+      return this._children
     },
+
+    // get parent() {
+    //   return this._parent
+    // },
 
     _setParent(node) {
       console.log('_setParent', this, node)
-      this.parent = treeNode.parent = node
-      this.root = treeNode.root = node.root
+      this.parent = node
     },
 
     _setSibling(prev, next) {
-      this.prev = treeNode.prev = prev
-      this.next = treeNode.next = next
+      console.log('_setSibling', prev, next)
+      this.prev = prev
+      this.next = next
     },
 
     hasChildren() {
-      return Array.isArray(treeNode._children) && treeNode._children.length
+      return Array.isArray(this._children) && this._children.length
         ? true
         : false
     },
 
     appendChild(child) {
+      console.log('TreeNode-Append-Child---------------')
       if (!isTreeNode(child)) throw Error('Unknown treeNode type')
 
-      const prev = this.children[this.children.length - 1] || null
-      prev && prev._setSibling(prev.prev, child)
+      const prev = this._children[this._children.length - 1] || null
+      if (prev && isTreeNode(prev)) {
+        prev._setSibling(prev.prev, child)
+      }
 
-      this._children.push(child)
+      Array.isArray(this._children) && this._children.push(child)
 
       child._setParent(this)
       child._setSibling(prev, null)

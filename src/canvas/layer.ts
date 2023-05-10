@@ -1,5 +1,5 @@
 import { TreeNode, connectChildren } from './treeNode'
-import { CanvasElement } from './element'
+import { CanvasElement, ElementTypes, createElementAPI } from './element'
 import { wideTraversal, deepTraversal } from '../utils/traversal'
 import { CanvasRenderer, createCanvasRenderer } from './renderer'
 import { isWX, walkParent } from '../utils'
@@ -17,7 +17,7 @@ export interface Layer {
   c2pList: TravedElementList
   nodeList: TreeNode[]
   options: LayerOptions
-  renderer: CanvasRenderer
+  renderer: CanvasRenderer | null
   _initRender(): void
   _initC2PList(): void
   _initP2CList(): void
@@ -25,10 +25,10 @@ export interface Layer {
   _reflow(): void
   _initPaintList(): void
   _reflowElement(el: CanvasElement): void
-  __callBeforePaint(): void
+  _callBeforePaint(): void
   _repaint(): void
+  init(): void
   update(ctx: CanvasRenderingContext2D, options: LayerOptions): void
-  mountNode(node: CanvasElement): void
   onElementRemove(el: CanvasElement): void
   onElementAdd(el: CanvasElement): void
   onElementChange(el: CanvasElement): void
@@ -45,7 +45,7 @@ export function createLayer(ctx, options) {
     c2pList: [] as CanvasElement[],
     nodeList: [],
     options: options,
-    renderer: createCanvasRenderer(layer),
+    renderer: null,
 
     _initRender() {
       // for 打印耗时
@@ -54,7 +54,7 @@ export function createLayer(ctx, options) {
       connectChildren(layer.node)
       layer._initC2PList()
       layer._initP2CList()
-      console.log('initRender', layer.c2pList)
+      console.log('initRender', layer.c2pList, layer.p2cList)
 
       layer._flow()
 
@@ -92,9 +92,34 @@ export function createLayer(ctx, options) {
 
     _initPaintList() {},
 
-    _reflowElement(el) {},
+    _reflowElement(element) {
+      // 如果有line，则需要重第一个开始
+      let target: any = element
+      while (target && target.line) {
+        target = target.parent
+      }
+      const p2cList = wideTraversal(target)
+      for (let i = 0; i < p2cList.length; i++) {
+        p2cList[i]._initStyles()
+      }
 
-    __callBeforePaint() {
+      // 所有子元素
+      const children = deepTraversal(target)
+      for (let i = 0; i < children.length; i++) {
+        children[i]._initWidthHeight()
+      }
+
+      if (!element.isInFlow()) {
+        for (let i = 0; i < p2cList.length; i++) {
+          p2cList[i]._initPosition()
+        }
+        this._repaint()
+      } else {
+        this.onElementChange(target)
+      }
+    },
+
+    _callBeforePaint() {
       for (let i = 0; i < layer.p2cList.length; i++) {
         layer.p2cList[i].beforePaint && layer.p2cList[i].beforePaint()
       }
@@ -105,32 +130,33 @@ export function createLayer(ctx, options) {
      * @param {Element} element
      */
     _repaint(element = layer.node) {
+      console.log('_repaint---------------')
       if (isWX) {
         // 微信环境下始终重绘整个树
         element = layer.node
       }
-      if (!element.isInFlow()) element = layer.node
+      if (element && !element.isInFlow()) element = layer.node
 
       layer._callBeforePaint()
 
-      layer.renderer.readyToRender(layer.node)
+      if (layer.node && layer.renderer) {
+        layer.renderer.readyToRender(layer.node)
+      } else {
+        throw Error('repaint need node in layer')
+      }
     },
 
     update(ctx, options) {
       layer.ctx = ctx
       layer.options = options
       layer.options.renderStyles = options
-      if (layer.node) {
-        layer.node.context.container = layer.options
-      }
+      // if (layer.node) {
+      //   layer.node.container = layer.options
+      // }
     },
 
-    mountNode(node) {
-      console.info('mountNode------------------------', node)
-      node.layer = layer
-      node.root = node
-      layer.node = node
-
+    init() {
+      layer.renderer = createCanvasRenderer(layer)
       layer._initRender()
     },
 
@@ -139,6 +165,7 @@ export function createLayer(ctx, options) {
     onElementAdd(el) {
       layer._initC2PList()
       layer._initP2CList()
+      console.log('onElementAdd', layer.p2cList)
 
       layer.p2cList.forEach((item) => {
         item.init()
@@ -149,6 +176,7 @@ export function createLayer(ctx, options) {
 
     // 元素变化后调用，尽可能少重排重绘
     onElementChange(element) {
+      console.log('onElementChange-------')
       walkParent(element, (parent, callbreak) => {
         parent._initWidthHeight()
         if (parent.type === 'scroll-view') callbreak()
@@ -175,5 +203,20 @@ export function createLayer(ctx, options) {
     }
   }
 
-  return layer
+  const createCanvasElement = createElementAPI(layer)
+  const createRootCanvasElement = () =>
+    createCanvasElement(ElementTypes.root, {}, [])
+
+  layer.node = createRootCanvasElement()
+  console.info('init-layer------------------------', layer)
+  layer.node.layer = layer
+  layer.node.root = layer.node
+
+  layer.init()
+
+  return {
+    layer,
+    createCanvasElement,
+    createRootCanvasElement
+  }
 }

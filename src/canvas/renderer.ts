@@ -1,5 +1,5 @@
 import { floor, getThrottle, isExact, isWX, walk } from '../utils'
-import { CanvasElement } from './element'
+import { CanvasElement, isCanvasElement } from './element'
 import { Layer } from './layer'
 import STYLE_CONSTANT from './styleConstant'
 import { isEndNode } from './treeNode'
@@ -98,10 +98,28 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
     },
 
     _drawBox(element) {
+      element.renderStyles = {
+        borderColor: 'red',
+        borderWidth: 4,
+        borderLeftWidth: 4,
+        borderRightWidth: 4,
+        borderTopWidth: 4,
+        borderBottomWidth: 4,
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+        contentWidth: 100,
+        contentHeight: 100
+      }
+      console.log('_drawBox-------', element, element.renderStyles)
+
       if (
         !(element.renderStyles.borderColor || element.renderStyles.shadowBlur)
       )
         return
+
+      console.log('_drawBox-------')
       const {
         contentWidth,
         contentHeight,
@@ -158,6 +176,7 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
       this._restore(() => {
         this._path(() => {
           if (element.renderStyles.borderTopWidth) {
+            console.log(x, y)
             this.topBorder({
               x,
               y,
@@ -535,6 +554,7 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
     },
 
     paint(element) {
+      console.log('renderer-paint-----------')
       this.getCtx().save()
 
       element.paint(this.lastPaintTime)
@@ -675,6 +695,7 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
     render(node) {
       this.lastFrameComplete = false
       this.lastPaintTime = Date.now()
+      console.log('render----------', node, this.getCtx(), this.getLayer())
       if (!node.parent) {
         // root
         this.getCtx().clearRect(
@@ -693,13 +714,16 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
       }
       let element = null
       walk(node, (renderNode, callContinue, callNext) => {
-        if (renderNode.isVisible()) {
-          // 可见的才渲染
-          this.paint(renderNode)
-        } else {
-          // 跳过整个子节点
-          callNext()
-          this._helpParentRestoreCtx(renderNode)
+        console.log('walk-------------', renderNode)
+        if (isCanvasElement(renderNode)) {
+          if (renderNode.isVisible && renderNode.isVisible()) {
+            // 可见的才渲染
+            this.paint(renderNode)
+          } else {
+            // 跳过整个子节点
+            callNext()
+            this._helpParentRestoreCtx(renderNode)
+          }
         }
       })
       if (isWX) {
@@ -713,6 +737,7 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
     renderFPS() {},
 
     readyToRender(element) {
+      console.log('_readyToRender')
       // this.element = generateRenderTree(element)
       this.element = element
 
@@ -723,7 +748,7 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
       if (options && options.animate) {
         this.animate()
       } else {
-        this.render(this.element)
+        this.render(element)
       }
     },
 

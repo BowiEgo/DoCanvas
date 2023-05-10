@@ -1,12 +1,22 @@
-import { Element } from './element'
+import { CanvasElement } from './element'
 
-interface View extends Element {
-  type: string
+interface ViewElement extends CanvasElement {
+  paint(): void
 }
 
-export function View(Element) {
+export function createViewElement(element: CanvasElement): ViewElement {
   return {
-    type: 'view',
-    ...Element
+    ...element,
+    paint() {
+      console.log('paint-----')
+      const renderer = this.getRenderer()
+
+      if (this.options.render) {
+        this.options.render(renderer.getCtx(), renderer.getCanvas(), this)
+      } else {
+        renderer._drawBackground(this)
+        renderer._drawBox(this)
+      }
+    }
   }
 }

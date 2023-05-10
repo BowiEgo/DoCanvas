@@ -1,27 +1,29 @@
 import { TreeNode } from '../Canvas/treeNode'
+import { CanvasElement } from '../canvas/element'
 import { TravedElementList } from '../canvas/layer'
+import { isArray } from './general'
 
 type Queue<T> = T[]
 
-type TraversalFn = (node: TreeNode) => TravedElementList
+type TraversalFn = (node: TreeNode | CanvasElement) => TravedElementList
 
 export const deepTraversal: TraversalFn = (node) => {
   const nodes = <any>[]
 
   if (node != null) {
-    const queue: Queue<TreeNode> = []
+    const queue: Queue<TreeNode | CanvasElement> = []
     let item
     let children
     queue.unshift(node)
 
     while (queue.length != 0) {
       item = queue.shift()
-      nodes.push(item.elementInstance)
+      nodes.push(item)
 
       children = item.children
-
-      for (let i = children.length - 1; i >= 0; i--)
-        queue.push(children[i].elementInstance)
+      if (isArray(children)) {
+        for (let i = children.length - 1; i >= 0; i--) queue.push(children[i])
+      }
     }
   }
   return nodes
@@ -31,7 +33,7 @@ export const wideTraversal: TraversalFn = (node) => {
   const nodes = <any>[]
 
   if (node != null) {
-    const queue: Queue<TreeNode> = []
+    const queue: Queue<TreeNode | CanvasElement> = []
     let item
     let children
 
@@ -39,12 +41,12 @@ export const wideTraversal: TraversalFn = (node) => {
 
     while (queue.length != 0) {
       item = queue.shift()
-      nodes.push(item.elementInstance)
+      nodes.push(item)
 
       children = item.children
-
-      for (let i = 0; i < children.length; i++)
-        queue.push(children[i].elementInstance)
+      if (isArray(children)) {
+        for (let i = 0; i < children.length; i++) queue.push(children[i])
+      }
     }
   }
 

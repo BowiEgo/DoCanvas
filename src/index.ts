@@ -1,12 +1,14 @@
-import createApp from './createApp'
+import { createAppAPI } from './createApp'
+import { createRenderer } from './renderer'
+import { createNodeOps } from './nodeOps'
 import { h } from './h'
-import { createLayer, createElement } from './canvas'
+import { createLayer } from './canvas'
 
 const XCanvas = {
-  createApp,
+  createNodeOps,
+  createRenderer,
   h,
-  createLayer,
-  createElement
+  createLayer
 }
 
 export default XCanvas

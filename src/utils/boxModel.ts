@@ -1,5 +1,6 @@
-import { CanvasElement } from '../canvas/element'
+import { CanvasElement, isCanvasElement } from '../canvas/element'
 import { TreeNodeChildren } from '../canvas/treeNode'
+import { isArray } from './general'
 
 export function floor(val) {
   return (0.5 + val) << 0
@@ -16,13 +17,18 @@ export function walk(element, callback) {
     let children: TreeNodeChildren = []
     stack.push(element)
     while (stack.length !== 0) {
+      console.log('stack', stack)
       item = stack.pop()
+      console.log('item', item)
+      if (!item) break
       callback(item, _callContinue, _callNext)
       if (!_next && item) {
-        children = item.treeNode.children
+        children = item.children
+        console.log('children', children)
+        if (!isArray(children)) break
         for (let i = children.length - 1; i >= 0; i--) {
           if (!_continue) {
-            stack.push(children[i].context)
+            stack.push(children[i])
           } else {
             // 复位
             _continue = false

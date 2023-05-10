@@ -5,6 +5,7 @@ import {
   isSameVNodeType,
   normalizeVNode
 } from './vnode'
+import { createAppAPI } from './createApp'
 import { ComponentInternalInstance, Data } from './components'
 import { flushPreFlushCbs, flushPostFlushCbs } from './scheduler'
 import { EMPTY_OBJ, EMPTY_ARR, PatchFlags, ShapeFlags } from './utils'
@@ -399,6 +400,7 @@ export function createRenderer(options: RendererOptions): any {
   }
 
   return {
-    render
+    render,
+    createApp: createAppAPI(render)
   }
 }

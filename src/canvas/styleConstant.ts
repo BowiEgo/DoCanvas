@@ -132,8 +132,9 @@ export interface ElementStyleType {
   marginRight: number
   height: number | string
   borderRadius: number
+  borderColor: string
   lineCap: string
-  flex: string | number
+  flex?: string | number
   flexDirection: string
   verticalAlign: VerticalAlign
   textAlign: TextAlign
@@ -177,7 +178,7 @@ const FLEX_DIRECTION = {
   COLUMN: 'column'
 }
 
-const DEFAULT_STYLES = {
+const DEFAULT_STYLES: ElementStyleType = {
   display: DISPLAY.BLOCK,
   fontSize: 14,
   fontWeight: 400,
@@ -193,6 +194,7 @@ const DEFAULT_STYLES = {
   marginRight: 0,
   height: WIDTH.AUTO,
   borderRadius: 0,
+  borderColor: '#000',
   lineCap: 'square',
   flexDirection: FLEX_DIRECTION.ROW,
   verticalAlign: 'middle',

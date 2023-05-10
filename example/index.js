@@ -1,4 +1,4 @@
-const { h, createApp, createLayer, createElement } = XCanvas
+const { h, createNodeOps, createRenderer, createLayer } = XCanvas
 
 function init() {
   const canvas = document.querySelector('#canvas')
@@ -12,18 +12,7 @@ function init() {
 
   console.log(_ctx, _dpr, _w, _h)
 
-  const App = h('div', { style: { color: 'red' } }, [
-    'hello ',
-    h('span', 'world')
-  ])
-  console.log('App', App)
-
-  const app = createApp(App)
-  console.log('app', app)
-
-  const rootElement = createElement('view')
-
-  const layer = createLayer(_ctx, {
+  const { layer, createCanvasElement } = createLayer(_ctx, {
     _dpr,
     width: _w,
     height: _h,
@@ -37,7 +26,16 @@ function init() {
     }
   })
 
-  app.mount(rootElement, layer)
+  const App = h('div', { style: { color: 'red', borderColor: 'red' } }, [
+    'hello ',
+    h('span', 'world')
+  ])
+  console.log('App', App)
+
+  const app = createRenderer(createNodeOps(createCanvasElement)).createApp(App)
+  console.log('app', app)
+
+  app.mount(layer.node)
 }
 
 init()
