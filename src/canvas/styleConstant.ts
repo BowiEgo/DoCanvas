@@ -117,34 +117,34 @@ export type Position =
   | GlobalValue
 
 export interface ElementStyleType {
-  display: string
-  fontSize: number
-  fontWeight: number
-  fontFamily: string
-  color: string
-  paddingTop: number
-  paddingBottom: number
-  paddingLeft: number
-  paddingRight: number
-  marginTop: number
-  marginBottom: number
-  marginLeft: number
-  marginRight: number
-  height: number | string
-  borderRadius: number
-  borderColor: string
-  lineCap: string
+  display?: string
+  fontSize?: number
+  fontWeight?: number
+  fontFamily?: string
+  color?: string
+  paddingTop?: number
+  paddingBottom?: number
+  paddingLeft?: number
+  paddingRight?: number
+  marginTop?: number
+  marginBottom?: number
+  marginLeft?: number
+  marginRight?: number
+  height?: number | string
+  borderRadius?: number
+  borderColor?: string
+  lineCap?: string
   flex?: string | number
-  flexDirection: string
-  verticalAlign: VerticalAlign
-  textAlign: TextAlign
-  justifyContent: JustifyContent
-  alignItems: AlignItems
-  alignSelf: AlignSelf
-  whiteSpace: WhiteSpace
-  zIndex: number
-  visible: boolean
-  position: Position
+  flexDirection?: string
+  verticalAlign?: VerticalAlign
+  textAlign?: TextAlign
+  justifyContent?: JustifyContent
+  alignItems?: AlignItems
+  alignSelf?: AlignSelf
+  whiteSpace?: WhiteSpace
+  zIndex?: number
+  visible?: boolean
+  position?: Position
 }
 
 const DISPLAY = {

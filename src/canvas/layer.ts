@@ -1,5 +1,5 @@
 import { TreeNode, connectChildren } from './treeNode'
-import { CanvasElement, ElementTypes, createElementAPI } from './element'
+import { CanvasElement, createElementAPI } from './element'
 import { wideTraversal, deepTraversal } from '../utils/traversal'
 import { CanvasRenderer, createCanvasRenderer } from './renderer'
 import { isWX, walkParent } from '../utils'
@@ -7,6 +7,9 @@ import { isWX, walkParent } from '../utils'
 export type TravedElementList = Array<CanvasElement>
 
 type LayerOptions = {
+  dpr: number
+  width: number
+  height: number
   renderStyles: any
 }
 
@@ -24,14 +27,15 @@ export interface Layer {
   _flow(): void
   _reflow(): void
   _initPaintList(): void
-  _reflowElement(el: CanvasElement): void
+  _reflowElement(elm: CanvasElement): void
   _callBeforePaint(): void
   _repaint(): void
   init(): void
+  mount(elm: CanvasElement): void
   update(ctx: CanvasRenderingContext2D, options: LayerOptions): void
-  onElementRemove(el: CanvasElement): void
-  onElementAdd(el: CanvasElement): void
-  onElementChange(el: CanvasElement): void
+  onElementRemove(elm: CanvasElement): void
+  onElementAdd(elm: CanvasElement): void
+  onElementChange(elm: CanvasElement): void
   animate(): void
   getElementBy(): CanvasElement
   lifecycle(name: string, arg: any): void
@@ -54,7 +58,6 @@ export function createLayer(ctx, options) {
       connectChildren(layer.node)
       layer._initC2PList()
       layer._initP2CList()
-      console.log('initRender', layer.c2pList, layer.p2cList)
 
       layer._flow()
 
@@ -92,15 +95,15 @@ export function createLayer(ctx, options) {
 
     _initPaintList() {},
 
-    _reflowElement(element) {
+    _reflowElement(elm) {
       // 如果有line，则需要重第一个开始
-      let target: any = element
+      let target: any = elm
       while (target && target.line) {
         target = target.parent
       }
       const p2cList = wideTraversal(target)
       for (let i = 0; i < p2cList.length; i++) {
-        p2cList[i]._initStyles()
+        // p2cList[i]._initStyles()
       }
 
       // 所有子元素
@@ -109,7 +112,7 @@ export function createLayer(ctx, options) {
         children[i]._initWidthHeight()
       }
 
-      if (!element.isInFlow()) {
+      if (!elm.isInFlow()) {
         for (let i = 0; i < p2cList.length; i++) {
           p2cList[i]._initPosition()
         }
@@ -129,13 +132,12 @@ export function createLayer(ctx, options) {
      * 可以给定element，则只会重绘element所在的区域
      * @param {Element} element
      */
-    _repaint(element = layer.node) {
-      console.log('_repaint---------------')
+    _repaint(elm = layer.node) {
       if (isWX) {
         // 微信环境下始终重绘整个树
-        element = layer.node
+        elm = layer.node
       }
-      if (element && !element.isInFlow()) element = layer.node
+      if (elm && !elm.isInFlow()) elm = layer.node
 
       layer._callBeforePaint()
 
@@ -160,24 +162,30 @@ export function createLayer(ctx, options) {
       layer._initRender()
     },
 
+    mount(elm) {
+      console.log('mount')
+      layer.node.appendChild(elm)
+    },
+
     onElementRemove() {},
 
-    onElementAdd(el) {
+    onElementAdd(elm) {
+      console.log('onElementAdd', elm)
       layer._initC2PList()
       layer._initP2CList()
-      console.log('onElementAdd', layer.p2cList)
+
+      console.log(layer.p2cList)
 
       layer.p2cList.forEach((item) => {
+        console.log('onElementAdd-000000', item)
         item.init()
       })
-
-      layer._reflowElement(el)
+      // layer._reflowElement(el)
     },
 
     // 元素变化后调用，尽可能少重排重绘
-    onElementChange(element) {
-      console.log('onElementChange-------')
-      walkParent(element, (parent, callbreak) => {
+    onElementChange(elm) {
+      walkParent(elm, (parent, callbreak) => {
         parent._initWidthHeight()
         if (parent.type === 'scroll-view') callbreak()
       })
@@ -204,11 +212,9 @@ export function createLayer(ctx, options) {
   }
 
   const createCanvasElement = createElementAPI(layer)
-  const createRootCanvasElement = () =>
-    createCanvasElement(ElementTypes.root, {}, [])
+  const createRootCanvasElement = () => createCanvasElement('root', {}, [])
 
   layer.node = createRootCanvasElement()
-  console.info('init-layer------------------------', layer)
   layer.node.layer = layer
   layer.node.root = layer.node
 

@@ -8,7 +8,6 @@ export function createViewElement(element: CanvasElement): ViewElement {
   return {
     ...element,
     paint() {
-      console.log('paint-----')
       const renderer = this.getRenderer()
 
       if (this.options.render) {

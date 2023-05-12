@@ -4,16 +4,16 @@ function init() {
   const canvas = document.querySelector('#canvas')
 
   const _ctx = canvas.getContext('2d')
-  const _dpr = window.devicePixelRatio
+  const dpr = window.devicePixelRatio
   const _w = window.innerWidth
   const _h = window.innerHeight
-  canvas.width = _w * _dpr
-  canvas.height = _h * _dpr
+  canvas.width = _w * dpr
+  canvas.height = _h * dpr
 
-  console.log(_ctx, _dpr, _w, _h)
+  console.log(_ctx, dpr, _w, _h)
 
   const { layer, createCanvasElement } = createLayer(_ctx, {
-    _dpr,
+    dpr,
     width: _w,
     height: _h,
     lifecycle: {
@@ -26,16 +26,31 @@ function init() {
     }
   })
 
-  const App = h('div', { style: { color: 'red', borderColor: 'red' } }, [
-    'hello ',
-    h('span', 'world')
-  ])
-  console.log('App', App)
+  // const App = h('div', { style: { color: 'red', borderColor: 'red' } }, [
+  //   'hello ',
+  //   h('span', 'world')
+  // ])
+  // console.log('App', App)
 
-  const app = createRenderer(createNodeOps(createCanvasElement)).createApp(App)
-  console.log('app', app)
+  // const app = createRenderer(createNodeOps(createCanvasElement)).createApp(App)
+  // console.log('app', app)
 
-  app.mount(layer.node)
+  // app.mount(layer.node)
+
+  const elm = createCanvasElement('view')
+  const childElm = createCanvasElement('view', {
+    style: { color: 'red', textAlign: 'center' }
+  })
+  const textElm = createCanvasElement('text', {
+    style: { color: 'green' }
+  })
+
+  layer.mount(elm)
+
+  childElm.appendChild(textElm)
+  elm.appendChild(childElm)
+  // console.log(childElm.renderStyles)
+  // console.log(textElm._getExtendStyles())
 }
 
 init()

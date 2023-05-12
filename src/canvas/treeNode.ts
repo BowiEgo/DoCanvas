@@ -38,40 +38,38 @@ export function createTreeNode(children: TreeNodeChildren = []) {
     next: null,
 
     get children() {
-      return this._children
+      return treeNode._children
     },
 
     // get parent() {
-    //   return this._parent
+    //   return treeNode._parent
     // },
 
     _setParent(node) {
-      console.log('_setParent', this, node)
-      this.parent = node
+      console.log('_setParent', treeNode, this, node)
+      treeNode.parent = node
     },
 
     _setSibling(prev, next) {
-      console.log('_setSibling', prev, next)
-      this.prev = prev
-      this.next = next
+      treeNode.prev = prev
+      treeNode.next = next
     },
 
     hasChildren() {
-      return Array.isArray(this._children) && this._children.length
+      return Array.isArray(treeNode._children) && treeNode._children.length
         ? true
         : false
     },
 
     appendChild(child) {
-      console.log('TreeNode-Append-Child---------------')
       if (!isTreeNode(child)) throw Error('Unknown treeNode type')
 
-      const prev = this._children[this._children.length - 1] || null
+      const prev = treeNode._children[treeNode._children.length - 1] || null
       if (prev && isTreeNode(prev)) {
         prev._setSibling(prev.prev, child)
       }
 
-      Array.isArray(this._children) && this._children.push(child)
+      Array.isArray(treeNode._children) && treeNode._children.push(child)
 
       child._setParent(this)
       child._setSibling(prev, null)
@@ -96,7 +94,6 @@ export function createTreeNode(children: TreeNodeChildren = []) {
 }
 
 export function connectChildren(el) {
-  console.warn('connectChildren', el)
   if (el.hasChildren()) {
     el.children = el.children.filter((item) => {
       isTreeNode(item)

@@ -92,7 +92,6 @@ function createBaseVNode(
   children: unknown = null,
   patchFlag = 0
 ) {
-  console.log('createBaseVNode', type, props, children)
   const vnode = {
     __v_isVNode: true,
     __v_skip: true,
@@ -118,14 +117,11 @@ export function createVNode(
   children: unknown = null,
   patchFlag: number = 0
 ) {
-  console.log('createVNode', type, props, children)
   if (isVNode(type)) {
     const cloned = cloneVNode(type, props, true /* mergeRef: true */)
-    console.log('cloned', cloned)
     if (children) {
       normalizeChildren(cloned, children)
     }
-    console.log('children', children)
 
     return cloned
   }
@@ -152,7 +148,6 @@ export function cloneVNode(
   mergeRef = false
 ): VNode {
   if (vnode && typeof vnode !== 'object') {
-    console.log('cloneVNode', vnode)
     return vnode
   }
   // This is intentionally NOT using spread or extend to avoid the runtime
@@ -180,7 +175,6 @@ export function cloneVNode(
  * https://github.com/vitejs/vite/issues/2022
  */
 function deepCloneVNode(vnode: VNode): VNode {
-  console.log('deepCloneVNode', vnode)
   const cloned = cloneVNode(vnode)
   if (isArray(vnode.children)) {
     cloned.children = (vnode.children as VNode[]).map(deepCloneVNode)
@@ -196,7 +190,6 @@ export function createTextVNode(text: string = ' ', flag: number = 0): VNode {
 }
 
 export function normalizeVNode(child: VNodeChild): VNode {
-  console.log('normalizeVNode', child)
   if (child == null || typeof child === 'boolean') {
     // empty placeholder
     return createVNode(Comment)
@@ -223,8 +216,6 @@ export function cloneIfMounted(child: VNode): VNode {
 }
 
 export function normalizeChildren(vnode: VNode, children: unknown) {
-  console.log('normalizeChildren', vnode, children)
-
   if (children == null) {
     children = null
   } else if (isArray(children)) {

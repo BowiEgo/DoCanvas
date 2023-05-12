@@ -3,7 +3,6 @@ import { isObject, isArray } from './utils'
 
 export function h(type: any, propsOrChildren?: any, children?: any): VNode {
   const l = arguments.length
-  console.log('h', l, type, propsOrChildren, children)
   if (l === 2) {
     if (isObject(propsOrChildren) && !isArray(propsOrChildren)) {
       // single vnode without props

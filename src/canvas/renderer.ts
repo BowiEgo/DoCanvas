@@ -1,4 +1,4 @@
-import { floor, getThrottle, isExact, isWX, walk } from '../utils'
+import { floor, getThrottle, isExact, isString, isWX, walk } from '../utils'
 import { CanvasElement, isCanvasElement } from './element'
 import { Layer } from './layer'
 import STYLE_CONSTANT from './styleConstant'
@@ -112,14 +112,12 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
         contentWidth: 100,
         contentHeight: 100
       }
-      console.log('_drawBox-------', element, element.renderStyles)
 
       if (
         !(element.renderStyles.borderColor || element.renderStyles.shadowBlur)
       )
         return
 
-      console.log('_drawBox-------')
       const {
         contentWidth,
         contentHeight,
@@ -155,7 +153,7 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
         paddingBottom +
         (borderTopWidth + borderBottomWidth) / 2
 
-      this.getCtx().lineCap = element.renderStyles.lineCap
+      this.getCtx().lineCap = element.renderStyles.lineCap || 'butt'
       this.getCtx().strokeStyle = element.renderStyles.borderColor
       this.getCtx().lineJoin = 'round'
 
@@ -176,7 +174,6 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
       this._restore(() => {
         this._path(() => {
           if (element.renderStyles.borderTopWidth) {
-            console.log(x, y)
             this.topBorder({
               x,
               y,
@@ -439,8 +436,8 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
       let _x = x
       let _y = 0
       let line
-      for (let index = 0; index < element._lines.length; index++) {
-        line = element._lines[index]
+      for (let index = 0; index < element.lines.length; index++) {
+        line = element.lines[index]
         if (index === 0 && textIndent) {
           // 第一行实现textIndent
           _x = x + textIndent
@@ -554,7 +551,6 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
     },
 
     paint(element) {
-      console.log('renderer-paint-----------')
       this.getCtx().save()
 
       element.paint(this.lastPaintTime)
@@ -695,7 +691,6 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
     render(node) {
       this.lastFrameComplete = false
       this.lastPaintTime = Date.now()
-      console.log('render----------', node, this.getCtx(), this.getLayer())
       if (!node.parent) {
         // root
         this.getCtx().clearRect(
@@ -714,16 +709,13 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
       }
       let element = null
       walk(node, (renderNode, callContinue, callNext) => {
-        console.log('walk-------------', renderNode)
-        if (isCanvasElement(renderNode)) {
-          if (renderNode.isVisible && renderNode.isVisible()) {
-            // 可见的才渲染
-            this.paint(renderNode)
-          } else {
-            // 跳过整个子节点
-            callNext()
-            this._helpParentRestoreCtx(renderNode)
-          }
+        if (isCanvasElement(renderNode) && renderNode.isVisible()) {
+          // 可见的才渲染
+          this.paint(renderNode)
+        } else {
+          // 跳过整个子节点
+          callNext()
+          this._helpParentRestoreCtx(renderNode)
         }
       })
       if (isWX) {
@@ -737,7 +729,6 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
     renderFPS() {},
 
     readyToRender(element) {
-      console.log('_readyToRender')
       // this.element = generateRenderTree(element)
       this.element = element
 

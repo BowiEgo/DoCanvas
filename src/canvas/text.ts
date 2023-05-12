@@ -18,11 +18,11 @@ export interface TextElement extends CanvasElement {
   children: string
   debugColor: string
 
-  _paint(): void
   _getDefaultStyles(): ElementStyleType
   _measureLayout(): Layout
   _getFont(): string
   _calcLine(): void
+  paint(): void
 }
 
 export function createTextElement(element: CanvasElement): TextElement {
@@ -31,12 +31,6 @@ export function createTextElement(element: CanvasElement): TextElement {
     layout: null,
     lines: [] as TextLine[],
     debugColor: 'blue',
-
-    _paint() {
-      text.getRender()._drawBackground(text)
-      text.getRender()._drawText(text)
-      text.getRender()._drawBox(text)
-    },
 
     _getDefaultStyles() {
       return {
@@ -48,7 +42,8 @@ export function createTextElement(element: CanvasElement): TextElement {
     },
 
     _measureLayout() {
-      text.layout = text.getRender().measureText(text, text.children)
+      console.log('_measureLayout', text)
+      text.layout = text.getRenderer().measureText(text, text.children)
       text.layout.height = text.renderStyles.lineHeight
       text._calcLine()
       return text.layout
@@ -60,11 +55,12 @@ export function createTextElement(element: CanvasElement): TextElement {
     },
 
     _calcLine() {
+      console.log('_calcLine', text.parent)
       if (!text.parent || !text.children) return
+
       const { width: textWidth, height: textHeight } = text.layout
-      let { contentWidth: parentContentWidth } =
-        text.parent.context.renderStyles
-      const { width: parentWidth } = text.parent.context.styles
+      let { contentWidth: parentContentWidth } = text.parent.renderStyles
+      const { width: parentWidth } = text.parent.styles
       if (!isAuto(text.styles.width))
         parentContentWidth = text.renderStyles.width
       // 如果一行宽度够，或者父级宽度是auto
@@ -86,7 +82,7 @@ export function createTextElement(element: CanvasElement): TextElement {
         let lastLayout = null
         for (let i = 0; i < text.children.length; i++) {
           layout = text
-            .getRender()
+            .getRenderer()
             .measureText(text, lineText + text.children[i])
           if (layout && layout.width > parentContentWidth) {
             if (lineIndex >= text.renderStyles.maxLine) {
@@ -110,11 +106,18 @@ export function createTextElement(element: CanvasElement): TextElement {
         text.layout.width = parentContentWidth
         text.lines.push({
           text: lineText,
-          layout: text.getRender().measureText(text, lineText)
+          layout: text.getRenderer().measureText(text, lineText)
         })
         // 根据lineheihgt更新height
         text.layout.height = text.lines.length * text.renderStyles.lineHeight
       }
+    },
+
+    paint() {
+      const renderer = this.getRenderer()
+      renderer._drawBackground(text)
+      renderer._drawText(text)
+      renderer._drawBox(text)
     }
   }
 
