@@ -20,7 +20,6 @@ export function createContext() {
     },
     onElementAdd(elm) {
       if (elm.root === context.body) {
-        console.log('onElementAdd', elm)
         context.stackingContext = createStackingContext(elm)
       }
     }
