@@ -6,7 +6,7 @@ import {
   isFunction,
   normalizeClass,
   normalizeStyle
-} from './utils'
+} from '../utils'
 import { RendererNode } from './renderer'
 import { ComponentInternalInstance, Data } from './components'
 import { AppContext } from './createApp'

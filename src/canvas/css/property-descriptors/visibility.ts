@@ -1,7 +1,7 @@
 import {
   IPropertyIdentValueDescriptor,
   PropertyDescriptorParsingType
-} from './IPropertyDescriptor'
+} from '../types/IPropertyDescriptor'
 
 export const enum VISIBILITY {
   VISIBLE = 0,

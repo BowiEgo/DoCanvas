@@ -1,5 +1,5 @@
 import { VNode, createVNode, VNodeArrayChildren, isVNode } from './vnode'
-import { isObject, isArray } from './utils'
+import { isObject, isArray } from '../utils'
 
 export function h(type: any, propsOrChildren?: any, children?: any): VNode {
   const l = arguments.length

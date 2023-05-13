@@ -8,6 +8,7 @@ export interface TreeNode {
   root: TreeNode | null
   prev: TreeNode | string | null
   next: TreeNode | string | null
+  context: any
   hasChildren(): boolean
   appendChild(child: TreeNode): void
   prependChild(child: TreeNode): void
@@ -25,14 +26,15 @@ export function isEndNode(node) {
   return node.parent && !node.next && !node.hasChildren()
 }
 
-export function createTreeNode(children: TreeNodeChildren = []) {
+export function createTreeNode(options) {
   const treeNode: TreeNode = {
     __v_isTreeNode: true,
-    _children: children,
+    _children: [],
     parent: null,
     root: null,
     prev: null,
     next: null,
+    context: options.context,
     get children() {
       return treeNode._children
     },
@@ -45,8 +47,8 @@ export function createTreeNode(children: TreeNodeChildren = []) {
     remove
   }
 
-  function _setParent(node: TreeNode, parent: TreeNode): void {
-    node.parent = parent
+  function _setParent(child: TreeNode, parent): void {
+    child.parent = parent
   }
 
   function _setSibling(
@@ -74,7 +76,7 @@ export function createTreeNode(children: TreeNodeChildren = []) {
 
     Array.isArray(treeNode._children) && treeNode._children.push(child)
 
-    _setParent(child, this)
+    _setParent(child, treeNode)
     _setSibling(child, prev, null)
   }
 

@@ -1,5 +1,5 @@
 import { CanvasElement, isCanvasElement } from '../canvas/element'
-import { TreeNodeChildren } from '../canvas/treeNode'
+import { TreeNodeChildren } from '../canvas/tree-node'
 import { isArray } from './general'
 
 export function floor(val) {

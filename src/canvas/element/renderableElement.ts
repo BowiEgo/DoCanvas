@@ -1,4 +1,4 @@
-import { NOOP } from '../utils'
+import { NOOP } from '../../utils'
 
 export interface RenderableElement {
   paint(): void

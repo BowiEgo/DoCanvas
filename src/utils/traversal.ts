@@ -1,4 +1,4 @@
-import { TreeNode } from '../Canvas/treeNode'
+import { TreeNode } from '../canvas/tree-node'
 import { CanvasElement } from '../canvas/element'
 import { TravedElementList } from '../canvas/layer'
 import { isArray } from './general'

@@ -8,7 +8,7 @@ import {
 import { createAppAPI } from './createApp'
 import { ComponentInternalInstance, Data } from './components'
 import { flushPreFlushCbs, flushPostFlushCbs } from './scheduler'
-import { EMPTY_OBJ, EMPTY_ARR, PatchFlags, ShapeFlags } from './utils'
+import { EMPTY_OBJ, EMPTY_ARR, PatchFlags, ShapeFlags } from '../utils'
 
 export type RootRenderFunction<HostElement = RendererElement> = (
   vnode: VNode | null,
