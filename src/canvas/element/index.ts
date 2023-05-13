@@ -19,6 +19,7 @@ import { compose, curry, pipe } from '../../utils/fp'
 import { VISIBILITY } from '../css/property-descriptors/visibility'
 import { RenderableElement, createRenderableElement } from './renderableElement'
 import { CanvasRenderer } from '../render'
+import { Context } from '../context'
 
 export const DEFAULT_CONTAINER = {
   styles: {},
@@ -123,13 +124,14 @@ export interface CanvasElement {
   options: ElementOptions
   styles: ElementStyleType
   debugColor: string | null
+  context: Context
   node: TreeNode
   appendChild(child: CanvasElement): void
-  getContainer(): CanvasElement
   isVisible(): boolean
 }
 
 export function createBaseElement(
+  context: Context,
   type: string,
   options: ElementOptions = {},
   children?: CanvasElement[] | string
@@ -139,6 +141,7 @@ export function createBaseElement(
     type,
     options,
     styles: {} as ElementStyleType,
+    context,
     node: null,
     debugColor: null
   }
@@ -146,19 +149,46 @@ export function createBaseElement(
   let element: CanvasElement = {
     ...props,
     appendChild,
-    getContainer,
     isVisible
   }
 
-  let treeNode = createTreeNode({ context: element })
+  let treeNode = createTreeNode({ instance: element })
   element.node = treeNode
+
+  Object.defineProperty(element, 'root', {
+    get() {
+      return treeNode.root.instance
+    }
+  })
+
+  Object.defineProperty(element, 'container', {
+    get() {
+      return treeNode.parent ? treeNode.parent.instance : null
+    }
+  })
+
+  Object.defineProperty(element, 'prevSibling', {
+    get() {
+      return treeNode.prev ? treeNode.prev.instance : null
+    }
+  })
+
+  Object.defineProperty(element, 'nextSibling', {
+    get() {
+      return treeNode.next ? treeNode.next.instance : null
+    }
+  })
+
+  Object.defineProperty(element, 'children', {
+    get() {
+      if (isString(children)) return children
+      return treeNode.children.map((item) => item.instance)
+    }
+  })
 
   function appendChild(child) {
     treeNode.appendChild(child.node)
-  }
-
-  function getContainer() {
-    return element.node.parent ? element.node.parent.context : null
+    element.context.onElementAdd(child)
   }
 
   function isVisible(): boolean {
@@ -180,24 +210,28 @@ export function createBaseElement(
   return element
 }
 
-export function createElement(
-  type: string,
-  options: ElementOptions = {},
-  children?: CanvasElement[] | string
-): CanvasElement {
-  switch (type) {
-    case 'text':
-      return compose([toTextElement, createBaseElement])(
-        type,
-        options,
-        children
-      )
-    default:
-      return compose([toViewElement, createBaseElement])(
-        type,
-        options,
-        children
-      )
+export function createElementAPI(context): Function {
+  return function createElement(
+    type: string,
+    options: ElementOptions = {},
+    children?: CanvasElement[] | string
+  ): CanvasElement {
+    switch (type) {
+      case 'text':
+        return compose([toTextElement, createBaseElement])(
+          context,
+          type,
+          options,
+          children
+        )
+      default:
+        return compose([toViewElement, createBaseElement])(
+          context,
+          type,
+          options,
+          children
+        )
+    }
   }
 }
 

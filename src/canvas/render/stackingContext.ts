@@ -1,4 +1,6 @@
+import { BFS, PostOrderDFS } from '../../utils/treeSearch'
 import { CanvasElement } from '../element'
+import { TreeNode } from '../tree-node'
 
 interface StackingContext {
   element: CanvasElement // 层叠上下文顶端节点
@@ -25,6 +27,11 @@ export function createStackingContext(
     inlineLevel: [],
     nonInlineLevel: []
   }
+
+  let breathArr = BFS(container.node)
+  let postOrderDeepArr = PostOrderDFS(container.node)
+  console.log('breathArr', breathArr)
+  console.log('postOrderDeepArr', postOrderDeepArr)
 
   return stackingContext
 }

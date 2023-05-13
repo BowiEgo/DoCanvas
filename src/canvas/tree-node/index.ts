@@ -1,4 +1,4 @@
-export type TreeNodeChildren = Array<any> | string
+export type TreeNodeChildren = Array<TreeNode>
 
 export interface TreeNode {
   __v_isTreeNode: boolean
@@ -6,9 +6,9 @@ export interface TreeNode {
   children: TreeNodeChildren
   parent: TreeNode | null
   root: TreeNode | null
-  prev: TreeNode | string | null
-  next: TreeNode | string | null
-  context: any
+  prev: TreeNode | null
+  next: TreeNode | null
+  instance: any
   hasChildren(): boolean
   appendChild(child: TreeNode): void
   prependChild(child: TreeNode): void
@@ -26,17 +26,22 @@ export function isEndNode(node) {
   return node.parent && !node.next && !node.hasChildren()
 }
 
-export function createTreeNode(options) {
+export function createTreeNode(options?) {
   const treeNode: TreeNode = {
     __v_isTreeNode: true,
-    _children: [],
+    _children: options.children || [],
     parent: null,
-    root: null,
     prev: null,
     next: null,
-    context: options.context,
+    instance: options.instance || null,
+    set children(value) {
+      treeNode._children = value
+    },
     get children() {
-      return treeNode._children
+      return treeNode._children || []
+    },
+    get root() {
+      return getRoot(this)
     },
     hasChildren,
     appendChild,
@@ -47,17 +52,12 @@ export function createTreeNode(options) {
     remove
   }
 
-  function _setParent(child: TreeNode, parent): void {
-    child.parent = parent
-  }
-
-  function _setSibling(
-    node: TreeNode,
-    prev: TreeNode | string | null,
-    next: TreeNode | null
-  ): void {
-    node.prev = prev
-    node.next = next
+  function getRoot(node) {
+    if (node.parent) {
+      return getRoot(node.parent)
+    } else {
+      return node
+    }
   }
 
   function hasChildren() {
@@ -97,17 +97,25 @@ export function createTreeNode(options) {
   return treeNode
 }
 
-export function connectChildren(el) {
-  if (el.hasChildren()) {
-    el.children = el.children.filter((item) => {
-      isTreeNode(item)
-    })
-    el._getChildren().map((child, index) => {
-      child._setParent(el)
-      child._setSibling(
-        el._getChildren()[index - 1],
-        el._getChildren()[index + 1]
-      )
+function _setParent(child: TreeNode, parent): void {
+  child.parent = parent
+}
+
+function _setSibling(
+  node: TreeNode,
+  prev: TreeNode | null,
+  next: TreeNode | null
+): void {
+  node.prev = prev
+  node.next = next
+}
+
+export function connectChildren(node) {
+  console.log('connectChildren', node)
+  if (node.hasChildren()) {
+    node._children.map((child, index) => {
+      _setParent(child, node)
+      _setSibling(child, node._children[index - 1], node._children[index + 1])
       connectChildren(child)
     })
   }

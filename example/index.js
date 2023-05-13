@@ -26,7 +26,7 @@ function initCanvas() {
   })
 
   const elm = DoCanvas.createElement('view')
-  const childElm = DoCanvas.createElement('view', {
+  const childElm1 = DoCanvas.createElement('view', {
     style: {
       color: 'red',
       textAlign: 'center',
@@ -36,15 +36,22 @@ function initCanvas() {
       marginTop: 40
     }
   })
-  const textElm = DoCanvas.createElement('text', {
-    children: 'hello'
+  const childElm2 = DoCanvas.createElement('view', {
+    style: {
+      backgroundColor: '#00aeec45',
+      width: 50,
+      height: 120
+    }
   })
+  const textElm = DoCanvas.createElement('text', {}, 'hello')
 
+  childElm1.appendChild(textElm)
+  elm.appendChild(childElm1)
+  elm.appendChild(childElm2)
   DoCanvas.context.body.appendChild(elm)
-  childElm.appendChild(textElm)
-  elm.appendChild(childElm)
 
-  console.log(elm.node.context === elm)
+  console.log(elm.node.instance, elm)
+  console.log(childElm1.container === elm)
 }
 
 function initHTMLELement() {

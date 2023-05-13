@@ -1,6 +1,6 @@
-import { DEFAULT_CONTAINER, createElement } from '..'
+import { DEFAULT_CONTAINER } from '..'
 import STYLE_CONSTANT from '../../styleConstant'
-import DoCanvas from '../../__test__'
+import DoCanvas from '../../__test__/index.spec'
 
 describe('create canvasElement', () => {
   const elm = DoCanvas.createElement('view')
@@ -14,18 +14,16 @@ describe('create canvasElement', () => {
       marginTop: 40
     }
   })
-  const textElm = DoCanvas.createElement('text', {
-    text: 'hello'
-  })
+  const textElm = DoCanvas.createElement('text', {}, 'hello')
 
   DoCanvas.context.body.appendChild(elm)
   childElm.appendChild(textElm)
   elm.appendChild(childElm)
 
   test('canvasElement container', () => {
-    expect(elm.getContainer()).toEqual(DoCanvas.context.body)
-    expect(childElm.getContainer()).toEqual(elm)
-    expect(textElm.getContainer()).toEqual(childElm)
+    expect(elm.container).toEqual(DoCanvas.context.body)
+    expect(childElm.container).toEqual(elm)
+    expect(textElm.container).toEqual(childElm)
   })
 
   // test("extend container's style", () => {
