@@ -9,17 +9,28 @@ import {
   parseOuter,
   findRelativeTo,
   floor,
-  isArray
+  isArray,
+  mergeDeep,
+  isString,
+  isNumber,
+  extend
 } from '../utils'
 import { Line, createLine } from './line'
 import { createFlexBox } from './flexBox'
 import { createViewElement } from './view'
 import { createTextElement } from './text'
+import { curry, pipe } from '../utils/fp'
+import { VISIBILITY } from './property-descriptors/visibility'
+import { RenderableElement, createRenderableElement } from './renderableElement'
+import { CanvasRenderer } from './renderer'
 
 export const DEFAULT_CONTAINER = {
+  styles: {},
   renderStyles: {
-    width: '100%',
-    height: '100%',
+    width: 0,
+    height: 0,
+    paddingWidth: 0,
+    paddingHeight: 0,
     paddingTop: 0,
     paddingBottom: 0,
     paddingLeft: 0,
@@ -28,8 +39,14 @@ export const DEFAULT_CONTAINER = {
     marginRight: 0,
     marginTop: 0,
     marginBottom: 0,
+    borderTopWidth: 0,
+    borderBottomWidth: 0,
+    borderLeftWidth: 0,
+    borderRightWidth: 0,
     contentWidth: 0,
     contentHeight: 0,
+    fullBoxWidth: 0,
+    fullBoxHeight: 0,
     lineCap: 'butt',
     visible: true
   },
@@ -48,25 +65,6 @@ export const DEFAULT_CONTAINER = {
 //   img = 'img'
 // }
 
-export type Layout = {
-  width: number
-  height: number
-  x: number
-  y: number
-  paddingTop?: number
-  paddingBottom?: number
-  paddingLeft?: number
-  paddingRight?: number
-  marginLeft?: number
-  marginRight?: number
-  marginTop?: number
-  marginBottom?: number
-  contentX?: number
-  contentY?: number
-  contentWidth?: number
-  contentHeight?: number
-}
-
 type ExtendStyles = {
   textAlign?: string
   lineHeight?: number
@@ -78,9 +76,18 @@ type ExtendStyles = {
   visible?: boolean
 }
 
-type RenderStyle = {
-  width: number | string
-  height: number | string
+export type Layout = {
+  x: number
+  y: number
+  contentX?: number
+  contentY?: number
+}
+
+export type RenderStyle = {
+  width: number
+  height: number
+  paddingWidth: number
+  paddingHeight: number
   paddingTop: number
   paddingBottom: number
   paddingLeft: number
@@ -89,17 +96,21 @@ type RenderStyle = {
   marginRight: number
   marginTop: number
   marginBottom: number
-  contentWidth: number | string
-  contentHeight: number | string
+  contentWidth: number
+  contentHeight: number
+  fullBoxWidth: number
+  fullBoxHeight: number
   lineCap: string // butt round square
+  visible: boolean
 }
 
-type CanvasElementContainer =
-  | {
-      renderStyles: RenderStyle
-      layout: Layout
-    }
-  | CanvasElement
+type DefaultContainer = {
+  styles: ElementStyleType
+  renderStyles: RenderStyle
+  layout: Layout
+}
+
+type CanvasElementContainer = CanvasElement | DefaultContainer
 
 export type ElementOptions = {
   style?: ElementStyleType
@@ -107,51 +118,43 @@ export type ElementOptions = {
 }
 
 export function isCanvasElement(value: any): value is CanvasElement {
-  return value ? value.__v_isElement === true : false
+  return value ? value.__v_isCanvasElement === true : false
 }
 
-export interface CanvasElement extends TreeNode {
-  __v_isElement: boolean
+export interface CanvasElement extends TreeNode, RenderableElement {
+  __v_isCanvasElement: boolean
   type: string
   options: ElementOptions
   styles: ElementStyleType
+  layout: Layout
   renderStyles: any
   debugColor: string | null
   container: CanvasElementContainer
-  root: CanvasElement | null
-  layer: Layer | null
   relativeTo: CanvasElement | null
+  layer: Layer | null
   line: Line | null
-  layout: Layout
-  left: number
-  top: number
-  height: number
-  width: number
-  visible: boolean
-  _initStyles(): void
-  _getExtendStyles(): ExtendStyles
-  _getDefaultStyles(): ElementStyleType
-  _completeStyles(): void
-  _getChildren(): CanvasElement[]
-  _getChildrenInFlow(): CanvasElement[]
-  _reflow(): void
-  _initWidthHeight(): void
-  _initPosition(): void
-  _InFlexBox(): boolean
-  _refreshLayoutWithContent(): void
-  _refreshContentWithLayout(): void
-  _bindLine(): void
-  _bindFlexBox(): void
-  _measureLayout(): void
-  init(): void
-  appendChild(element: CanvasElement): void
-  getContainer(): CanvasElement
-  getContainerLayout(): Layout
-  getPrevLayout(): Layout
-  isInFlow(): boolean
+  // log(): void
+  // _getExtendStyles(): ExtendStyles
+  // _getDefaultStyles(): ElementStyleType
+  // _completeStyles(): void
+  // _getChildren(): CanvasElement[]
+  // _getChildrenInFlow(): CanvasElement[]
+  // _reflow(): void
+  // _initWidthHeight(): void
+  // _initPosition(): void
+  // _InFlexBox(): boolean
+  // _refreshLayoutWithContent(): void
+  // _refreshContentWithLayout(): void
+  // _bindLine(): void
+  // _bindFlexBox(): void
+  // _measureLayout(): void
+  initRenderStyles(): void
+  appendChild(child: CanvasElement): void
+  getRenderer(): CanvasRenderer
+  // getContainerLayout(): Layout
+  // getPrevLayout(): Layout
+  // isInFlow(): boolean
   isVisible(): boolean
-  paint(lastPaintTime: number): void
-  __proto__: any
 }
 
 export function createElementAPI(layer: Layer) {
@@ -160,484 +163,71 @@ export function createElementAPI(layer: Layer) {
     options: ElementOptions = {},
     children?: CanvasElement[] | string
   ): CanvasElement {
-    function _initStyles() {
-      console.log('[_initStyles-000000]', this)
-      element.styles = Object.assign(
-        {},
-        element._getDefaultStyles(),
-        element._getExtendStyles(),
-        element.options.style || {}
-      )
+    let treeNode = createTreeNode(children)
+    let renderableElement = createRenderableElement()
 
-      element._completeStyles()
-
-      element.renderStyles = _getRenderStyles(element)
-      console.log('_initStyles', element, element.renderStyles)
-
-      if (element._InFlexBox()) {
-        element._bindFlexBox()
-      } else if (!element.isInFlow()) {
-        element.relativeTo = findRelativeTo(element)
-      }
-    }
-
-    function _getRenderStyles(element) {
-      let renderStyles = { ...element.styles }
-      const parentWidth = element.getContainerLayout().contentWidth
-      const parentHeight = element.getContainerLayout().contentHeight
-      console.log(parentWidth, parentHeight)
-
-      if (isAuto(renderStyles.width)) {
-        renderStyles.paddingWidth = 0
-      } else if (isOuter(renderStyles.width)) {
-        renderStyles.paddingWidth =
-          parseOuter(renderStyles.width) * parentWidth -
-          renderStyles.marginLeft -
-          renderStyles.marginRight
-      } else {
-        renderStyles.paddingWidth = renderStyles.width
-      }
-
-      if (isAuto(renderStyles.height)) {
-        renderStyles.paddingHeight = 0
-      } else if (isOuter(renderStyles.height)) {
-        renderStyles.paddingHeight =
-          parseOuter(renderStyles.height) * parentHeight -
-          renderStyles.marginTop -
-          renderStyles.marginBottom
-      } else {
-        renderStyles.paddingHeight = renderStyles.height
-      }
-
-      if (!renderStyles.paddingWidth) renderStyles.paddingWidth = 0
-      if (!renderStyles.paddingHeight) renderStyles.paddingHeight = 0
-
-      // 初始化contentWidth
-      renderStyles.contentWidth =
-        renderStyles.paddingWidth -
-        renderStyles.paddingLeft -
-        renderStyles.paddingRight
-      renderStyles.contentHeight =
-        renderStyles.paddingHeight -
-        renderStyles.paddingTop -
-        renderStyles.paddingBottom
-
-      renderStyles.width =
-        renderStyles.paddingWidth +
-        renderStyles.marginLeft +
-        renderStyles.marginRight +
-        getTotalBorderWidth(renderStyles)
-      renderStyles.height =
-        renderStyles.paddingHeight +
-        renderStyles.marginTop +
-        renderStyles.marginBottom +
-        getTotalBorderHeight(renderStyles)
-
-      return renderStyles
-    }
-
-    function _getExtendStyles(): ExtendStyles {
-      let extendStyles = {} as ExtendStyles
-      const extendKeys = [
-        'textAlign',
-        'fontSize',
-        'color',
-        'fontFamily',
-        'alignItems',
-        'visible'
-      ]
-
-      console.log('_getExtendStyles', element, element.getContainer())
-
-      extendKeys.map((key) => {
-        const value = element.container.renderStyles[key]
-        if (value) extendStyles[key] = value
-        if (key === 'visible') extendStyles[key] = value
-      })
-
-      return extendStyles
-    }
-
-    function _getDefaultStyles() {
-      return STYLE_CONSTANT.DEFAULT_STYLES
-    }
-
-    function _completeStyles() {
-      completeStyles(element)
-    }
-
-    function _getChildren() {
-      return isArray(this.children) ? this.children : []
-    }
-
-    // 获取文档流中的子节点
-    function _getChildrenInFlow() {
-      return element._getChildren().filter((item) => item.isInFlow())
-    }
-
-    /**
-     * 实现文档流 需要知道上一个兄弟节点
-     */
-    function _reflow() {}
-
-    function _initWidthHeight() {
-      const {
-        width,
-        height,
-        display,
-        flex,
-        marginLeft,
-        marginRight,
-        marginTop,
-        marginBottom
-      } = element.styles
-      if (isAuto(width) || isAuto(height)) {
-        // 这一步需要遍历，判断一下
-        const layout = element._measureLayout()
-        // 初始化宽度高度
-        if (isAuto(width)) {
-          element.renderStyles.contentWidth = floor(layout.width)
-        }
-
-        if (isAuto(height)) {
-          // 不填就是auto
-          element.renderStyles.contentHeight = floor(layout.height)
-        }
-      }
-
-      element._refreshLayoutWithContent()
-
-      if (element._InFlexBox()) {
-        element.line.refreshWidthHeight(element)
-      } else if (display === STYLE_CONSTANT.DISPLAY.INLINE_BLOCK) {
-        // 如果是inline-block  这里仅计算高度
-        element._bindLine()
-      }
-    }
-
-    function _initPosition() {
-      let { contentX } = element.getContainerLayout()
-      const {
-        paddingLeft,
-        paddingTop,
-        borderLeftWidth,
-        borderTopWidth,
-        marginLeft,
-        marginTop
-      } = element.renderStyles
-      // 初始化ctx位置
-      if (!element.isInFlow()) {
-        // 不在文档流中
-        let { contentX, contentY, contentWidth, contentHeight } =
-          element.getContainerLayout(element.relativeTo)
-        let { top, bottom, right, left, width, height } = element.renderStyles
-        if (isOuter(top)) top = parseOuter(top) * contentHeight
-        if (isOuter(bottom)) bottom = parseOuter(bottom) * contentHeight
-        if (isOuter(left)) left = parseOuter(left) * contentWidth
-        if (isOuter(right)) right = parseOuter(right) * contentWidth
-        if (isExact(top)) {
-          element.y = contentY + top
-        } else if (isExact(bottom)) {
-          element.y = contentY + contentHeight - bottom - height
-        }
-
-        if (isExact(left)) {
-          element.x = contentX + left
-        } else if (isExact(right)) {
-          element.x = contentX + contentWidth - right - width
-        }
-      } else if (element._InFlexBox()) {
-        element.line.refreshElementPosition(element)
-      } else if (
-        element.renderStyles.display === STYLE_CONSTANT.DISPLAY.INLINE_BLOCK
-      ) {
-        // inline-block到line里计算
-        // element._bindLine()
-        element.line.refreshElementPosition(element)
-      } else {
-        element.x = contentX
-        element.y = element.getPrevLayout().y + element.getPrevLayout().height
-      }
-      element.x = floor(element.x)
-      element.y = floor(element.y)
-      element.contentX = element.x + paddingLeft + borderLeftWidth + marginLeft
-      element.contentY = element.y + paddingTop + borderTopWidth + marginTop
-    }
-
-    function _InFlexBox() {
-      if (!element.isInFlow()) return false
-      if (!element.container) return false
-      if (
-        element.container &&
-        element.container.renderStyles.display === STYLE_CONSTANT.DISPLAY.FLEX
-      )
-        return true
-    }
-
-    // 父元素根据子元素撑开content后，再计算width
-    function _refreshLayoutWithContent() {
-      element.renderStyles.height = floor(
-        element.renderStyles.contentHeight +
-          element.renderStyles.paddingTop +
-          element.renderStyles.paddingBottom +
-          element.renderStyles.marginTop +
-          element.renderStyles.marginBottom +
-          getTotalBorderHeight(element.renderStyles)
-      )
-      element.renderStyles.width = floor(
-        element.renderStyles.contentWidth +
-          element.renderStyles.paddingLeft +
-          element.renderStyles.paddingRight +
-          element.renderStyles.marginLeft +
-          element.renderStyles.marginRight +
-          getTotalBorderWidth(element.renderStyles)
-      )
-      element.renderStyles.paddingWidth = floor(
-        element.renderStyles.contentWidth +
-          element.renderStyles.paddingLeft +
-          element.renderStyles.paddingRight
-      )
-      element.renderStyles.paddingHeight = floor(
-        element.renderStyles.contentHeight +
-          element.renderStyles.paddingTop +
-          element.renderStyles.paddingBottom
-      )
-    }
-
-    // 父元素根据子元素撑开content后，再计算width
-    function _refreshContentWithLayout() {
-      element.renderStyles.contentHeight =
-        element.renderStyles.height -
-        element.renderStyles.paddingTop -
-        element.renderStyles.paddingBottom -
-        element.renderStyles.marginTop -
-        element.renderStyles.marginBottom -
-        getTotalBorderHeight(element.renderStyles)
-      element.renderStyles.contentWidth =
-        element.renderStyles.width -
-        element.renderStyles.paddingLeft -
-        element.renderStyles.paddingRight -
-        element.renderStyles.marginLeft -
-        element.renderStyles.marginRight -
-        getTotalBorderWidth(element.renderStyles)
-      element.renderStyles.paddingWidth = floor(
-        element.renderStyles.contentWidth +
-          element.renderStyles.paddingLeft +
-          element.renderStyles.paddingRight
-      )
-      element.renderStyles.paddingHeight = floor(
-        element.renderStyles.contentHeight +
-          element.renderStyles.paddingTop +
-          element.renderStyles.paddingBottom
-      )
-    }
-
-    function getTotalBorderWidth(renderStyles) {
-      return renderStyles.borderLeftWidth + renderStyles.borderRightWidth
-    }
-
-    function getTotalBorderHeight(renderStyles) {
-      return renderStyles.borderTopWidth + renderStyles.borderBottomWidth
-    }
-
-    function _bindLine() {
-      if (
-        element.prev &&
-        element.prev.line &&
-        element.prev.line.canIEnter(element)
-      ) {
-        element.prev.line.add(element)
-      } else {
-        // 新行
-        createLine().bindElement(element)
-        // new Line().bind(element)
-      }
-    }
-
-    function _bindFlexBox() {
-      if (element.pre && element.pre.line) {
-        element.pre.line.add(element)
-      } else {
-        // 新行
-        createFlexBox().bindElement(element)
-      }
-    }
-
-    // 计算自身的高度
-    function _measureLayout() {
-      let width = 0 // 需要考虑原本的宽度
-      let height = 0
-      element._getChildrenInFlow().forEach((child) => {
-        if (child.line) {
-          if (child.line.start === child) {
-            if (child.line.width > width) {
-              width = child.line.width
-            }
-            height += child.line.height
-          }
-        } else if (child.renderStyles.width > width) {
-          width = child.renderStyles.width
-          height += child.renderStyles.height
-        } else {
-          height += child.renderStyles.height
-        }
-      })
-
-      return { width, height }
-    }
-
-    function init() {
-      element._initStyles()
-    }
-
-    function appendChild(child) {
-      console.log('appendChild')
-      treeNode.appendChild.call(this, child)
-      element.layer.onElementAdd(child)
-    }
-
-    function getContainer() {
-      return treeNode.parent || DEFAULT_CONTAINER
-    }
-
-    function getContainerLayout(): Layout {
-      const container = element.container
-
-      return {
-        width: container.renderStyles.width,
-        height: container.renderStyles.height,
-        paddingTop: container.renderStyles.paddingTop,
-        paddingBottom: container.renderStyles.paddingBottom,
-        paddingLeft: container.renderStyles.paddingLeft,
-        paddingRight: container.renderStyles.paddingRight,
-        marginLeft: container.renderStyles.marginLeft,
-        marginRight: container.renderStyles.marginRight,
-        marginTop: container.renderStyles.marginTop,
-        marginBottom: container.renderStyles.marginBottom,
-        x: container.layout.x,
-        y: container.layout.y,
-        contentX: container.layout.contentX,
-        contentY: container.layout.contentY,
-        contentWidth: container.layout.contentWidth,
-        contentHeight: container.layout.contentHeight
-      }
-    }
-
-    // 这里前一个节点必须在文档流中
-    function getPrevLayout(): Layout {
-      let cur = element.prev
-      while (cur && !cur.isInFlow()) {
-        cur = cur.prev
-      }
-      // 如果没有前一个或者前面的都不在文档流中，获取容器的
-      if (cur) {
-        return {
-          width: cur.renderStyles.width,
-          height: cur.renderStyles.height,
-          x: cur.x,
-          y: cur.y
-        }
-      } else {
-        return {
-          width: 0,
-          height: 0,
-          x: element.getContainerLayout().contentX,
-          y: element.getContainerLayout().contentY
-        }
-      }
-    }
-
-    // 是否在文档流中
-    function isInFlow() {
-      const { position, display } = element.styles
-      return (
-        position !== STYLE_CONSTANT.POSITION.ABSOLUTE &&
-        position !== STYLE_CONSTANT.POSITION.FIXED
-      )
-    }
-
-    function isVisible() {
-      return element.renderStyles.visible && element.visible
-    }
-
-    function getLayer() {
-      return this.layer
-    }
-
-    function getRenderer() {
-      return this.layer.renderer
-    }
-
-    function paint(lastPaintTime) {}
-
-    const treeNode = createTreeNode(children)
-
-    const element: CanvasElement = {
-      __v_isElement: true,
+    let props = {
+      __v_isCanvasElement: true,
       type,
       options,
       styles: {} as ElementStyleType,
+      layout: { x: 0, y: 0, contentX: 0, contentY: 0 },
       renderStyles: {},
       debugColor: null,
-      x: 0,
-      y: 0,
-      contentX: 0,
-      contentY: 0,
-      left: 0,
-      top: 0,
-      height: 0,
-      width: 0,
-      visible: true,
-      layer,
+      container: mergeDeep(DEFAULT_CONTAINER, {
+        renderStyles: {
+          contentWidth: layer.options.width,
+          contentHeight: layer.options.height
+        }
+      }),
       relativeTo: null,
-      layout: { x: 0, y: 0, contentX: 0, contentY: 0, width: 0, height: 0 },
-      treeNode,
-      // __proto__: treeNode,
-      get container() {
-        console.log('1219219209100', treeNode.parent, treeNode)
-        return (
-          (treeNode.parent as CanvasElement) || {
-            ...DEFAULT_CONTAINER,
-            ...{
-              layout: {
-                contentWidth: layer.options.width,
-                contentHeight: layer.options.height
-              }
-            }
-          }
-        )
-      },
-      _initStyles,
-      _getExtendStyles,
-      _getDefaultStyles,
-      _completeStyles,
-      _getChildren,
-      _getChildrenInFlow,
-      _reflow,
-      _initWidthHeight,
-      _initPosition,
-      _InFlexBox,
-      _refreshLayoutWithContent,
-      _refreshContentWithLayout,
-      _bindLine,
-      _bindFlexBox,
-      _measureLayout,
-      init,
-      appendChild,
-      getContainer,
-      getContainerLayout,
-      getPrevLayout,
-      isInFlow,
-      isVisible,
-      getLayer,
-      getRenderer,
-      paint
+      layer,
+      line: null
     }
 
-    // Object.assign(element, Object.create(treeNode))
-    // Object.setPrototypeOf(element, treeNode)
-    element.__proto__ = Object.create(treeNode.__proto__)
+    let element = {
+      ...props,
+      ...treeNode,
+      ...renderableElement,
+      appendChild,
+      initRenderStyles,
+      getRenderer,
+      isVisible
+    }
+
+    function appendChild(child) {
+      treeNode.appendChild.call(element, child)
+      child.container = element
+      layer.onElementAdd(child)
+    }
+
+    function initRenderStyles() {
+      element.styles = _initStyles(element)
+      element.renderStyles = _getRenderStyles(element)
+      console.log('initRenderStyles', element, element.renderStyles)
+    }
+
+    function getRenderer() {
+      return layer.renderer
+    }
+
+    function isVisible(): boolean {
+      return true
+      return (
+        this.styles.display > 0 &&
+        this.styles.opacity > 0 &&
+        this.style.visibility === VISIBILITY.VISIBLE
+      )
+    }
+
     element.root = layer.node
+
+    if (element.type === 'root') {
+      element.options.style = {
+        width: '100%',
+        height: '100%'
+      } as ElementStyleType
+    }
 
     switch (element.type) {
       case 'text':
@@ -647,3 +237,179 @@ export function createElementAPI(layer: Layer) {
     }
   }
 }
+
+function _initStyles(elm: CanvasElement): ElementStyleType {
+  let styles = mergeDeep(
+    {},
+    _getDefaultStyles(),
+    _getExtendStyles(elm),
+    elm.options.style || {}
+  )
+
+  if (elm.type === 'root') {
+    styles.width = '100%'
+    styles.height = '100%'
+  }
+
+  completeStyles(styles, elm.container.styles, true)
+  return styles
+}
+
+function _getDefaultStyles() {
+  return STYLE_CONSTANT.DEFAULT_STYLES
+}
+
+function _getExtendStyles(elm) {
+  let extendStyles = {} as ExtendStyles
+  const extendKeys = [
+    'textAlign',
+    'fontFamily',
+    'fontWeight',
+    'fontSize',
+    'lineHeight',
+    'wordSpacing',
+    'letterSpacing',
+    'color',
+    'alignItems',
+    'visibility'
+  ]
+
+  extendKeys.map((key) => {
+    const value = elm.container.styles[key]
+    if (value) extendStyles[key] = value
+  })
+
+  return extendStyles
+}
+
+function parsePaddingBox(rawBoxValue, parentBoxValue, margin): number {
+  let result = 0
+
+  if (isAuto(rawBoxValue)) {
+  } else if (isOuter(rawBoxValue)) {
+    result = parseOuter(rawBoxValue) * parentBoxValue - margin
+  } else {
+    result = rawBoxValue
+  }
+
+  return result
+}
+
+function _getRenderStyles(elm: CanvasElement): RenderStyle {
+  let renderStyles = {} as RenderStyle
+  extend(renderStyles, elm.styles)
+  const parentWidth = elm.container.renderStyles.contentWidth
+  const parentHeight = elm.container.renderStyles.contentHeight
+
+  renderStyles.paddingWidth = parsePaddingBox(
+    elm.styles.width,
+    parentWidth,
+    renderStyles.marginLeft + renderStyles.marginRight
+  )
+
+  renderStyles.paddingHeight = parsePaddingBox(
+    elm.styles.height,
+    parentHeight,
+    renderStyles.marginTop + renderStyles.marginBottom
+  )
+
+  // 初始化contentWidth
+  // https://www.w3schools.com/css/css_boxmodel.asp
+
+  renderStyles.contentWidth = calcContentBox(renderStyles, [
+    'paddingWidth',
+    'paddingLeft',
+    'paddingRight'
+  ])
+
+  renderStyles.contentHeight = calcContentBox(renderStyles, [
+    'paddingHeight',
+    'paddingTop',
+    'paddingBottom'
+  ])
+
+  renderStyles.fullBoxWidth = calcFullBox(renderStyles, [
+    'contentWidth',
+    'paddingLeft',
+    'paddingRight',
+    'borderLeftWidth',
+    'borderRightWidth',
+    'marginLeft',
+    'marginRight'
+  ])
+
+  renderStyles.fullBoxHeight = calcFullBox(renderStyles, [
+    'contentHeight',
+    'paddingTop',
+    'paddingBottom',
+    'borderTopWidth',
+    'borderBottomWidth',
+    'marginTop',
+    'marginBottom'
+  ])
+
+  renderStyles.width =
+    renderStyles.paddingWidth +
+    renderStyles.marginLeft +
+    renderStyles.marginRight +
+    getTotalBorderWidth(renderStyles)
+  renderStyles.height =
+    renderStyles.paddingHeight +
+    renderStyles.marginTop +
+    renderStyles.marginBottom +
+    getTotalBorderHeight(renderStyles)
+
+  console.log('renderStyles', renderStyles)
+
+  return renderStyles
+}
+
+// function getContainerLayout(elm: CanvasElement): Layout {
+//   const container = elm.container
+
+//   return {
+//     width: container.renderStyles.width,
+//     height: container.renderStyles.height,
+//     paddingTop: container.renderStyles.paddingTop,
+//     paddingBottom: container.renderStyles.paddingBottom,
+//     paddingLeft: container.renderStyles.paddingLeft,
+//     paddingRight: container.renderStyles.paddingRight,
+//     marginLeft: container.renderStyles.marginLeft,
+//     marginRight: container.renderStyles.marginRight,
+//     marginTop: container.renderStyles.marginTop,
+//     marginBottom: container.renderStyles.marginBottom,
+//     x: container.layout.x,
+//     y: container.layout.y,
+//     contentX: container.layout.contentX,
+//     contentY: container.layout.contentY,
+//     contentWidth: container.layout.contentWidth,
+//     contentHeight: container.layout.contentHeight
+//   }
+// }
+
+function getTotalBorderWidth(renderStyles) {
+  return renderStyles.borderLeftWidth + renderStyles.borderRightWidth
+}
+
+function getTotalBorderHeight(renderStyles) {
+  return renderStyles.borderTopWidth + renderStyles.borderBottomWidth
+}
+
+const mapValues = (target, props) => {
+  let arr = []
+  props.map((prop) => arr.push(target[prop]))
+  return arr
+}
+
+const calcContentBox = (
+  renderStyles: RenderStyle,
+  props: [string, string, string]
+) => curry((a, b, c) => a - b - c)(...mapValues(renderStyles, props))
+
+const calcFullBox = (
+  renderStyles: RenderStyle,
+  props: [string, string, string, string, string, string, string]
+) =>
+  curry((a, b, c, d, e, f, g) => a + b + c + d + e + f + g)(
+    ...mapValues(renderStyles, props)
+  )

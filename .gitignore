@@ -13,9 +13,7 @@ dist
 dist-ssr
 lib
 *.local
-
-/cypress/videos/
-/cypress/screenshots/
+coverage
 
 # Editor directories and files
 .vscode

@@ -130,6 +130,7 @@ export interface ElementStyleType {
   marginBottom?: number
   marginLeft?: number
   marginRight?: number
+  width?: number | string
   height?: number | string
   borderRadius?: number
   borderColor?: string
@@ -143,8 +144,8 @@ export interface ElementStyleType {
   alignSelf?: AlignSelf
   whiteSpace?: WhiteSpace
   zIndex?: number
-  visible?: boolean
   position?: Position
+  visibility?: string
 }
 
 const DISPLAY = {
@@ -192,6 +193,7 @@ const DEFAULT_STYLES: ElementStyleType = {
   marginBottom: 0,
   marginLeft: 0,
   marginRight: 0,
+  width: WIDTH.AUTO,
   height: WIDTH.AUTO,
   borderRadius: 0,
   borderColor: '#000',
@@ -204,7 +206,6 @@ const DEFAULT_STYLES: ElementStyleType = {
   alignSelf: 'auto',
   whiteSpace: 'normal',
   zIndex: 1,
-  visible: true,
   position: 'static'
 }
 

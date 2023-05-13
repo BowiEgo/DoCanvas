@@ -1,58 +1,65 @@
 import { isExact, isAuto, isOuter } from '../utils'
 import CONSTANT from './styleConstant'
 
-export default function (element) {
-  _completeFlex(element)
+export default function completeStyles(styles, containerStyles, isInFlow) {
+  _completeFlex(styles, containerStyles)
 
-  _completeWidth(element)
+  _completeWidth(styles, containerStyles, isInFlow)
 
-  _completeBorder(element)
+  _completeBorder(styles)
 
-  _completeFont(element)
+  _completeFont(styles)
 
-  _completePaddingMargin(element)
+  _completePaddingMargin(styles)
 }
 
-function _completePaddingMargin(element) {
-  if (element.styles.padding) {
-    if (isExact(element.styles.padding)) {
-      element.styles.paddingLeft = element.styles.padding
-      element.styles.paddingBottom = element.styles.padding
-      element.styles.paddingRight = element.styles.padding
-      element.styles.paddingTop = element.styles.padding
-    } else if (Array.isArray(element.styles.padding)) {
-      // 支持数组[10,20]相当于padding:10px 20px;
-      if (element.styles.padding.length === 2) {
-        element.styles.paddingLeft = element.styles.paddingRight =
-          element.styles.padding[1]
-        element.styles.paddingBottom = element.styles.paddingTop =
-          element.styles.padding[0]
-      } else if (element.styles.padding.length === 4) {
-        element.styles.paddingLeft = element.styles.padding[3]
-        element.styles.paddingBottom = element.styles.padding[2]
-        element.styles.paddingRight = element.styles.padding[1]
-        element.styles.paddingTop = element.styles.padding[0]
+function _completeFlex(styles, containerStyles) {
+  if (containerStyles.display === CONSTANT.DISPLAY.FLEX) {
+    // flex布局内 width 和flex需要有一个
+    if (!styles.flex) {
+      if (!isExact(styles.height) && !isExact(styles.width)) {
+        styles.flex = 1
+      }
+    } else {
+      if (containerStyles.flexDirection === 'column' && isExact(styles.flex)) {
+        styles.height = 0
+      } else if (
+        containerStyles.flexDirection === 'row' &&
+        isExact(styles.flex)
+      ) {
+        styles.width = 0
       }
     }
   }
+}
 
-  if (isExact(element.styles.margin)) {
-    element.styles.marginLeft = element.styles.margin
-    element.styles.marginBottom = element.styles.margin
-    element.styles.marginRight = element.styles.margin
-    element.styles.marginTop = element.styles.margin
-  } else if (Array.isArray(element.styles.margin)) {
-    // 支持数组[10,20]相当于padding:10px 20px;
-    if (element.styles.margin.length === 2) {
-      element.styles.marginLeft = element.styles.marginRight =
-        element.styles.margin[1]
-      element.styles.marginBottom = element.styles.marginTop =
-        element.styles.margin[0]
-    } else if (element.styles.margin.length === 4) {
-      element.styles.marginLeft = element.styles.margin[3]
-      element.styles.marginBottom = element.styles.margin[2]
-      element.styles.marginRight = element.styles.margin[1]
-      element.styles.marginTop = element.styles.margin[0]
+function _completeWidth(styles, containerStyles, isInFlow) {
+  if (!styles.width) {
+    if (
+      styles.display === CONSTANT.DISPLAY.INLINE_BLOCK ||
+      styles.display === CONSTANT.DISPLAY.INLINE ||
+      !isInFlow
+    ) {
+      styles.width = CONSTANT.WIDTH.AUTO
+    } else if (
+      styles.display === CONSTANT.DISPLAY.BLOCK ||
+      styles.display === CONSTANT.DISPLAY.FLEX
+    ) {
+      styles.width = CONSTANT.WIDTH.OUTER
+    } else {
+      styles.width = 0
+    }
+  }
+
+  if (isOuter(styles.width)) {
+    if (isAuto(containerStyles.width)) {
+      styles.width = CONSTANT.WIDTH.AUTO
+    }
+  }
+
+  if (isOuter(styles.height)) {
+    if (isAuto(containerStyles.height)) {
+      styles.height = CONSTANT.WIDTH.AUTO
     }
   }
 }
@@ -60,7 +67,7 @@ function _completePaddingMargin(element) {
 /**
  * borderwidth到各个边
  */
-function _completeBorder(element) {
+function _completeBorder(styles) {
   let {
     borderWidth,
     borderLeftWidth,
@@ -68,94 +75,77 @@ function _completeBorder(element) {
     borderBottomWidth,
     borderTopWidth,
     borderRadius
-  } = element.styles
+  } = styles
   if (!borderWidth) {
-    element.styles.borderWidth = 0
+    styles.borderWidth = 0
     borderWidth = 0
   }
   if (Array.isArray(borderWidth)) {
-    element.styles.borderTopWidth = borderWidth[0]
-    element.styles.borderRightWidth = borderWidth[1]
-    element.styles.borderBottomWidth = borderWidth[2]
-    element.styles.borderLeftWidth = borderWidth[3]
+    styles.borderTopWidth = borderWidth[0]
+    styles.borderRightWidth = borderWidth[1]
+    styles.borderBottomWidth = borderWidth[2]
+    styles.borderLeftWidth = borderWidth[3]
   } else {
     if (!borderLeftWidth) {
-      element.styles.borderLeftWidth = borderWidth
+      styles.borderLeftWidth = borderWidth
     }
     if (!borderRightWidth) {
-      element.styles.borderRightWidth = borderWidth
+      styles.borderRightWidth = borderWidth
     }
     if (!borderBottomWidth) {
-      element.styles.borderBottomWidth = borderWidth
+      styles.borderBottomWidth = borderWidth
     }
     if (!borderTopWidth) {
-      element.styles.borderTopWidth = borderWidth
+      styles.borderTopWidth = borderWidth
     }
   }
   if (borderRadius) {
-    element.styles.overflow = 'hidden'
+    styles.overflow = 'hidden'
   }
 }
 
-function _completeWidth(element) {
-  if (!element.styles.width) {
-    if (
-      element.styles.display === CONSTANT.DISPLAY.INLINE_BLOCK ||
-      element.styles.display === CONSTANT.DISPLAY.INLINE ||
-      !element.isInFlow()
-    ) {
-      element.styles.width = CONSTANT.WIDTH.AUTO
-    } else if (
-      element.styles.display === CONSTANT.DISPLAY.BLOCK ||
-      element.styles.display === CONSTANT.DISPLAY.FLEX
-    ) {
-      element.styles.width = CONSTANT.WIDTH.OUTER
-    } else {
-      element.styles.width = 0
-    }
-  }
-
-  if (isOuter(element.styles.width)) {
-    if (element.parent && isAuto(element.parent.styles.width)) {
-      element.styles.width = CONSTANT.WIDTH.AUTO
-    }
-  }
-
-  if (isOuter(element.styles.height)) {
-    if (element.parent && isAuto(element.parent.styles.height)) {
-      element.styles.height = CONSTANT.WIDTH.AUTO
-    }
+function _completeFont(styles) {
+  if (styles.fontSize && !styles.lineHeight) {
+    styles.lineHeight = styles.fontSize * 1.4
   }
 }
 
-function _completeFont(element) {
-  if (element.styles.fontSize && !element.styles.lineHeight) {
-    element.styles.lineHeight = element.styles.fontSize * 1.4
-  }
-}
-
-function _completeFlex(element) {
-  if (
-    element.parent &&
-    element.parent.styles.display === CONSTANT.DISPLAY.FLEX
-  ) {
-    // flex布局内 width 和flex需要有一个
-    if (!element.styles.flex) {
-      if (!isExact(element.styles.height) && !isExact(element.styles.width)) {
-        element.styles.flex = 1
+function _completePaddingMargin(styles) {
+  if (styles.padding) {
+    if (isExact(styles.padding)) {
+      styles.paddingLeft = styles.padding
+      styles.paddingBottom = styles.padding
+      styles.paddingRight = styles.padding
+      styles.paddingTop = styles.padding
+    } else if (Array.isArray(styles.padding)) {
+      // 支持数组[10,20]相当于padding:10px 20px;
+      if (styles.padding.length === 2) {
+        styles.paddingLeft = styles.paddingRight = styles.padding[1]
+        styles.paddingBottom = styles.paddingTop = styles.padding[0]
+      } else if (styles.padding.length === 4) {
+        styles.paddingLeft = styles.padding[3]
+        styles.paddingBottom = styles.padding[2]
+        styles.paddingRight = styles.padding[1]
+        styles.paddingTop = styles.padding[0]
       }
-    } else {
-      if (
-        element.parent.styles.flexDirection === 'column' &&
-        isExact(element.styles.flex)
-      ) {
-        element.styles.height = 0
-      } else if (
-        element.parent.styles.flexDirection === 'row' &&
-        isExact(element.styles.flex)
-      ) {
-        element.styles.width = 0
-      }
+    }
+  }
+
+  if (isExact(styles.margin)) {
+    styles.marginLeft = styles.margin
+    styles.marginBottom = styles.margin
+    styles.marginRight = styles.margin
+    styles.marginTop = styles.margin
+  } else if (Array.isArray(styles.margin)) {
+    // 支持数组[10,20]相当于padding:10px 20px;
+    if (styles.margin.length === 2) {
+      styles.marginLeft = styles.marginRight = styles.margin[1]
+      styles.marginBottom = styles.marginTop = styles.margin[0]
+    } else if (styles.margin.length === 4) {
+      styles.marginLeft = styles.margin[3]
+      styles.marginBottom = styles.margin[2]
+      styles.marginRight = styles.margin[1]
+      styles.marginTop = styles.margin[0]
     }
   }
 }

@@ -7,37 +7,22 @@ describe('create canvasElement', () => {
   const childElm = createCanvasElement('view', {
     style: { color: 'red', textAlign: 'center' }
   })
-  const textElm = createCanvasElement('text', {
-    style: { color: 'green' }
-  })
+  const textElm = createCanvasElement('text', {})
 
   layer.mount(elm)
 
   childElm.appendChild(textElm)
   elm.appendChild(childElm)
-  // console.log(childElm.renderStyles)
-  // console.log(textElm._getExtendStyles())
 
   test('canvasElement container', () => {
-    expect(elm.container).toEqual(DEFAULT_CONTAINER)
-    expect(childElm.getContainer()).toBe(elm)
-    expect(textElm.getContainer()).toBe(childElm)
+    expect(elm.container).toEqual(layer.node)
+    expect(childElm.container).toEqual(elm)
+    expect(textElm.container).toEqual(childElm)
   })
 
-  test("get canvasElement's defaultStyle", () => {
-    expect(elm._getDefaultStyles()).toEqual(STYLE_CONSTANT.DEFAULT_STYLES)
-  })
-
-  test("get canvasElement's renderStyles", () => {
-    // expect(elm.renderStyles)
-  })
-
-  test("get canvasElement' parentStyle when it has no parent", () => {
-    expect(elm._getExtendStyles()).toEqual({ visible: true })
-  })
-
-  test("get canvasElement' parentStyle", () => {
-    expect(textElm._getExtendStyles()).toEqual({ visible: true })
+  test("extend container's style", () => {
+    expect(textElm.styles.color).toEqual(childElm.styles.color)
+    expect(textElm.styles.textAlign).toEqual(childElm.styles.textAlign)
   })
 
   // test('', () => {})

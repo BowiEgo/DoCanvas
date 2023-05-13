@@ -28,20 +28,20 @@ export const hasOwn = (
   key: string | symbol
 ): key is keyof typeof val => hasOwnProperty.call(val, key)
 
-export const isExact = (num: unknown) => {
-  return typeof num === 'number'
+export const isExact = (num: unknown): num is number => {
+  return isNumber.call(null, num)
 }
 
-export const isAuto = (num: unknown) => {
+export const isAuto = (num: unknown): num is string => {
   return num === 'auto'
 }
 
-export const isOuter = (num: unknown) => {
-  if (typeof num !== 'string') return
-  return num.match('%')
+export const isOuter = (num: unknown): num is string => {
+  if (!isString(num)) return
+  return isArray(num.match('%'))
 }
 
-export const parseOuter = (num: string) => {
+export const parseOuter = (num: string): number => {
   let _n = parseInt(num.replace('%', ''))
   return isNaN(_n) || _n < 0 ? 0 : _n / 100
 }
@@ -59,6 +59,7 @@ export const isRegExp = (val: unknown): val is RegExp =>
 export const isFunction = (val: unknown): val is Function =>
   typeof val === 'function'
 export const isString = (val: unknown): val is string => typeof val === 'string'
+export const isNumber = (val: unknown): val is number => typeof val === 'number'
 export const isSymbol = (val: unknown): val is symbol => typeof val === 'symbol'
 export const isObject = (val: unknown): val is Record<any, any> =>
   val !== null && typeof val === 'object'
@@ -84,3 +85,21 @@ export const isIntegerKey = (key: unknown) =>
   key !== 'NaN' &&
   key[0] !== '-' &&
   '' + parseInt(key, 10) === key
+
+export const mergeDeep = (target: unknown, ...sources) => {
+  if (!sources.length) return target
+  const source = sources.shift()
+
+  if (isObject(target) && isObject(source)) {
+    for (const key in source) {
+      if (isObject(source[key])) {
+        if (!target[key]) Object.assign(target, { [key]: {} })
+        mergeDeep(target[key], source[key])
+      } else {
+        Object.assign(target, { [key]: source[key] })
+      }
+    }
+  }
+
+  return mergeDeep(target, ...sources)
+}

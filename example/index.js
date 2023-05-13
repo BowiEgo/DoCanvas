@@ -12,10 +12,13 @@ function init() {
 
   console.log(_ctx, dpr, _w, _h)
 
+  _ctx.scale(dpr, dpr)
+
   const { layer, createCanvasElement } = createLayer(_ctx, {
     dpr,
     width: _w,
     height: _h,
+    debug: true,
     lifecycle: {
       onEffectSuccess: () => {
         // 网络请求完成，比如网络图片加载完成并且重新绘制完毕
@@ -39,16 +42,24 @@ function init() {
 
   const elm = createCanvasElement('view')
   const childElm = createCanvasElement('view', {
-    style: { color: 'red', textAlign: 'center' }
+    style: {
+      color: 'red',
+      textAlign: 'center',
+      backgroundColor: '#00aeec45',
+      width: 100,
+      height: 100,
+      marginTop: 40
+    }
   })
   const textElm = createCanvasElement('text', {
-    style: { color: 'green' }
+    children: 'hello'
   })
 
   layer.mount(elm)
 
   childElm.appendChild(textElm)
   elm.appendChild(childElm)
+  console.log('00000000', textElm)
   // console.log(childElm.renderStyles)
   // console.log(textElm._getExtendStyles())
 }

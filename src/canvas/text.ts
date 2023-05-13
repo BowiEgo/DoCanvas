@@ -42,7 +42,6 @@ export function createTextElement(element: CanvasElement): TextElement {
     },
 
     _measureLayout() {
-      console.log('_measureLayout', text)
       text.layout = text.getRenderer().measureText(text, text.children)
       text.layout.height = text.renderStyles.lineHeight
       text._calcLine()
@@ -55,7 +54,6 @@ export function createTextElement(element: CanvasElement): TextElement {
     },
 
     _calcLine() {
-      console.log('_calcLine', text.parent)
       if (!text.parent || !text.children) return
 
       const { width: textWidth, height: textHeight } = text.layout

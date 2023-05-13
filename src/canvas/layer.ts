@@ -85,7 +85,7 @@ export function createLayer(ctx, options) {
 
     _flow() {
       for (let i = 0; i < layer.p2cList.length; i++) {
-        layer.p2cList[i].init()
+        layer.p2cList[i].initRenderStyles()
       }
 
       layer._reflow()
@@ -99,27 +99,27 @@ export function createLayer(ctx, options) {
       // 如果有line，则需要重第一个开始
       let target: any = elm
       while (target && target.line) {
-        target = target.parent
+        target = target.container
       }
       const p2cList = wideTraversal(target)
       for (let i = 0; i < p2cList.length; i++) {
-        // p2cList[i]._initStyles()
+        p2cList[i].initRenderStyles()
       }
 
       // 所有子元素
-      const children = deepTraversal(target)
-      for (let i = 0; i < children.length; i++) {
-        children[i]._initWidthHeight()
-      }
+      // const children = deepTraversal(target)
+      // for (let i = 0; i < children.length; i++) {
+      //   children[i]._initWidthHeight()
+      // }
 
-      if (!elm.isInFlow()) {
-        for (let i = 0; i < p2cList.length; i++) {
-          p2cList[i]._initPosition()
-        }
-        this._repaint()
-      } else {
-        this.onElementChange(target)
-      }
+      // if (!elm.isInFlow()) {
+      //   for (let i = 0; i < p2cList.length; i++) {
+      //     p2cList[i]._initPosition()
+      //   }
+      //   this._repaint()
+      // } else {
+      this.onElementChange(target)
+      // }
     },
 
     _callBeforePaint() {
@@ -137,9 +137,9 @@ export function createLayer(ctx, options) {
         // 微信环境下始终重绘整个树
         elm = layer.node
       }
-      if (elm && !elm.isInFlow()) elm = layer.node
+      // if (elm && !elm.isInFlow()) elm = layer.node
 
-      layer._callBeforePaint()
+      // layer._callBeforePaint()
 
       if (layer.node && layer.renderer) {
         layer.renderer.readyToRender(layer.node)
@@ -163,36 +163,31 @@ export function createLayer(ctx, options) {
     },
 
     mount(elm) {
-      console.log('mount')
       layer.node.appendChild(elm)
     },
 
     onElementRemove() {},
 
     onElementAdd(elm) {
-      console.log('onElementAdd', elm)
       layer._initC2PList()
       layer._initP2CList()
 
-      console.log(layer.p2cList)
-
       layer.p2cList.forEach((item) => {
-        console.log('onElementAdd-000000', item)
-        item.init()
+        item.initRenderStyles()
       })
-      // layer._reflowElement(el)
+      layer._reflowElement(elm)
     },
 
     // 元素变化后调用，尽可能少重排重绘
     onElementChange(elm) {
-      walkParent(elm, (parent, callbreak) => {
-        parent._initWidthHeight()
-        if (parent.type === 'scroll-view') callbreak()
-      })
+      // walkParent(elm, (parent, callbreak) => {
+      //   parent._initWidthHeight()
+      //   if (parent.type === 'scroll-view') callbreak()
+      // })
 
-      for (let i = 0; i < layer.p2cList.length; i++) {
-        layer.p2cList[i]._initPosition()
-      }
+      // for (let i = 0; i < layer.p2cList.length; i++) {
+      //   layer.p2cList[i]._initPosition()
+      // }
       layer._repaint()
     },
 

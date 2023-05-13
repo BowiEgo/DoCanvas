@@ -247,6 +247,8 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
     },
 
     _drawBackground(element) {
+      if (!element.layout) return
+      console.log('_drawBackground', element)
       const {
         backgroundColor,
         contentWidth,
@@ -271,9 +273,13 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
 
       // 这里是计算画border的位置，起点位置是在线条中间，所以要考虑线条宽度
       let x =
-        element.contentX - element.renderStyles.paddingLeft - borderLeftWidth
+        element.layout.contentX -
+        element.renderStyles.paddingLeft -
+        borderLeftWidth
       let y =
-        element.contentY - element.renderStyles.paddingTop - borderTopWidth
+        element.layout.contentY -
+        element.renderStyles.paddingTop -
+        borderTopWidth
       let w =
         contentWidth +
         paddingLeft +
@@ -284,6 +290,8 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
         paddingTop +
         paddingBottom +
         (borderTopWidth + borderBottomWidth)
+
+      console.log(x, y, w, h, backgroundColor)
 
       if (isExact(opacity)) {
         // 绘制透明图
@@ -322,8 +330,8 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
           element
         )
         this.getCtx().fillRect(
-          element.contentX - paddingLeft,
-          element.contentY - paddingTop,
+          element.layout.contentX - paddingLeft + element.styles.marginLeft,
+          element.layout.contentY - paddingTop + element.styles.marginTop,
           contentWidth + paddingLeft + paddingRight,
           contentHeight + paddingTop + paddingBottom
         )
@@ -333,8 +341,8 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
       if (this.isDebug()) {
         this.getCtx().strokeStyle = element.debugColor || 'green'
         this.getCtx().strokeRect(
-          element.contentX,
-          element.contentY,
+          element.layout.contentX,
+          element.layout.contentY,
           element.renderStyles.contentWidth,
           element.renderStyles.contentHeight
         )
@@ -539,7 +547,7 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
     },
 
     isDebug() {
-      return this.getLayer().options && this.getLayer().options.debug
+      return this.getLayer().options.debug
     },
 
     getCtx() {
@@ -689,6 +697,7 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
     },
 
     render(node) {
+      console.log('render', node)
       this.lastFrameComplete = false
       this.lastPaintTime = Date.now()
       if (!node.parent) {
@@ -701,17 +710,19 @@ export function createCanvasRenderer(layer: Layer): CanvasRenderer {
         )
       } else {
         this.getCtx().clearRect(
-          node.x,
-          node.y,
+          node.layout.x,
+          node.layout.y,
           node.renderStyles.width,
           node.renderStyles.height
         )
       }
       let element = null
       walk(node, (renderNode, callContinue, callNext) => {
+        console.log('walk', renderNode)
         if (isCanvasElement(renderNode) && renderNode.isVisible()) {
           // 可见的才渲染
           this.paint(renderNode)
+          console.log('paint', renderNode)
         } else {
           // 跳过整个子节点
           callNext()
