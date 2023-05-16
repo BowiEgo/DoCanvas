@@ -1,4 +1,4 @@
-import { connectChildren, createTreeNode } from '../../canvas/tree-node'
+import { connectChildren, createTreeNode } from '../../tree-node'
 import { BFS, PostOrderDFS } from '../treeSearch'
 
 describe('utils/traversal', () => {

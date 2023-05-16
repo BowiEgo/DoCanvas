@@ -1,5 +1,4 @@
-import { TreeNode } from '../canvas/tree-node'
-import { CanvasElement } from '../canvas/element'
+import { TreeNode } from '../tree-node'
 import { isArray } from './general'
 
 type Queue<T> = T[]

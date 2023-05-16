@@ -1,24 +1,6 @@
+import { isString, compose } from '../utils'
 import STYLE_CONSTANT, { ElementStyleType } from '../styleConstant'
 import { TreeNode, createTreeNode } from '../tree-node'
-import {
-  isAuto,
-  isOuter,
-  isExact,
-  parseOuter,
-  findRelativeTo,
-  floor,
-  isArray,
-  mergeDeep,
-  isString,
-  isNumber,
-  extend
-} from '../../utils'
-import { toViewElement } from './view'
-import { toTextElement } from './text'
-import { compose, curry, pipe } from '../../utils/fp'
-import { VISIBILITY } from '../css/property-descriptors/visibility'
-import { RenderableElement, createRenderableElement } from './renderableElement'
-import { CanvasRenderer } from '../render'
 import { Context } from '../context'
 import { RenderObject, createRenderObject } from '../render/renderObject'
 
@@ -248,22 +230,23 @@ export function createElementAPI(context): Function {
     options: ElementOptions = {},
     children?: CanvasElement[] | string
   ): CanvasElement {
-    switch (type) {
-      case 'text':
-        return compose([toTextElement, createBaseElement])(
-          context,
-          type,
-          options,
-          children
-        )
-      default:
-        return compose([toViewElement, createBaseElement])(
-          context,
-          type,
-          options,
-          children
-        )
-    }
+    return createBaseElement(context, type, options, children)
+    // switch (type) {
+    //   case 'text':
+    //     return compose([toTextElement, createBaseElement])(
+    //       context,
+    //       type,
+    //       options,
+    //       children
+    //     )
+    //   default:
+    //     return compose([toViewElement, createBaseElement])(
+    //       context,
+    //       type,
+    //       options,
+    //       children
+    //     )
+    // }
   }
 }
 

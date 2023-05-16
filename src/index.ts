@@ -1,15 +1,21 @@
-import { createAppAPI } from './core/createApp'
-import { createRenderer } from './core/renderer'
-import { createNodeOps } from './core/nodeOps'
-import { h } from './core/h'
-import { createDoCanvas } from './canvas'
+import { createEngine } from './engine'
+import { createRenderer } from './render'
+import { createElementAPI } from './element'
 
-const XCanvas = {
-  createAppAPI,
-  createNodeOps,
-  createRenderer,
-  h,
-  createDoCanvas
+export function createDoCanvas(options) {
+  const engine = createEngine()
+  const createElement = createElementAPI(engine)
+
+  let doCanvas = {
+    body: null,
+    engine,
+    renderer: createRenderer(options),
+    createElement: createElement
+  }
+
+  doCanvas.body = createElement('body')
+  engine.createRoot(doCanvas.body)
+  doCanvas.renderer.render()
+
+  return doCanvas
 }
-
-export default XCanvas
