@@ -1,6 +1,5 @@
-import { BFS, PostOrderDFS } from '../../utils/treeSearch'
 import { CanvasElement } from '../element'
-import { TreeNode } from '../tree-node'
+import { BFS, PostOrderDFS } from '../utils/treeSearch'
 
 interface StackingContext {
   element: CanvasElement // 层叠上下文顶端节点
