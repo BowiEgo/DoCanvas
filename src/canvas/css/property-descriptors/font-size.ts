@@ -3,10 +3,10 @@ import {
   PropertyDescriptorParsingType
 } from '../IPropertyDescriptor'
 
-export const backgroundColor: IPropertyTypeValueDescriptor = {
-  name: `background-color`,
-  initialValue: 'transparent',
+export const fontSize: IPropertyTypeValueDescriptor = {
+  name: `font-size`,
+  initialValue: '0',
   prefix: false,
   type: PropertyDescriptorParsingType.TYPE_VALUE,
-  format: 'color'
+  format: 'length'
 }

@@ -1,17 +1,20 @@
-import { createContext } from './context'
+import { createEngine } from './engine'
 import { createRenderer } from './render'
 import { createElementAPI } from './element'
 
 export function createDoCanvas(options) {
-  const context = createContext()
+  const engine = createEngine()
+  const createElement = createElementAPI(engine)
 
   let doCanvas = {
-    context: context,
+    body: null,
+    engine,
     renderer: createRenderer(options),
-    createElement: createElementAPI(context)
+    createElement: createElement
   }
 
-  context.body = doCanvas.createElement('body')
+  doCanvas.body = createElement('body')
+  engine.createRoot(doCanvas.body)
   doCanvas.renderer.render()
 
   return doCanvas

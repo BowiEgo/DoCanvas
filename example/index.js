@@ -48,7 +48,7 @@ function initCanvas() {
   childElm1.appendChild(textElm)
   elm.appendChild(childElm1)
   elm.appendChild(childElm2)
-  DoCanvas.context.body.appendChild(elm)
+  DoCanvas.body.appendChild(elm)
 
   console.log(elm.node.instance, elm)
   console.log(childElm1.container === elm)

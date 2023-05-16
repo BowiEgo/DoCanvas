@@ -1,6 +1,6 @@
 export { getThrottle } from './throttle'
 
-export * from './boxModel'
+// export * from './boxModel'
 export * from './device'
 export * from './general'
 export * from './normalizeProp'

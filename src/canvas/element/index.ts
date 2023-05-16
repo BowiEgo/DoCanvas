@@ -14,12 +14,13 @@ import {
   extend
 } from '../../utils'
 import { toViewElement } from './view'
-import { createTextElement, toTextElement } from './text'
+import { toTextElement } from './text'
 import { compose, curry, pipe } from '../../utils/fp'
 import { VISIBILITY } from '../css/property-descriptors/visibility'
 import { RenderableElement, createRenderableElement } from './renderableElement'
 import { CanvasRenderer } from '../render'
 import { Context } from '../context'
+import { RenderObject, createRenderObject } from '../render/renderObject'
 
 export const DEFAULT_CONTAINER = {
   styles: {},
@@ -80,34 +81,13 @@ export type Layout = {
   contentY?: number
 }
 
-export type RenderStyle = {
-  width: number
-  height: number
-  paddingWidth: number
-  paddingHeight: number
-  paddingTop: number
-  paddingBottom: number
-  paddingLeft: number
-  paddingRight: number
-  marginLeft: number
-  marginRight: number
-  marginTop: number
-  marginBottom: number
-  contentWidth: number
-  contentHeight: number
-  fullBoxWidth: number
-  fullBoxHeight: number
-  lineCap: string // butt round square
-  visible: boolean
-}
+// type DefaultContainer = {
+//   styles: ElementStyleType
+//   renderStyles: RenderStyle
+//   layout: Layout
+// }
 
-type DefaultContainer = {
-  styles: ElementStyleType
-  renderStyles: RenderStyle
-  layout: Layout
-}
-
-type CanvasElementContainer = CanvasElement | DefaultContainer
+// type CanvasElementContainer = CanvasElement | DefaultContainer
 
 export type ElementOptions = {
   style?: ElementStyleType
@@ -125,8 +105,18 @@ export interface CanvasElement {
   styles: ElementStyleType
   debugColor: string | null
   context: Context
+  root: CanvasElement | null
+  container: CanvasElement | null
+  nextSibling: CanvasElement | null
+  prevSibling: CanvasElement | null
+  children: CanvasElement[]
   node: TreeNode
+  renderObject: RenderObject
   appendChild(child: CanvasElement): void
+  hasChildren(): boolean
+  attach(parent: CanvasElement): void
+  hasRootElement(): boolean
+  getRootElement(): CanvasElement
   isVisible(): boolean
 }
 
@@ -136,24 +126,33 @@ export function createBaseElement(
   options: ElementOptions = {},
   children?: CanvasElement[] | string
 ): CanvasElement {
-  let props = {
+  let element: CanvasElement = {
     __v_isCanvasElement: true,
     type,
     options,
-    styles: {} as ElementStyleType,
+    styles: options.style || {},
     context,
+    root: null,
+    container: null,
+    nextSibling: null,
+    prevSibling: null,
+    children: [],
     node: null,
-    debugColor: null
-  }
-
-  let element: CanvasElement = {
-    ...props,
+    renderObject: null,
+    debugColor: null,
     appendChild,
+    hasChildren,
+    attach,
+    hasRootElement,
+    getRootElement,
     isVisible
   }
 
   let treeNode = createTreeNode({ instance: element })
   element.node = treeNode
+
+  let renderObject = createRenderObject(element)
+  element.renderObject = renderObject
 
   Object.defineProperty(element, 'root', {
     get() {
@@ -188,7 +187,40 @@ export function createBaseElement(
 
   function appendChild(child) {
     treeNode.appendChild(child.node)
-    element.context.onElementAdd(child)
+
+    // attach to renderTree
+    if (element.hasRootElement()) {
+      child.attach(element)
+    }
+  }
+
+  function attach(parent) {
+    parent.renderObject.appendChild(element.renderObject)
+    if (element.hasChildren()) {
+      element.children.forEach((child) => {
+        child.attach(element)
+      })
+    }
+  }
+
+  function hasChildren() {
+    return element.node.hasChildren()
+  }
+
+  function hasRootElement() {
+    return (
+      treeNode.root &&
+      treeNode.root.instance &&
+      treeNode.root.instance.type === 'body'
+    )
+  }
+
+  function getRootElement() {
+    if (element.hasRootElement()) {
+      return treeNode.root.instance
+    }
+
+    return null
   }
 
   function isVisible(): boolean {

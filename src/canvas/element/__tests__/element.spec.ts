@@ -1,5 +1,3 @@
-import { DEFAULT_CONTAINER } from '..'
-import STYLE_CONSTANT from '../../styleConstant'
 import DoCanvas from '../../__test__/index.spec'
 
 describe('create canvasElement', () => {
@@ -16,12 +14,12 @@ describe('create canvasElement', () => {
   })
   const textElm = DoCanvas.createElement('text', {}, 'hello')
 
-  DoCanvas.context.body.appendChild(elm)
+  DoCanvas.body.appendChild(elm)
   childElm.appendChild(textElm)
   elm.appendChild(childElm)
 
   test('canvasElement container', () => {
-    expect(elm.container).toEqual(DoCanvas.context.body)
+    expect(elm.container).toEqual(DoCanvas.body)
     expect(childElm.container).toEqual(elm)
     expect(textElm.container).toEqual(childElm)
   })

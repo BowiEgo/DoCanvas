@@ -3,7 +3,6 @@ import {
   PropertyDescriptorParsingType
 } from '../IPropertyDescriptor'
 import { CSSValue, isDimensionToken } from '../syntax/parser'
-import { Context } from '../../core/context'
 const borderWidthForSide = (
   side: string
 ): IPropertyValueDescriptor<number> => ({
@@ -11,7 +10,7 @@ const borderWidthForSide = (
   initialValue: '0',
   type: PropertyDescriptorParsingType.VALUE,
   prefix: false,
-  parse: (_context: Context, token: CSSValue): number => {
+  parse: (token: CSSValue): number => {
     if (isDimensionToken(token)) {
       return token.number
     }
