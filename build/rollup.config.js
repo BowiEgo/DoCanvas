@@ -1,7 +1,7 @@
 const path = require('path')
 const buble = require('@rollup/plugin-buble')
 const typescript = require('@rollup/plugin-typescript')
-const { uglify } = require('rollup-plugin-uglify')
+const terser = require('@rollup/plugin-terser')
 
 const resolveFile = function (filePath) {
   return path.join(__dirname, '..', filePath)
@@ -24,6 +24,6 @@ module.exports = [
       format: 'umd',
       name: 'XCanvas'
     },
-    plugins: [typescript(), buble(), ...[uglify()]]
+    plugins: [typescript(), buble(), ...[terser()]]
   }
 ]

@@ -1,139 +1,77 @@
-const { h, createApp, createLayer, createElement } = XCanvas
+const { createDoCanvas } = XCanvas
 
-function init() {
+function initCanvas() {
   const canvas = document.querySelector('#canvas')
+  canvas.style.display = 'block'
 
   const _ctx = canvas.getContext('2d')
-  const _dpr = window.devicePixelRatio
+  const dpr = window.devicePixelRatio
   const _w = window.innerWidth
-  const _h = window.innerHeight
-  canvas.width = _w * _dpr
-  canvas.height = _h * _dpr
+  const _h = window.innerHeight / 2
+  canvas.width = _w * dpr
+  canvas.height = _h * dpr
 
-  console.log(_ctx, _dpr, _w, _h)
+  console.log(_ctx, dpr, _w, _h)
 
-  const App = h('div', { style: { color: 'red' } }, [
-    'hello ',
-    h('span', 'world')
-  ])
-  console.log('App', App)
+  _ctx.scale(dpr, dpr)
 
-  const app = createApp(App)
-  console.log('app', app)
-
-  const rootElement = createElement('view')
-
-  const layer = createLayer(_ctx, {
-    _dpr,
+  const DoCanvas = createDoCanvas({
+    canvas,
+    ctx: _ctx,
+    dpr,
     width: _w,
     height: _h,
-    lifecycle: {
-      onEffectSuccess: () => {
-        // 网络请求完成，比如网络图片加载完成并且重新绘制完毕
-      },
-      onEffectFail() {
-        // 网络请求失败
-      }
-    }
+    backgroundColor: '#fff',
+    debug: false
   })
 
-  app.mount(rootElement, layer)
+  const elm = DoCanvas.createElement('view')
+  const childElm1 = DoCanvas.createElement('view', {
+    style: {
+      color: 'red',
+      textAlign: 'center',
+      backgroundColor: '#00aeec45',
+      width: 100,
+      height: 100,
+      marginTop: 40
+    }
+  })
+  const childElm2 = DoCanvas.createElement('view', {
+    style: {
+      backgroundColor: '#00aeec45',
+      width: 50,
+      height: 120
+    }
+  })
+  const textElm = DoCanvas.createElement('text', {}, 'hello')
+
+  childElm1.appendChild(textElm)
+  elm.appendChild(childElm1)
+  elm.appendChild(childElm2)
+  DoCanvas.body.appendChild(elm)
+
+  console.log(elm.node.instance, elm)
+  console.log(childElm1.container === elm)
 }
 
-init()
+function initHTMLELement() {
+  const canvas = document.querySelector('#canvas')
+  const elm = document.createElement('div')
+  const childElm = document.createElement('div')
+  const textElm = document.createElement('p')
+  const text = document.createTextNode('hello')
 
-// const App = {
-//   template: '<div><span>Hello World!!</span></div>'
-// }
+  elm.style = `height: ${
+    window.innerHeight / 2
+  }px; border-bottom: 1px solid #000;box-sizing: border-box`
+  childElm.style =
+    'color: red; rext-align: center; background-color: #00aeec45; width: 100px; height: 100px; margin-top: 40px;'
 
-// const layer = XCanvas.createLayer(ctx, {
-//   dpr,
-//   width: w,
-//   height: h,
-//   lifecycle: {
-//     onEffectSuccess: () => {
-//       // 网络请求完成，比如网络图片加载完成并且重新绘制完毕
-//     },
-//     onEffectFail() {
-//       // 网络请求失败
-//     }
-//   }
-// })
+  document.body.insertBefore(elm, canvas)
+  textElm.appendChild(text)
+  childElm.appendChild(textElm)
+  elm.appendChild(childElm)
+}
 
-// console.log(layer)
-
-// const viewNode = XCanvas.createElement((h) => {
-//   return h(
-//     'view',
-//     {
-//       styles: {
-//         display: 'inline-block',
-//         width: 40,
-//         verticalAlign: 'middle'
-//       }
-//     },
-//     []
-//   )
-// })
-// const textNode = XCanvas.createElement((h) => {
-//   return h('text', {}, '这是一段文字')
-// })
-
-// const node = XCanvas.createElement((h) => {
-//   return h(
-//     'view',
-//     {
-//       styles: {}
-//     },
-//     [
-//       h(
-//         'view',
-//         {
-//           styles: {
-//             height: 20,
-//             backgroundColor: '#ff6c79',
-//             borderRadius: 10,
-//             borderColor: '#fff',
-//             margin: 2,
-//             display: 'inline-block',
-//             paddingLeft: 10,
-//             paddingRight: 10,
-//             lineHeight: 20,
-//             verticalAlign: 'middle',
-//             color: '#fff'
-//           },
-//           on: {
-//             click(e) {
-//               console.log(e)
-//             }
-//           }
-//         },
-//         [h('text', {}, '事事顺遂遂')]
-//       ),
-//       h(
-//         'view',
-//         {
-//           styles: {
-//             display: 'inline-block',
-//             width: 40,
-//             verticalAlign: 'top'
-//           }
-//         },
-//         [h('text', {}, '事事')]
-//       ),
-//       h(
-//         'view',
-//         {
-//           styles: {
-//             display: 'inline-block',
-//             width: 40,
-//             verticalAlign: 'bottom'
-//           }
-//         },
-//         [h('text', {}, '事事顺遂事事顺遂')]
-//       )
-//     ]
-//   )
-// })
-// console.log(node)
-// node.mount(layer)
+initCanvas()
+initHTMLELement()

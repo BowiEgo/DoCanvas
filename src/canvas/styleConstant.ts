@@ -117,33 +117,35 @@ export type Position =
   | GlobalValue
 
 export interface ElementStyleType {
-  display: string
-  fontSize: number
-  fontWeight: number
-  fontFamily: string
-  color: string
-  paddingTop: number
-  paddingBottom: number
-  paddingLeft: number
-  paddingRight: number
-  marginTop: number
-  marginBottom: number
-  marginLeft: number
-  marginRight: number
-  height: number | string
-  borderRadius: number
-  lineCap: string
-  flex: string | number
-  flexDirection: string
-  verticalAlign: VerticalAlign
-  textAlign: TextAlign
-  justifyContent: JustifyContent
-  alignItems: AlignItems
-  alignSelf: AlignSelf
-  whiteSpace: WhiteSpace
-  zIndex: number
-  visible: boolean
-  position: Position
+  display?: string
+  fontSize?: number
+  fontWeight?: number
+  fontFamily?: string
+  color?: string
+  paddingTop?: number
+  paddingBottom?: number
+  paddingLeft?: number
+  paddingRight?: number
+  marginTop?: number
+  marginBottom?: number
+  marginLeft?: number
+  marginRight?: number
+  width?: number | string
+  height?: number | string
+  borderRadius?: number
+  borderColor?: string
+  lineCap?: string
+  flex?: string | number
+  flexDirection?: string
+  verticalAlign?: VerticalAlign
+  textAlign?: TextAlign
+  justifyContent?: JustifyContent
+  alignItems?: AlignItems
+  alignSelf?: AlignSelf
+  whiteSpace?: WhiteSpace
+  zIndex?: number
+  position?: Position
+  visibility?: string
 }
 
 const DISPLAY = {
@@ -177,7 +179,7 @@ const FLEX_DIRECTION = {
   COLUMN: 'column'
 }
 
-const DEFAULT_STYLES = {
+const DEFAULT_STYLES: ElementStyleType = {
   display: DISPLAY.BLOCK,
   fontSize: 14,
   fontWeight: 400,
@@ -191,8 +193,10 @@ const DEFAULT_STYLES = {
   marginBottom: 0,
   marginLeft: 0,
   marginRight: 0,
+  width: WIDTH.AUTO,
   height: WIDTH.AUTO,
   borderRadius: 0,
+  borderColor: '#000',
   lineCap: 'square',
   flexDirection: FLEX_DIRECTION.ROW,
   verticalAlign: 'middle',
@@ -202,7 +206,6 @@ const DEFAULT_STYLES = {
   alignSelf: 'auto',
   whiteSpace: 'normal',
   zIndex: 1,
-  visible: true,
   position: 'static'
 }
 
