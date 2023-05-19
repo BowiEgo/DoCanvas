@@ -1,5 +1,5 @@
 export interface StylePropertyDescriptor {
   name: string
-  initialValue: string
+  initialValue: string | Function
   format: string
 }

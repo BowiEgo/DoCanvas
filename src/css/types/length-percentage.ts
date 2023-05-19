@@ -42,6 +42,7 @@ export const getAbsoluteValueForTuple = (
   width: number,
   height: number
 ): [number, number] => {
+  return [0, 0]
   const [x, y] = tuple
   return [
     getAbsoluteValue(x, width),
@@ -52,6 +53,7 @@ export const getAbsoluteValue = (
   token: LengthPercentage,
   parent: number
 ): number => {
+  return 0
   if (token.type === TokenType.PERCENTAGE_TOKEN) {
     return (token.number / 100) * parent
   }

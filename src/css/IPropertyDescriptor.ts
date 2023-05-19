@@ -12,7 +12,7 @@ export const enum PropertyDescriptorParsingType {
 export interface IPropertyDescriptor {
   name: string
   type: PropertyDescriptorParsingType
-  initialValue: string
+  initialValue: string | Function
   prefix: boolean
 }
 

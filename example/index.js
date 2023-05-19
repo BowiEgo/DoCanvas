@@ -65,7 +65,7 @@ function initHTMLELement() {
     window.innerHeight / 2
   }px; border-bottom: 1px solid #000;box-sizing: border-box`
   childElm.style =
-    'color: red; rext-align: center; background-color: #00aeec45; width: 100px; height: 100px; margin-top: 40px;'
+    'color: red; rext-align: center; background-color: #00aeec45; width: 100px; height: auto; margin-top: 40px;'
 
   document.body.insertBefore(elm, canvas)
   textElm.appendChild(text)

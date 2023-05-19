@@ -7,3 +7,5 @@ export type Color = number
 //   name: 'color',
 //   parse: (value: CSSValue): Color => {}
 // }
+
+export const isTransparent = (color: Color): boolean => (0xff & color) === 0

@@ -1,0 +1,37 @@
+import { createLayoutBox } from '../layout'
+import { NOOP } from '../utils'
+
+export function toRenderText(renderObject) {
+  console.log('3333layout-text')
+  renderObject.type = 'text'
+  renderObject.computeStyles = NOOP
+  renderObject.layout = layout
+  renderObject.measureBoxSize = measureBoxSize
+
+  function layout() {
+    const parentBox = renderObject.parent.layoutBox
+
+    if (!renderObject.layoutBox) {
+      renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 100, 18)
+    } else {
+      renderObject.layoutBox.setTop(0)
+      renderObject.layoutBox.setLeft(0)
+      renderObject.layoutBox.setWidth(100)
+      renderObject.layoutBox.setHeight(18)
+    }
+
+    console.log(
+      '3333layout-inline',
+      renderObject.element.type,
+      renderObject.layoutBox
+    )
+  }
+
+  function measureBoxSize() {
+    console.log('measureBoxSize-text')
+    renderObject.computedStyles.width = 100
+    renderObject.computedStyles.height = 18
+  }
+
+  return renderObject
+}
