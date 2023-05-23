@@ -191,7 +191,12 @@ export function createRenderObject(element, options = {}): RenderObject {
   function flow() {
     renderObject.layout()
     renderObject.curves = createBoundCurves(renderObject)
-    console.log('4444-flow', renderObject, renderObject.curves)
+    console.log(
+      '4444-flow',
+      renderObject,
+      renderObject.curves,
+      renderObject.children
+    )
     renderObject.children.forEach((child) => child.flow())
   }
 

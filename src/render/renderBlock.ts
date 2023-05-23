@@ -60,12 +60,6 @@ export function toRenderBlock(renderObject) {
         renderObject.layoutBox.setHeight(h)
       }
     }
-    console.log(
-      '3333layout-block',
-      renderObject.element.type,
-      renderObject.element,
-      renderObject.layoutBox
-    )
   }
 
   // measure box size
@@ -79,16 +73,12 @@ export function toRenderBlock(renderObject) {
 
     if (renderObject.hasChildren()) {
       if (isAuto(width)) {
-        console.log('1111computeStyle', renderObject)
         if (renderObject.children.length > 1) {
           renderObject.computedStyles.width = renderObject.children.reduce(
-            (prev, curr) => {
-              console.log('1111prev', prev)
-              return (
-                (prev ? Number(prev.computedStyles.width) : 0) +
-                Number(curr.computedStyles.width)
-              )
-            }
+            (acc, curr) => {
+              return acc + Number(curr.computedStyles.width)
+            },
+            0
           )
         } else {
           renderObject.computedStyles.width = Number(
@@ -100,11 +90,8 @@ export function toRenderBlock(renderObject) {
       if (isAuto(height)) {
         if (renderObject.children.length > 1) {
           renderObject.computedStyles.height = renderObject.children.reduce(
-            (prev, curr) => {
-              return (
-                (prev ? Number(prev.computedStyles.height) : 0) +
-                Number(curr.computedStyles.height)
-              )
+            (acc, curr) => {
+              return acc + Number(curr.computedStyles.height), 0
             }
           )
         } else {

@@ -1,4 +1,6 @@
 import { createLayoutBox } from '../layout'
+import { isAuto } from '../utils'
+import { createBoundCurves } from './canvas/boundCurves'
 
 export function toRenderInline(renderObject) {
   renderObject.type = 'inline'
@@ -6,15 +8,46 @@ export function toRenderInline(renderObject) {
   renderObject.measureBoxSize = measureBoxSize
 
   function layout() {
+    const {
+      borderTopWidth,
+      borderBottomWidth,
+      borderLeftWidth,
+      borderRightWidth,
+      paddingTop,
+      paddingBottom,
+      paddingLeft,
+      paddingRight,
+      width,
+      height
+    } = renderObject.computedStyles
     const parentBox = renderObject.parent.layoutBox
 
     if (!renderObject.layoutBox) {
       renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 200, 18)
     } else {
-      renderObject.layoutBox.setTop(0)
-      renderObject.layoutBox.setLeft(0)
-      renderObject.layoutBox.setWidth(200)
-      renderObject.layoutBox.setHeight(18)
+      const prevSiblingBox = renderObject.prevSibling
+        ? renderObject.prevSibling.layoutBox
+        : null
+
+      let top = parentBox.top
+      let left = parentBox.left
+      let w =
+        Number(borderLeftWidth) +
+        Number(paddingLeft) +
+        Number(width) +
+        Number(paddingRight) +
+        Number(borderRightWidth)
+      let h =
+        Number(borderTopWidth) +
+        Number(paddingTop) +
+        Number(height) +
+        Number(paddingBottom) +
+        Number(borderBottomWidth)
+
+      renderObject.layoutBox.setTop(top)
+      renderObject.layoutBox.setLeft(left)
+      renderObject.layoutBox.setWidth(w)
+      renderObject.layoutBox.setHeight(h)
     }
 
     console.log(
@@ -25,12 +58,29 @@ export function toRenderInline(renderObject) {
   }
 
   function measureBoxSize() {
-    console.log('measureBoxSize-inline')
-    renderObject.computedStyles.width = Number(
-      renderObject.parent.renderStyles.width
-    )
-    renderObject.computedStyles.height = 18
-  }
+    const parentBox = renderObject.parent.layoutBox
+    if (!renderObject.layoutBox) {
+      renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 200, 18)
+    }
+    renderObject.children[0].measureBoxSize()
 
+    console.log('3333-measureBoxSize-line', renderObject, renderObject.children)
+    if (renderObject.hasChildren()) {
+      renderObject.computedStyles.width = renderObject.children.reduce(
+        (acc, curr) => {
+          return acc + Number(curr.computedStyles.width)
+        },
+        0
+      )
+
+      renderObject.computedStyles.height = renderObject.children.reduce(
+        (acc, curr) => {
+          return acc + Number(curr.computedStyles.height)
+        },
+        0
+      )
+    }
+    renderObject.parent.measureBoxSize()
+  }
   return renderObject
 }
