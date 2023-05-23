@@ -1,8 +1,8 @@
 import { isString, compose } from '../utils'
 import STYLE_CONSTANT, { ElementStyleType } from '../styleConstant'
 import { TreeNode, createTreeNode } from '../tree-node'
-import { Context } from '../context'
 import { RenderObject, createRenderObject } from '../render/renderObject'
+import { Engine } from '../engine'
 
 export const DEFAULT_CONTAINER = {
   styles: {},
@@ -86,7 +86,7 @@ export interface CanvasElement {
   options: ElementOptions
   styles: ElementStyleType
   debugColor: string | null
-  context: Context
+  context: Engine
   root: CanvasElement | null
   container: CanvasElement | null
   nextSibling: CanvasElement | null
@@ -102,12 +102,27 @@ export interface CanvasElement {
   isVisible(): boolean
 }
 
-export function createBaseElement(
-  context: Context,
+export type CreateElementAPI = (context: Engine) => CreateElementFn
+
+export type CreateBaseElementFn = (
+  context: Engine,
   type: string,
-  options: ElementOptions = {},
+  options: ElementOptions,
   children?: CanvasElement[] | string
-): CanvasElement {
+) => CanvasElement
+
+export type CreateElementFn = (
+  type: string,
+  options?: ElementOptions,
+  children?: CanvasElement[] | string
+) => CanvasElement
+
+export const createBaseElement: CreateBaseElementFn = (
+  context,
+  type,
+  options = {},
+  children?
+) => {
   let element: CanvasElement = {
     __v_isCanvasElement: true,
     type,
@@ -131,10 +146,6 @@ export function createBaseElement(
   }
 
   let treeNode = createTreeNode({ instance: element })
-  element.node = treeNode
-
-  let renderObject = createRenderObject(element)
-  element.renderObject = renderObject
 
   Object.defineProperty(element, 'root', {
     get() {
@@ -172,21 +183,27 @@ export function createBaseElement(
 
     // attach to renderTree
     if (element.hasRootElement()) {
+      console.log('11111appendChild')
       child.attach(element)
+      element.context.flow(element)
     }
   }
 
   function attach(parent) {
     parent.renderObject.appendChild(element.renderObject)
     if (element.hasChildren()) {
-      element.children.forEach((child) => {
-        child.attach(element)
-      })
+      if (isString(element.children)) {
+        element.renderObject.appendChild(createRenderObject(element.children))
+      } else {
+        element.children.forEach((child) => {
+          child.attach(element)
+        })
+      }
     }
   }
 
   function hasChildren() {
-    return element.node.hasChildren()
+    return element.node.hasChildren() || isString(element.children)
   }
 
   function hasRootElement() {
@@ -221,207 +238,17 @@ export function createBaseElement(
     } as ElementStyleType
   }
 
+  createRenderObject(element)
+
   return element
 }
 
-export function createElementAPI(context): Function {
+export const createElementAPI: CreateElementAPI = (context) => {
   return function createElement(
     type: string,
     options: ElementOptions = {},
     children?: CanvasElement[] | string
   ): CanvasElement {
     return createBaseElement(context, type, options, children)
-    // switch (type) {
-    //   case 'text':
-    //     return compose([toTextElement, createBaseElement])(
-    //       context,
-    //       type,
-    //       options,
-    //       children
-    //     )
-    //   default:
-    //     return compose([toViewElement, createBaseElement])(
-    //       context,
-    //       type,
-    //       options,
-    //       children
-    //     )
-    // }
   }
 }
-
-// function _initStyles(elm: CanvasElement): ElementStyleType {
-//   let styles = mergeDeep(
-//     {},
-//     _getDefaultStyles(),
-//     _getExtendStyles(elm),
-//     elm.options.style || {}
-//   )
-
-//   if (elm.type === 'root') {
-//     styles.width = '100%'
-//     styles.height = '100%'
-//   }
-
-//   completeStyles(styles, elm.container.styles, true)
-//   return styles
-// }
-
-// function _getDefaultStyles() {
-//   return STYLE_CONSTANT.DEFAULT_STYLES
-// }
-
-// function _getExtendStyles(elm) {
-//   let extendStyles = {} as ExtendStyles
-//   const extendKeys = [
-//     'textAlign',
-//     'fontFamily',
-//     'fontWeight',
-//     'fontSize',
-//     'lineHeight',
-//     'wordSpacing',
-//     'letterSpacing',
-//     'color',
-//     'alignItems',
-//     'visibility'
-//   ]
-
-//   extendKeys.map((key) => {
-//     const value = elm.container.styles[key]
-//     if (value) extendStyles[key] = value
-//   })
-
-//   return extendStyles
-// }
-
-// function parsePaddingBox(rawBoxValue, parentBoxValue, margin): number {
-//   let result = 0
-
-//   if (isAuto(rawBoxValue)) {
-//   } else if (isOuter(rawBoxValue)) {
-//     result = parseOuter(rawBoxValue) * parentBoxValue - margin
-//   } else {
-//     result = rawBoxValue
-//   }
-
-//   return result
-// }
-
-// function _getRenderStyles(elm: CanvasElement): RenderStyle {
-//   let renderStyles = {} as RenderStyle
-//   extend(renderStyles, elm.styles)
-//   const parentWidth = elm.container.renderStyles.contentWidth
-//   const parentHeight = elm.container.renderStyles.contentHeight
-
-//   renderStyles.paddingWidth = parsePaddingBox(
-//     elm.styles.width,
-//     parentWidth,
-//     renderStyles.marginLeft + renderStyles.marginRight
-//   )
-
-//   renderStyles.paddingHeight = parsePaddingBox(
-//     elm.styles.height,
-//     parentHeight,
-//     renderStyles.marginTop + renderStyles.marginBottom
-//   )
-
-//   // 初始化contentWidth
-//   // https://www.w3schools.com/css/css_boxmodel.asp
-
-//   renderStyles.contentWidth = calcContentBox(renderStyles, [
-//     'paddingWidth',
-//     'paddingLeft',
-//     'paddingRight'
-//   ])
-
-//   renderStyles.contentHeight = calcContentBox(renderStyles, [
-//     'paddingHeight',
-//     'paddingTop',
-//     'paddingBottom'
-//   ])
-
-//   renderStyles.fullBoxWidth = calcFullBox(renderStyles, [
-//     'contentWidth',
-//     'paddingLeft',
-//     'paddingRight',
-//     'borderLeftWidth',
-//     'borderRightWidth',
-//     'marginLeft',
-//     'marginRight'
-//   ])
-
-//   renderStyles.fullBoxHeight = calcFullBox(renderStyles, [
-//     'contentHeight',
-//     'paddingTop',
-//     'paddingBottom',
-//     'borderTopWidth',
-//     'borderBottomWidth',
-//     'marginTop',
-//     'marginBottom'
-//   ])
-
-//   renderStyles.width =
-//     renderStyles.paddingWidth +
-//     renderStyles.marginLeft +
-//     renderStyles.marginRight +
-//     getTotalBorderWidth(renderStyles)
-//   renderStyles.height =
-//     renderStyles.paddingHeight +
-//     renderStyles.marginTop +
-//     renderStyles.marginBottom +
-//     getTotalBorderHeight(renderStyles)
-
-//   console.log('renderStyles', renderStyles)
-
-//   return renderStyles
-// }
-
-// function getContainerLayout(elm: CanvasElement): Layout {
-//   const container = elm.container
-
-//   return {
-//     width: container.renderStyles.width,
-//     height: container.renderStyles.height,
-//     paddingTop: container.renderStyles.paddingTop,
-//     paddingBottom: container.renderStyles.paddingBottom,
-//     paddingLeft: container.renderStyles.paddingLeft,
-//     paddingRight: container.renderStyles.paddingRight,
-//     marginLeft: container.renderStyles.marginLeft,
-//     marginRight: container.renderStyles.marginRight,
-//     marginTop: container.renderStyles.marginTop,
-//     marginBottom: container.renderStyles.marginBottom,
-//     x: container.layout.x,
-//     y: container.layout.y,
-//     contentX: container.layout.contentX,
-//     contentY: container.layout.contentY,
-//     contentWidth: container.layout.contentWidth,
-//     contentHeight: container.layout.contentHeight
-//   }
-// }
-
-// function getTotalBorderWidth(renderStyles) {
-//   return renderStyles.borderLeftWidth + renderStyles.borderRightWidth
-// }
-
-// function getTotalBorderHeight(renderStyles) {
-//   return renderStyles.borderTopWidth + renderStyles.borderBottomWidth
-// }
-
-// const mapValues = (target, props) => {
-//   let arr = []
-//   props.map((prop) => arr.push(target[prop]))
-//   return arr
-// }
-
-// const calcContentBox = (
-//   renderStyles: RenderStyle,
-//   props: [string, string, string]
-// ) => curry((a, b, c) => a - b - c)(...mapValues(renderStyles, props))
-
-// const calcFullBox = (
-//   renderStyles: RenderStyle,
-//   props: [string, string, string, string, string, string, string]
-// ) =>
-//   curry((a, b, c, d, e, f, g) => a + b + c + d + e + f + g)(
-//     ...mapValues(renderStyles, props)
-//   )

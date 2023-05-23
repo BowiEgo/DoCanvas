@@ -40,7 +40,14 @@ export type Display = number
 
 export const display: IPropertyListDescriptor<Display> = {
   name: 'display',
-  initialValue: 'inline-block',
+  initialValue: (type) => {
+    switch (type) {
+      case 'text':
+        return 'inline-block'
+      default:
+        return 'block'
+    }
+  },
   prefix: false,
   type: PropertyDescriptorParsingType.LIST,
   parse: (tokens: CSSValue[]): Display => {

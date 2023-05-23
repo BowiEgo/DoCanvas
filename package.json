@@ -7,7 +7,8 @@
     "lib": "lib"
   },
   "scripts": {
-    "dev": "node_modules/.bin/rollup -w -c ./build/rollup.config.dev.js",
+    "dev": "stmux -n -M -- [ 'npm run start' .. 'npm run test' ]",
+    "start": "node_modules/.bin/rollup -w -c ./build/rollup.config.dev.js",
     "build": "node_modules/.bin/rollup -w -c ./build/rollup.config.prod.js",
     "test": "vitest --silent",
     "coverage": "vitest run --coverage"
@@ -27,9 +28,15 @@
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-serve": "^2.0.2",
     "skia-canvas": "^1.0.1",
+    "stmux": "^1.8.7",
     "ts-node": "^10.9.1",
     "tslib": "^2.5.0",
     "typescript": "^5.0.4",
     "vitest": "^0.31.0"
+  },
+  "dependencies": {
+    "grapheme-breaker": "^0.3.2",
+    "grapheme-breaker-mjs": "^1.0.4",
+    "text-segmentation": "^1.0.3"
   }
 }

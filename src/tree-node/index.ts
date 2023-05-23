@@ -94,6 +94,9 @@ export function createTreeNode(options?) {
 
   function remove() {}
 
+  if (treeNode.instance) {
+    treeNode.instance.node = treeNode
+  }
   return treeNode
 }
 
