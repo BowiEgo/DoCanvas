@@ -9,11 +9,11 @@ export function toRenderInline(renderObject) {
     const parentBox = renderObject.parent.layoutBox
 
     if (!renderObject.layoutBox) {
-      renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 100, 18)
+      renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 200, 18)
     } else {
       renderObject.layoutBox.setTop(0)
       renderObject.layoutBox.setLeft(0)
-      renderObject.layoutBox.setWidth(100)
+      renderObject.layoutBox.setWidth(200)
       renderObject.layoutBox.setHeight(18)
     }
 
@@ -26,7 +26,9 @@ export function toRenderInline(renderObject) {
 
   function measureBoxSize() {
     console.log('measureBoxSize-inline')
-    renderObject.computedStyles.width = 100
+    renderObject.computedStyles.width = Number(
+      renderObject.parent.renderStyles.width
+    )
     renderObject.computedStyles.height = 18
   }
 

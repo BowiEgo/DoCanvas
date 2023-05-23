@@ -102,10 +102,14 @@ export function createBoundCurves(renderObject) {
   const borderBottomWidth = 0
   const borderLeftWidth = 0
 
-  const paddingTop = getAbsoluteValue(styles.paddingTop, bounds.width)
-  const paddingRight = getAbsoluteValue(styles.paddingRight, bounds.width)
-  const paddingBottom = getAbsoluteValue(styles.paddingBottom, bounds.width)
-  const paddingLeft = getAbsoluteValue(styles.paddingLeft, bounds.width)
+  // const paddingTop = getAbsoluteValue(styles.paddingTop, bounds.width)
+  // const paddingRight = getAbsoluteValue(styles.paddingRight, bounds.width)
+  // const paddingBottom = getAbsoluteValue(styles.paddingBottom, bounds.width)
+  // const paddingLeft = getAbsoluteValue(styles.paddingLeft, bounds.width)
+  const paddingTop = styles.paddingTop
+  const paddingRight = styles.paddingRight
+  const paddingBottom = styles.paddingBottom
+  const paddingLeft = styles.paddingLeft
 
   console.log('4444-createBoundCurves', styles, bounds, paddingTop)
 
@@ -450,6 +454,7 @@ export function createBoundCurves(renderObject) {
           bounds.top + bounds.height - (borderBottomWidth + paddingBottom)
         )
 
+  console.log('boundCurves', boundCurves)
   return boundCurves
 }
 

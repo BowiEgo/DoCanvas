@@ -33,11 +33,11 @@ export function toRenderBlock(renderObject) {
     } else {
       const parentBox = renderObject.parent.layoutBox
       const prevSiblingBox = renderObject.prevSibling
-        ? renderObject.layoutBox
+        ? renderObject.prevSibling.layoutBox
         : null
 
       let top = parentBox.top + (prevSiblingBox ? prevSiblingBox.bottom : 0)
-      let left = parentBox.left + (prevSiblingBox ? prevSiblingBox.right : 0)
+      let left = parentBox.left
       let w =
         Number(borderLeftWidth) +
         Number(paddingLeft) +
@@ -70,7 +70,6 @@ export function toRenderBlock(renderObject) {
 
   // measure box size
   function measureBoxSize() {
-    console.log('1111computeStyle')
     let { width, height } = renderObject.renderStyles
 
     if (renderObject.isRoot()) {
@@ -80,26 +79,39 @@ export function toRenderBlock(renderObject) {
 
     if (renderObject.hasChildren()) {
       if (isAuto(width)) {
-        renderObject.computedStyles.width = renderObject.children.reduce(
-          (prev, curr) => {
-            console.log('1111prev', prev)
-            return (
-              (prev ? Number(prev.computedStyles.width) : 0) +
-              Number(curr.computedStyles.width)
-            )
-          }
-        )
+        console.log('1111computeStyle', renderObject)
+        if (renderObject.children.length > 1) {
+          renderObject.computedStyles.width = renderObject.children.reduce(
+            (prev, curr) => {
+              console.log('1111prev', prev)
+              return (
+                (prev ? Number(prev.computedStyles.width) : 0) +
+                Number(curr.computedStyles.width)
+              )
+            }
+          )
+        } else {
+          renderObject.computedStyles.width = Number(
+            renderObject.children[0].computedStyles.width
+          )
+        }
       }
 
       if (isAuto(height)) {
-        renderObject.computedStyles.height = renderObject.children.reduce(
-          (prev, curr) => {
-            return (
-              (prev ? Number(prev.computedStyles.height) : 0) +
-              Number(curr.computedStyles.height)
-            )
-          }
-        )
+        if (renderObject.children.length > 1) {
+          renderObject.computedStyles.height = renderObject.children.reduce(
+            (prev, curr) => {
+              return (
+                (prev ? Number(prev.computedStyles.height) : 0) +
+                Number(curr.computedStyles.height)
+              )
+            }
+          )
+        } else {
+          renderObject.computedStyles.height = Number(
+            renderObject.children[0].computedStyles.height
+          )
+        }
       }
     } else {
       if (isAuto(width)) {

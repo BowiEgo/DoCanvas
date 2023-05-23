@@ -156,21 +156,28 @@ export function createRenderObject(element, options = {}): RenderObject {
   function computeStyles() {
     renderObject.measureBoxSize()
 
-    Object.keys(renderObject.computedStyles).forEach((styleName) => {
-      if (
-        renderObject.computedStyles[styleName] === 'transparent' &&
-        renderObject.parent
-      ) {
-        renderObject.computedStyles[styleName] = _getParentStyle(
-          renderObject,
-          styleName
-        )
-      }
-    })
+    if (renderObject.parent) {
+      EXTEND_STYLE_KEYS.forEach((key) => {
+        const value = _getParentStyle(renderObject, key)
+        if (value) renderObject.computedStyles[key] = value
+      })
+    }
+
+    // Object.keys(renderObject.computedStyles).forEach((styleName) => {
+    //   if (
+    //     renderObject.computedStyles[styleName] === 'transparent' &&
+    //     renderObject.parent
+    //   ) {
+    //     renderObject.computedStyles[styleName] = _getParentStyle(
+    //       renderObject,
+    //       styleName
+    //     )
+    //   }
+    // })
 
     if (renderObject.hasChildren()) {
       renderObject.children.forEach((child) => {
-        child.computeStyles()
+        if (child.type !== 'text') child.computeStyles()
       })
     }
 
@@ -217,6 +224,7 @@ export function createRenderObject(element, options = {}): RenderObject {
   }
 
   function _getParentStyle(renderObject, styleName) {
+    if (!renderObject.parent) return
     if (renderObject.computedStyles[styleName] === 'transparent') {
       return renderObject.parent.computedStyles[styleName]
     } else {

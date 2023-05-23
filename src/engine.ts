@@ -65,10 +65,6 @@ export function createEngine(renderer, options): Engine {
     engine.DFSRenderArray.forEach((item) => {
       item.measureBoxSize()
     })
-
-    engine.DFSRenderArray.forEach((item) => {
-      console.log('2222' + item.type + ': ', item.computedStyle, item.layoutBox)
-    })
   }
 
   function flow(elm) {

@@ -56,30 +56,19 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
   }
 
   function paint(renderObject) {
-    console.log(
-      '4444-paint',
-      renderObject.type,
-      renderObject,
-      renderObject.computedStyles,
-      renderObject.curves
-    )
-    const styles = renderObject.computedStyles
-    const backgroundPaintingArea = calculateBackgroundCurvedPaintingArea(
-      getBackgroundValueForIndex(styles.backgroundClip, 0),
-      renderObject.curves
-    )
-    console.log('4444-backgroundPaintingArea', backgroundPaintingArea)
-    renderer.ctx.save()
-    renderer.path(backgroundPaintingArea)
-    renderer.ctx.clip()
-
-    // TODO: transparent color
-    // if (!isTransparent(styles.backgroundColor)) {
-    renderer.ctx.fillStyle = styles.backgroundColor
-    renderer.ctx.fill()
-    // }
-
-    renderer.ctx.restore()
+    switch (renderObject.type) {
+      case 'block':
+        renderBlock(renderObject)
+        break
+      case 'inline':
+        renderInline(renderObject)
+        break
+      case 'text':
+        renderText(renderObject)
+        break
+      default:
+        break
+    }
 
     if (renderObject.hasChildren()) {
       console.log('4444-paint', renderObject.children)
@@ -124,6 +113,50 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
         )
       }
     })
+  }
+
+  function paintBackGroundAndBorder(renderObject) {
+    const { ctx } = renderer
+    const styles = renderObject.computedStyles
+    const backgroundPaintingArea = calculateBackgroundCurvedPaintingArea(
+      getBackgroundValueForIndex(styles.backgroundClip, 0),
+      renderObject.curves
+    )
+    console.log('4444-backgroundPaintingArea', backgroundPaintingArea)
+    ctx.save()
+    path(backgroundPaintingArea)
+    ctx.clip()
+
+    console.log('6666666', styles.backgroundColor)
+    // if (!isTransparent(styles.backgroundColor)) {
+    if (styles.backgroundColor && styles.backgroundColor !== 'transparent') {
+      ctx.fillStyle = styles.backgroundColor
+      ctx.fill()
+    }
+
+    ctx.restore()
+  }
+
+  function renderBlock(renderObject) {
+    console.log('4444-renderBlock', renderObject)
+    paintBackGroundAndBorder(renderObject)
+  }
+
+  function renderInline(renderObject) {
+    console.log('4444-renderInline', renderObject)
+    paintBackGroundAndBorder(renderObject)
+  }
+
+  function renderText(renderObject) {
+    const { ctx } = renderer
+    const styles = renderObject.getTextStyles()
+    console.log('4444-renderText', renderObject, styles)
+
+    ctx.font = `300 ${styles.fontSize}px Arial`
+    ctx.fillStyle = styles.color
+    renderObject.textLines.forEach((line) =>
+      ctx.fillText(line[0], line[1], line[2])
+    )
   }
 
   return renderer

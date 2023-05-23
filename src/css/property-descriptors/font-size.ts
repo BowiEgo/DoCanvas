@@ -5,7 +5,7 @@ import {
 
 export const fontSize: IPropertyTypeValueDescriptor = {
   name: `font-size`,
-  initialValue: '0',
+  initialValue: '12',
   prefix: false,
   type: PropertyDescriptorParsingType.TYPE_VALUE,
   format: 'length'

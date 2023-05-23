@@ -31,19 +31,23 @@ function initCanvas() {
       color: 'red',
       textAlign: 'center',
       backgroundColor: '#00aeec45',
-      width: 100,
+      width: 200,
       height: 100,
       marginTop: 40
     }
   })
   const childElm2 = DoCanvas.createElement('view', {
     style: {
-      backgroundColor: '#00aeec45',
+      backgroundColor: 'green',
       width: 50,
       height: 120
     }
   })
-  const textElm = DoCanvas.createElement('text', {}, 'hello')
+  const textElm = DoCanvas.createElement(
+    'text',
+    { style: { fontSize: 16 } },
+    'Hello 👨‍👩‍👧‍👦!Lorem ipsum dolor, 这是一段中文. Iure aliquam ea obcaecati quo corrupti saepe quas reiciendis. Incidunt ducimus blanditiis vero id natus. Numquam, neque voluptatem sapiente dolorum accusantium at?'
+  )
 
   childElm1.appendChild(textElm)
   elm.appendChild(childElm1)
@@ -57,20 +61,25 @@ function initCanvas() {
 function initHTMLELement() {
   const canvas = document.querySelector('#canvas')
   const elm = document.createElement('div')
-  const childElm = document.createElement('div')
+  const childElm1 = document.createElement('div')
+  const childElm2 = document.createElement('div')
   const textElm = document.createElement('p')
-  const text = document.createTextNode('hello')
+  const text = document.createTextNode(
+    'Hello 👨‍👩‍👧‍👦!Lorem ipsum dolor, 这是一段中文. Iure aliquam ea obcaecati quo corrupti saepe quas reiciendis. Incidunt ducimus blanditiis vero id natus. Numquam, neque voluptatem sapiente dolorum accusantium at?'
+  )
 
   elm.style = `height: ${
     window.innerHeight / 2
   }px; border-bottom: 1px solid #000;box-sizing: border-box`
-  childElm.style =
-    'color: red; rext-align: center; background-color: #00aeec45; width: 100px; height: auto; margin-top: 40px;'
+  childElm1.style =
+    'color: red; rext-align: center; background-color: #00aeec45; width: 200px; height: auto; margin-top: 40px;'
+  childElm2.style = 'background-color: green; width: 50px; height: 120px'
 
   document.body.insertBefore(elm, canvas)
   textElm.appendChild(text)
-  childElm.appendChild(textElm)
-  elm.appendChild(childElm)
+  childElm1.appendChild(textElm)
+  elm.appendChild(childElm1)
+  elm.appendChild(childElm2)
 }
 
 initCanvas()
