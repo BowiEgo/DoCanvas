@@ -17,6 +17,7 @@ export function toRenderBlock(renderObject) {
       paddingBottom,
       paddingLeft,
       paddingRight,
+      marginTop,
       width,
       height
     } = renderObject.computedStyles
@@ -37,7 +38,8 @@ export function toRenderBlock(renderObject) {
         ? renderObject.prevSibling.layoutBox
         : null
 
-      let top = parentBox.top + (prevSiblingBox ? prevSiblingBox.height : 0)
+      let top =
+        (prevSiblingBox ? prevSiblingBox.bottom : parentBox.top) + marginTop
       let left = parentBox.left
       let w =
         Number(borderLeftWidth) +

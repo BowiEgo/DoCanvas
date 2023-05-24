@@ -14,12 +14,18 @@ export function toRenderText(renderObject) {
     console.log('layout-text', renderObject.element)
     const { width, height } = renderObject.computedStyles
     const parentBox = renderObject.parent.layoutBox
+    let top = parentBox.top
+    let left = parentBox.left
 
     if (!renderObject.layoutBox) {
-      renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 100, 18)
+      renderObject.layoutBox = createLayoutBox(
+        parentBox,
+        top,
+        left,
+        width,
+        height
+      )
     } else {
-      let top = parentBox.top
-      let left = parentBox.left
       renderObject.layoutBox.setTop(top)
       renderObject.layoutBox.setLeft(left)
       renderObject.layoutBox.setWidth(width)
