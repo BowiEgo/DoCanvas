@@ -7,6 +7,7 @@ import { NOOP, isString, mergeDeep } from '../utils'
 import { BoundCurves, createBoundCurves } from './canvas/boundCurves'
 import { toRenderBlock } from './renderBlock'
 import { toRenderInline } from './renderInline'
+import { toRenderInlineBlock } from './renderInlineBlock'
 import { toRenderText } from './renderText'
 
 export type RenderStyle = {
@@ -242,6 +243,8 @@ export function createRenderObject(element, options = {}): RenderObject {
   switch (type) {
     case 'inline':
       return toRenderInline(renderObject)
+    case 'inline-block':
+      return toRenderInlineBlock(renderObject)
     default:
       return toRenderBlock(renderObject)
   }

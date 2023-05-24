@@ -63,6 +63,7 @@ export function createEngine(renderer, options): Engine {
   }
 
   function flow(elm) {
+    const startTime = Date.now()
     console.log(
       'flow',
       elm,
@@ -76,6 +77,9 @@ export function createEngine(renderer, options): Engine {
       .reverse()
       .forEach((item) => item.measureBoxSize())
     elm.renderObject.flow()
+    console.log(
+      `渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`
+    )
     elm.hasRootElement() && paint(elm)
   }
 

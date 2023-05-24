@@ -60,6 +60,9 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
       case 'block':
         renderBlock(renderObject)
         break
+      case 'inline-block':
+        renderInline(renderObject)
+        break
       case 'inline':
         renderInline(renderObject)
         break

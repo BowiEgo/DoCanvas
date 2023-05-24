@@ -1,7 +1,7 @@
 const { createDoCanvas } = XCanvas
 
 const STR_CN =
-  '😱 👌👌一、选择适合的报纸在进行登报挂失前，您需要选择一家有一定知名度和影响力的报纸进行登报。目前，大多数地区都有本地的日报、晚报、周报等媒体，您可以选择其中的一家来登报。二、撰写登报文章登报文章的撰写需要遵守一定的规定和格式。一般来说，登报文章应该包含以下几个方面的内容： '
+  '😱一、选择适合的报纸在进行登报挂失前，您需要选择一家有一定知名度和影响力的报纸进行登报。目前，大多数地区都有本地的日报、晚报、周报等媒体，您可以选择其中的一家来登报。二、撰写登报文章登报文章的撰写需要遵守一定的规定和格式。一般来说，登报文章应该包含以下几个方面的内容： 👌'
 const STR_EN =
   '😱 😱 😱 👌👌👌This webpage transforms plain text into the immaculate emoji language.Want emoji tokens for the VOIP service Discord instead of Unicode characters? Tick that checkbox!'
 
@@ -53,7 +53,7 @@ function initCanvas() {
   const childElm3 = DoCanvas.createElement('view', {
     id: 'childElm3:lightgreen',
     style: {
-      display: 'inline',
+      display: 'inline-block',
       backgroundColor: 'lightgreen',
       width: 150,
       height: 50
@@ -62,7 +62,7 @@ function initCanvas() {
   const childElm4 = DoCanvas.createElement('view', {
     id: 'childElm4:darkorange',
     style: {
-      display: 'inline',
+      display: 'inline-block',
       backgroundColor: 'darkorange',
       width: 150,
       height: 50
@@ -71,7 +71,7 @@ function initCanvas() {
   const childElm5 = DoCanvas.createElement('view', {
     id: 'childElm5:pink',
     style: {
-      display: 'inline',
+      display: 'inline-block',
       backgroundColor: 'pink',
       width: 150,
       height: 50
@@ -115,6 +115,12 @@ function initHTMLELement() {
   const text1 = document.createTextNode(STR_CN)
   const text2 = document.createTextNode(STR_EN)
 
+  const childElm6 = document.createElement('span')
+  const childElm66 = document.createElement('span')
+  childElm6.innerText = 'The default value for elements.'
+  const childElm7 = document.createElement('div')
+  const childElm8 = document.createElement('div')
+
   elm.style = `height: ${
     window.innerHeight / 2
   }px; border-bottom: 1px solid #000;box-sizing: border-box`
@@ -122,11 +128,17 @@ function initHTMLELement() {
     'color: red; rext-align: center; background-color: #00aeec45; width: 300px; height: auto; margin-top: 40px;'
   childElm2.style = 'background-color: green; width: 50px; height: 40px'
   childElm3.style =
-    'display:inline-block; background-color: lightgreen; width: 150px; height: 50px'
+    'display:inline-block; background-color: lightgreen; width: 150px; height: 50px;'
   childElm4.style =
     'display:inline-block; background-color: darkorange; width: 150px; height: 50px'
   childElm5.style =
     'display:inline-block; background-color: pink; width: 150px; height: 50px'
+
+  childElm6.style = 'background-color: lightgreen; width: 50px; height: 50px'
+  childElm7.style =
+    'display:block; background-color: darkorange; width: 50px; height: 50px'
+  childElm8.style =
+    'display:block; background-color: pink; width: 50px; height: 50px'
 
   document.body.insertBefore(elm, canvas)
   textElm1.appendChild(text1)
@@ -138,6 +150,12 @@ function initHTMLELement() {
   elm.appendChild(childElm3)
   elm.appendChild(childElm4)
   elm.appendChild(childElm5)
+  // childElm3.innerText = 'hello'
+  // childElm3.appendChild(childElm4)
+  // childElm3.appendChild(childElm6)
+  // childElm3.appendChild(childElm66)
+  // childElm4.appendChild(childElm7)
+  // childElm5.appendChild(childElm8)
 }
 
 // let f = new FontFace('PingFang SC', 'url(./)');

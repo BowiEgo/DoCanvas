@@ -60,77 +60,78 @@ export function toRenderText(renderObject) {
     }
   }
 
-  function wrapText(ctx, words, x, y, maxWidth, lineHeight) {
-    let line = ''
-    let testLine = ''
-    let lineArray = []
-    let maxLineWidth = 0
-    y = lineHeight
-
-    for (var n = 0; n < words.length; n++) {
-      testLine += words[n]
-      let metrics = ctx.measureText(testLine)
-      let testWidth = metrics.width
-
-      if (testWidth > maxWidth && n > 0) {
-        lineArray.push([line.trim(), x, y])
-
-        y += lineHeight
-        line = words[n]
-        testLine = words[n]
-      } else {
-        line += words[n]
-      }
-      if (n === words.length - 1) {
-        lineArray.push([line.trim(), x, y])
-      }
-    }
-    return {
-      lines: lineArray,
-      maxLineWidth,
-      outerHeight: lineArray[lineArray.length - 1][2]
-    }
-  }
-
-  // https://drafts.csswg.org/css-text/#word-separator
-  const wordSeparators = [
-    0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091
-  ]
-
-  const breakWords = (str: string, styles): string[] => {
-    const breaker = LineBreaker(str, {
-      lineBreak: styles.lineBreak,
-      wordBreak: 'normal'
-    })
-
-    const words = []
-    let bk
-
-    while (!(bk = breaker.next()).done) {
-      if (bk.value) {
-        const value = bk.value.slice()
-        const codePoints = toCodePoints(value)
-        let word = ''
-        codePoints.forEach((codePoint) => {
-          if (wordSeparators.indexOf(codePoint) === -1) {
-            word += fromCodePoint(codePoint)
-          } else {
-            if (word.length) {
-              words.push(word)
-            }
-            words.push(fromCodePoint(codePoint))
-            word = ''
-          }
-        })
-
-        if (word.length) {
-          words.push(word)
-        }
-      }
-    }
-
-    return words
-  }
-
   return renderObject
+}
+
+// TODO: 用二分法进行优化，减少ctx.measureText()调用次数
+function wrapText(ctx, words, x, y, maxWidth, lineHeight) {
+  let line = ''
+  let testLine = ''
+  let lineArray = []
+  let maxLineWidth = 0
+  y = lineHeight
+
+  for (var n = 0; n < words.length; n++) {
+    testLine += words[n]
+    let metrics = ctx.measureText(testLine)
+    let testWidth = metrics.width
+
+    if (testWidth > maxWidth && n > 0) {
+      lineArray.push([line.trim(), x, y])
+
+      y += lineHeight
+      line = words[n]
+      testLine = words[n]
+    } else {
+      line += words[n]
+    }
+    if (n === words.length - 1) {
+      lineArray.push([line.trim(), x, y])
+    }
+  }
+  return {
+    lines: lineArray,
+    maxLineWidth,
+    outerHeight: lineArray[lineArray.length - 1][2]
+  }
+}
+
+// https://drafts.csswg.org/css-text/#word-separator
+const wordSeparators = [
+  0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091
+]
+
+const breakWords = (str: string, styles): string[] => {
+  const breaker = LineBreaker(str, {
+    lineBreak: styles.lineBreak,
+    wordBreak: 'normal'
+  })
+
+  const words = []
+  let bk
+
+  while (!(bk = breaker.next()).done) {
+    if (bk.value) {
+      const value = bk.value.slice()
+      const codePoints = toCodePoints(value)
+      let word = ''
+      codePoints.forEach((codePoint) => {
+        if (wordSeparators.indexOf(codePoint) === -1) {
+          word += fromCodePoint(codePoint)
+        } else {
+          if (word.length) {
+            words.push(word)
+          }
+          words.push(fromCodePoint(codePoint))
+          word = ''
+        }
+      })
+
+      if (word.length) {
+        words.push(word)
+      }
+    }
+  }
+
+  return words
 }

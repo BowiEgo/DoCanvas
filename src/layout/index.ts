@@ -89,6 +89,12 @@ export function createLayoutBox(parent, top, left, width, height): LayoutBox {
     }
   })
 
+  Object.defineProperty(layoutBox, 'children', {
+    get() {
+      return treeNode.children.map((item) => item.instance)
+    }
+  })
+
   Object.defineProperty(layoutBox, 'bottom', {
     get() {
       return layoutBox.top + layoutBox.height

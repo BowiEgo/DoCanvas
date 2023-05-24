@@ -37,7 +37,7 @@ export function toRenderBlock(renderObject) {
         ? renderObject.prevSibling.layoutBox
         : null
 
-      let top = parentBox.top + (prevSiblingBox ? prevSiblingBox.bottom : 0)
+      let top = parentBox.top + (prevSiblingBox ? prevSiblingBox.height : 0)
       let left = parentBox.left
       let w =
         Number(borderLeftWidth) +
