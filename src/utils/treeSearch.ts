@@ -3,7 +3,7 @@ import { isArray } from './general'
 
 type Queue<T> = T[]
 
-type TreeSearchFn = (node: TreeNode) => [TreeNode]
+type TreeSearchFn = (node: TreeNode) => any[]
 
 // https://javascript.plainenglish.io/tree-traversal-in-javascript-9b1e92e15abb
 

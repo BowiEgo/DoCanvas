@@ -7,6 +7,7 @@ import { NOOP, isString, mergeDeep } from '../utils'
 import { BoundCurves, createBoundCurves } from './canvas/boundCurves'
 import { toRenderBlock } from './renderBlock'
 import { toRenderInline } from './renderInline'
+import { toRenderInlineBlock } from './renderInlineBlock'
 import { toRenderText } from './renderText'
 
 export type RenderStyle = {
@@ -154,7 +155,7 @@ export function createRenderObject(element, options = {}): RenderObject {
   function updateRenderStyles() {}
 
   function computeStyles() {
-    renderObject.measureBoxSize()
+    console.log('computeStyles', renderObject.type, renderObject.element.id)
 
     if (renderObject.parent) {
       EXTEND_STYLE_KEYS.forEach((key) => {
@@ -162,6 +163,8 @@ export function createRenderObject(element, options = {}): RenderObject {
         if (value) renderObject.computedStyles[key] = value
       })
     }
+
+    // renderObject.measureBoxSize()
 
     // Object.keys(renderObject.computedStyles).forEach((styleName) => {
     //   if (
@@ -180,23 +183,11 @@ export function createRenderObject(element, options = {}): RenderObject {
         if (child.type !== 'text') child.computeStyles()
       })
     }
-
-    console.log(
-      '4444-computeStyles',
-      renderObject.element,
-      renderObject.computedStyles
-    )
   }
 
   function flow() {
     renderObject.layout()
     renderObject.curves = createBoundCurves(renderObject)
-    console.log(
-      '4444-flow',
-      renderObject,
-      renderObject.curves,
-      renderObject.children
-    )
     renderObject.children.forEach((child) => child.flow())
   }
 
@@ -211,7 +202,6 @@ export function createRenderObject(element, options = {}): RenderObject {
   }
 
   function hasChildren() {
-    console.log('4444', renderObject.node.hasChildren())
     return renderObject.node.hasChildren()
   }
 
@@ -251,8 +241,10 @@ export function createRenderObject(element, options = {}): RenderObject {
   element.renderObject = renderObject
 
   switch (type) {
-    case 'inline-block':
+    case 'inline':
       return toRenderInline(renderObject)
+    case 'inline-block':
+      return toRenderInlineBlock(renderObject)
     default:
       return toRenderBlock(renderObject)
   }

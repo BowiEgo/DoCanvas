@@ -72,6 +72,7 @@ export type Layout = {
 // type CanvasElementContainer = CanvasElement | DefaultContainer
 
 export type ElementOptions = {
+  id?: string
   style?: ElementStyleType
   text?: string
 }
@@ -83,6 +84,7 @@ export function isCanvasElement(value: any): value is CanvasElement {
 export interface CanvasElement {
   __v_isCanvasElement: boolean
   type: string
+  id: string | null
   options: ElementOptions
   styles: ElementStyleType
   debugColor: string | null
@@ -126,6 +128,7 @@ export const createBaseElement: CreateBaseElementFn = (
   let element: CanvasElement = {
     __v_isCanvasElement: true,
     type,
+    id: options.id || null,
     options,
     styles: options.style || {},
     context,
@@ -183,7 +186,6 @@ export const createBaseElement: CreateBaseElementFn = (
 
     // attach to renderTree
     if (element.hasRootElement()) {
-      console.log('11111appendChild')
       child.attach(element)
       element.context.flow(element)
     }

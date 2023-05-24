@@ -452,7 +452,7 @@ const DEFAULT_VIEW_STYLES = {
   display: 'block'
 }
 const DEFAULT_TEXT_STYLES = {
-  display: 'inline-block'
+  display: 'inline'
 }
 
 const EXTEND_STYLE_KEYS = [

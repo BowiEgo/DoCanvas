@@ -46,7 +46,6 @@ import { width } from './property-descriptors/width'
 import { zIndex } from './property-descriptors/z-index'
 
 export function createCSSDeclaration(type, styles) {
-  console.log('CSSSSSSSS', type)
   const DEFAULT_STYLES = getDefaultStyle(type)
   return {
     ...DEFAULT_STYLES,
