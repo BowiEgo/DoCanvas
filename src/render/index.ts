@@ -153,7 +153,7 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
     ctx.font = `normal ${styles.fontSize}px PingFang SC`
     ctx.fillStyle = styles.color
     renderObject.textLines.lines.forEach((line) =>
-      ctx.fillText(line[0], line[1], line[2])
+      ctx.fillText(line[0], line[1], line[2] + renderObject.layoutBox.top)
     )
   }
 
