@@ -152,7 +152,8 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
     const styles = renderObject.getTextStyles()
     console.log('4444-renderText', renderObject, styles)
 
-    ctx.font = `300 ${styles.fontSize}px PingFang SC`
+    ctx.textBaseline = 'ideographic'
+    ctx.font = `normal ${styles.fontSize}px PingFang SC`
     ctx.fillStyle = styles.color
     renderObject.textLines.lines.forEach((line) =>
       ctx.fillText(line[0], line[1], line[2])

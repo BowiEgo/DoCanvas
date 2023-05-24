@@ -1,4 +1,6 @@
 import { splitGraphemes } from '../text/graphemeBreak'
+import { LineBreaker } from '../text/lineBreak'
+import { fromCodePoint, toCodePoints } from '../text/Util'
 import { createLayoutBox } from '../layout'
 
 export function toRenderText(renderObject) {
@@ -23,13 +25,6 @@ export function toRenderText(renderObject) {
       renderObject.layoutBox.setWidth(width)
       renderObject.layoutBox.setHeight(height)
     }
-
-    console.log(
-      '3333layout-text',
-      renderObject.element,
-      renderObject.layoutBox,
-      parentBox.width
-    )
   }
 
   function measureBoxSize() {
@@ -37,19 +32,25 @@ export function toRenderText(renderObject) {
     const parentBox = renderObject.parent.layoutBox
     const ctx = renderObject.parent.element.context.renderer.ctx
     ctx.save()
-    ctx.font = `300 ${renderObject.getTextStyles().fontSize}px PingFang SC`
+    ctx.font = `normal ${renderObject.getTextStyles().fontSize}px PingFang SC`
+
+    const words = breakWords(renderObject.element, renderObject.computedStyles)
 
     const textLines = wrapText(
       ctx,
-      renderObject.element,
-      0,
-      16,
-      parentBox.width,
+      words,
+      parentBox.left,
+      parentBox.top,
+      renderObject.parent.parent.computedStyles.width,
       renderObject.getTextStyles().lineHeight || 23
     )
     ctx.restore()
     renderObject.textLines = textLines
-    console.log('textLines', textLines)
+    console.log('textLines', textLines, renderObject)
+    console.log(
+      'textLines-splitGraphemes',
+      splitGraphemes(renderObject.element)
+    )
     renderObject.computedStyles.width = textLines.maxLineWidth
     renderObject.computedStyles.height = textLines.outerHeight
   }
@@ -65,31 +66,29 @@ export function toRenderText(renderObject) {
     }
   }
 
-  function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-    let words = text.split(' ')
+  function wrapText(ctx, words, x, y, maxWidth, lineHeight) {
     let line = ''
     let testLine = ''
     let lineArray = []
     let maxLineWidth = 0
+    y = lineHeight
 
     for (var n = 0; n < words.length; n++) {
-      testLine += `${words[n].trim()} `
+      testLine += words[n]
       let metrics = ctx.measureText(testLine)
-      let testWidth = (maxLineWidth = metrics.width)
+      let testWidth = metrics.width
 
       if (testWidth > maxWidth && n > 0) {
-        if (testWidth > maxLineWidth) {
-          maxLineWidth = testWidth
-        }
-        lineArray.push([line, x, y])
+        lineArray.push([line.trim(), x, y])
+
         y += lineHeight
-        line = `${words[n]} `
-        testLine = `${words[n]} `
+        line = words[n]
+        testLine = words[n]
       } else {
-        line += `${words[n]} `
+        line += words[n]
       }
       if (n === words.length - 1) {
-        lineArray.push([line, x, y])
+        lineArray.push([line.trim(), x, y])
       }
     }
     return {
@@ -97,6 +96,46 @@ export function toRenderText(renderObject) {
       maxLineWidth,
       outerHeight: lineArray[lineArray.length - 1][2]
     }
+  }
+
+  // https://drafts.csswg.org/css-text/#word-separator
+  const wordSeparators = [
+    0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091
+  ]
+
+  const breakWords = (str: string, styles): string[] => {
+    const breaker = LineBreaker(str, {
+      lineBreak: styles.lineBreak,
+      wordBreak: 'normal'
+    })
+
+    const words = []
+    let bk
+
+    while (!(bk = breaker.next()).done) {
+      if (bk.value) {
+        const value = bk.value.slice()
+        const codePoints = toCodePoints(value)
+        let word = ''
+        codePoints.forEach((codePoint) => {
+          if (wordSeparators.indexOf(codePoint) === -1) {
+            word += fromCodePoint(codePoint)
+          } else {
+            if (word.length) {
+              words.push(word)
+            }
+            words.push(fromCodePoint(codePoint))
+            word = ''
+          }
+        })
+
+        if (word.length) {
+          words.push(word)
+        }
+      }
+    }
+
+    return words
   }
 
   return renderObject

@@ -23,12 +23,8 @@ export function toRenderInline(renderObject) {
     const parentBox = renderObject.parent.layoutBox
 
     if (!renderObject.layoutBox) {
-      renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 200, 18)
+      renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 0, 18)
     } else {
-      const prevSiblingBox = renderObject.prevSibling
-        ? renderObject.prevSibling.layoutBox
-        : null
-
       let top = parentBox.top
       let left = parentBox.left
       let w =
@@ -60,11 +56,10 @@ export function toRenderInline(renderObject) {
   function measureBoxSize() {
     const parentBox = renderObject.parent.layoutBox
     if (!renderObject.layoutBox) {
-      renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 200, 18)
+      renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 0, 18)
     }
     renderObject.children[0].measureBoxSize()
 
-    console.log('3333-measureBoxSize-line', renderObject, renderObject.children)
     if (renderObject.hasChildren()) {
       renderObject.computedStyles.width = renderObject.children.reduce(
         (acc, curr) => {
@@ -72,6 +67,7 @@ export function toRenderInline(renderObject) {
         },
         0
       )
+      renderObject.layoutBox.setWidth(renderObject.computedStyles.width)
 
       renderObject.computedStyles.height = renderObject.children.reduce(
         (acc, curr) => {
@@ -79,6 +75,8 @@ export function toRenderInline(renderObject) {
         },
         0
       )
+
+      renderObject.layoutBox.setHeight(renderObject.computedStyles.height)
     }
     renderObject.parent.measureBoxSize()
   }
