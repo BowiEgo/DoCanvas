@@ -71,7 +71,6 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
     }
 
     if (renderObject.hasChildren()) {
-      console.log('4444-paint', renderObject.children)
       renderObject.children.forEach((child) => paint(child))
     }
   }
@@ -122,12 +121,10 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
       getBackgroundValueForIndex(styles.backgroundClip, 0),
       renderObject.curves
     )
-    console.log('4444-backgroundPaintingArea', backgroundPaintingArea)
     ctx.save()
     path(backgroundPaintingArea)
     ctx.clip()
 
-    console.log('6666666', styles.backgroundColor)
     // if (!isTransparent(styles.backgroundColor)) {
     if (styles.backgroundColor && styles.backgroundColor !== 'transparent') {
       ctx.fillStyle = styles.backgroundColor
@@ -138,19 +135,16 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
   }
 
   function renderBlock(renderObject) {
-    console.log('4444-renderBlock', renderObject)
     paintBackGroundAndBorder(renderObject)
   }
 
   function renderInline(renderObject) {
-    console.log('4444-renderInline', renderObject)
     paintBackGroundAndBorder(renderObject)
   }
 
   function renderText(renderObject) {
     const { ctx } = renderer
     const styles = renderObject.getTextStyles()
-    console.log('4444-renderText', renderObject, styles)
 
     ctx.textBaseline = 'ideographic'
     ctx.font = `normal ${styles.fontSize}px PingFang SC`

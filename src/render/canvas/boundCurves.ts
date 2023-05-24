@@ -111,8 +111,6 @@ export function createBoundCurves(renderObject) {
   const paddingBottom = styles.paddingBottom
   const paddingLeft = styles.paddingLeft
 
-  console.log('4444-createBoundCurves', styles, bounds, paddingTop)
-
   let boundCurves = {
     topWidth,
     rightHeight,
@@ -454,7 +452,6 @@ export function createBoundCurves(renderObject) {
           bounds.top + bounds.height - (borderBottomWidth + paddingBottom)
         )
 
-  console.log('boundCurves', boundCurves)
   return boundCurves
 }
 

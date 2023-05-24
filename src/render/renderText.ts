@@ -1,4 +1,4 @@
-import { splitGraphemes } from '../text/graphemeBreak'
+// import { splitGraphemes } from '../text/graphemeBreak'
 import { LineBreaker } from '../text/lineBreak'
 import { fromCodePoint, toCodePoints } from '../text/Util'
 import { createLayoutBox } from '../layout'
@@ -9,9 +9,9 @@ export function toRenderText(renderObject) {
   renderObject.measureBoxSize = measureBoxSize
   renderObject.getTextStyles = getTextStyles
   renderObject.textLines = []
-  console.log('3333toRenderText', renderObject)
 
   function layout() {
+    console.log('layout-text', renderObject.element)
     const { width, height } = renderObject.computedStyles
     const parentBox = renderObject.parent.layoutBox
 
@@ -28,8 +28,7 @@ export function toRenderText(renderObject) {
   }
 
   function measureBoxSize() {
-    console.log('measureBoxSize-text')
-    const parentBox = renderObject.parent.layoutBox
+    console.log('measureBoxSize-text', renderObject.element)
     const ctx = renderObject.parent.element.context.renderer.ctx
     ctx.save()
     ctx.font = `normal ${renderObject.getTextStyles().fontSize}px PingFang SC`
@@ -39,18 +38,13 @@ export function toRenderText(renderObject) {
     const textLines = wrapText(
       ctx,
       words,
-      parentBox.left,
-      parentBox.top,
+      0,
+      0,
       renderObject.parent.parent.computedStyles.width,
       renderObject.getTextStyles().lineHeight || 23
     )
     ctx.restore()
     renderObject.textLines = textLines
-    console.log('textLines', textLines, renderObject)
-    console.log(
-      'textLines-splitGraphemes',
-      splitGraphemes(renderObject.element)
-    )
     renderObject.computedStyles.width = textLines.maxLineWidth
     renderObject.computedStyles.height = textLines.outerHeight
   }

@@ -43,7 +43,7 @@ export const display: IPropertyListDescriptor<Display> = {
   initialValue: (type) => {
     switch (type) {
       case 'text':
-        return 'inline-block'
+        return 'inline'
       default:
         return 'block'
     }

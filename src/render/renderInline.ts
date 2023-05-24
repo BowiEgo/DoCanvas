@@ -1,6 +1,14 @@
 import { createLayoutBox } from '../layout'
 import { isAuto } from '../utils'
 import { createBoundCurves } from './canvas/boundCurves'
+import { createLineBox } from './lineBox'
+import { RenderObject } from './renderObject'
+
+export interface RenderInline extends RenderObject {
+  type: string
+  layout(): void
+  measureBoxSize(): void
+}
 
 export function toRenderInline(renderObject) {
   renderObject.type = 'inline'
@@ -8,6 +16,7 @@ export function toRenderInline(renderObject) {
   renderObject.measureBoxSize = measureBoxSize
 
   function layout() {
+    console.log('layout-inline', renderObject.element.id)
     const {
       borderTopWidth,
       borderBottomWidth,
@@ -21,18 +30,33 @@ export function toRenderInline(renderObject) {
       height
     } = renderObject.computedStyles
     const parentBox = renderObject.parent.layoutBox
+    const prevSiblingBox = renderObject.prevSibling
+      ? renderObject.prevSibling.layoutBox
+      : null
+
+    console.log('layout-inline:prevSibling', renderObject.prevSibling)
+
+    if (
+      renderObject.prevSibling &&
+      renderObject.prevSibling.type === 'inline'
+    ) {
+      renderObject.line = renderObject.prevSibling.line
+      renderObject.line.add(renderObject)
+    } else {
+      console.log('11111', renderObject)
+      renderObject.line = createLineBox(renderObject)
+    }
 
     if (!renderObject.layoutBox) {
       renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 0, 18)
     } else {
-      let top = parentBox.top
-      let left = parentBox.left
       let w =
         Number(borderLeftWidth) +
         Number(paddingLeft) +
         Number(width) +
         Number(paddingRight) +
         Number(borderRightWidth)
+
       let h =
         Number(borderTopWidth) +
         Number(paddingTop) +
@@ -40,25 +64,22 @@ export function toRenderInline(renderObject) {
         Number(paddingBottom) +
         Number(borderBottomWidth)
 
+      let top = renderObject.line.layoutBox.top
+      let left = renderObject.line.layoutBox.left
+
       renderObject.layoutBox.setTop(top)
       renderObject.layoutBox.setLeft(left)
       renderObject.layoutBox.setWidth(w)
       renderObject.layoutBox.setHeight(h)
     }
-
-    console.log(
-      '3333layout-inline',
-      renderObject.element.type,
-      renderObject.layoutBox
-    )
   }
 
   function measureBoxSize() {
+    console.log('measureBoxSize-inline', renderObject.element.id)
     const parentBox = renderObject.parent.layoutBox
     if (!renderObject.layoutBox) {
       renderObject.layoutBox = createLayoutBox(parentBox, 0, 0, 0, 18)
     }
-    renderObject.children[0].measureBoxSize()
 
     if (renderObject.hasChildren()) {
       renderObject.computedStyles.width = renderObject.children.reduce(
@@ -78,7 +99,6 @@ export function toRenderInline(renderObject) {
 
       renderObject.layoutBox.setHeight(renderObject.computedStyles.height)
     }
-    renderObject.parent.measureBoxSize()
   }
   return renderObject
 }

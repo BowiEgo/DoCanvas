@@ -7,6 +7,7 @@ export function toRenderBlock(renderObject) {
   renderObject.measureBoxSize = measureBoxSize
 
   function layout() {
+    console.log('layout-block', renderObject.element.id)
     const {
       borderTopWidth,
       borderBottomWidth,
@@ -64,6 +65,7 @@ export function toRenderBlock(renderObject) {
 
   // measure box size
   function measureBoxSize() {
+    console.log('measureBoxSize-block', renderObject.element.id)
     let { width, height } = renderObject.renderStyles
 
     if (renderObject.isRoot()) {
@@ -76,7 +78,9 @@ export function toRenderBlock(renderObject) {
         if (renderObject.children.length > 1) {
           renderObject.computedStyles.width = renderObject.children.reduce(
             (acc, curr) => {
-              return acc + Number(curr.computedStyles.width)
+              return Number(curr.computedStyles.width) > acc
+                ? Number(curr.computedStyles.width)
+                : acc
             },
             0
           )
