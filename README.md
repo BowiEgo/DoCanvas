@@ -47,8 +47,8 @@ const DoCanvas = createDoCanvas({
 })
 
 const elm = DoCanvas.createElement('view', { id: 'container' })
-const childElm1 = DoCanvas.createElement('view', {
-  id: 'childElm1:text-container',
+const childElm = DoCanvas.createElement('view', {
+  id: 'childElm:text-container',
   style: {
     color: 'red',
     textAlign: 'center',
@@ -59,6 +59,14 @@ const childElm1 = DoCanvas.createElement('view', {
   }
 })
 
+const textElm = DoCanvas.createElement(
+  'text',
+  { style: { fontSize: 15 } },
+  STR_CN
+)
+
+childEm.appendChild(textElm)
+elm.appendChild(childElm)
 DoCanvas.body.appendChild(elm)
 ```
 
