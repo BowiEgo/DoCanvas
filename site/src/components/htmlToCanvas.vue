@@ -96,7 +96,7 @@ onMounted(() => {
 
 <template>
   <div id="container">
-    <canvas id="canvas" style="width: 100%; height: 50%" ref="canvas"></canvas>
+    <canvas id="canvas" ref="canvas"></canvas>
   </div>
 </template>
 
@@ -104,5 +104,11 @@ onMounted(() => {
 #container {
   width: 375px;
   background-color: #fff;
+}
+
+#canvas {
+  width: 100%;
+  height: 100%;
+  position: absolute;
 }
 </style>
