@@ -5,7 +5,7 @@ import { createDoCanvas } from '../../../src/index'
 const canvas = ref({} as HTMLCanvasElement)
 
 const STR_CN =
-  '一、选择适合的报纸在进行登报挂失前，您需要选择一家有一定知名度和影响力的报纸进行登报。目前，大多数地区都有本地的日报、晚报、周报等媒体，您可以选择其中的一家来登报。二、撰写登报文章登报文章的撰写需要遵守一定的规定和格式。一般来说，登报文章应该包含以下几个方面的内容： 👌'
+  '一、&nbsp;选择适合的报纸在进行登报挂失前，您需要选择一家有一定知名度和影响力的报纸进行登报。目前，大多数地区都有本地的日报、晚报、周报等媒体，您可以选择其中的一家来登报。二、撰写登报文章登报文章的撰写需要遵守一定的规定和格式。一般来说，登报文章应该包含以下几个方面的内容： 👌'
 const STR_EN =
   '😱 😱 😱 👌👌👌This webpage transforms plain text into the immaculate emoji language.Want emoji tokens for the VOIP service Discord instead of Unicode characters? Tick that checkbox!'
 

@@ -33,6 +33,7 @@ const rawHtml = ref(
 img {
   display: block;
   width: 100% !important;
+  height: auto !important;
 }
 </style>
 

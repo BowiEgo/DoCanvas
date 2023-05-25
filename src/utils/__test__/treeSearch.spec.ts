@@ -1,7 +1,7 @@
 import { connectChildren, createTreeNode } from '../../tree-node'
 import { BFS, PostOrderDFS } from '../treeSearch'
 
-describe('utils/traversal', () => {
+describe('utils/traversal test', () => {
   const root = createTreeNode({
     instance: 'root',
     children: [
