@@ -24,7 +24,9 @@ A tool for rendering canvas like html.
 
 ### TODO
 
-- render HTML space characters like \&nbsp;
 - element text:block(\<p>) text(\<span>) text:strong(\<strong>) text:hyperlink(\<a>)
+- element image
 - element scrollview
+- render HTML space characters like \&nbsp;
 - auto resize canvas when element over viewport
+- event capturing and bubbling
