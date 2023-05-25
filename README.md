@@ -22,6 +22,46 @@ A tool for rendering canvas like html.
 
 - render element like HTML
 
+```ts
+import { createDoCanvas } from 'do-canvas'
+
+const canvas = document.querySelector('#canvas') as HTMLCanvasElement
+const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+const dpr = window.devicePixelRatio || 1
+const rect = canvas.getBoundingClientRect()
+const w = 375
+const h = 800
+
+canvas.width = rect.width * dpr
+canvas.height = rect.height * dpr
+ctx.scale(dpr, dpr)
+
+const DoCanvas = createDoCanvas({
+  canvas,
+  ctx,
+  dpr,
+  width: w,
+  height: h,
+  backgroundColor: '#fff',
+  debug: false
+})
+
+const elm = DoCanvas.createElement('view', { id: 'container' })
+const childElm1 = DoCanvas.createElement('view', {
+  id: 'childElm1:text-container',
+  style: {
+    color: 'red',
+    textAlign: 'center',
+    backgroundColor: '#00aeec45',
+    width: 300,
+    height: 'auto',
+    marginTop: 40
+  }
+})
+
+DoCanvas.body.appendChild(elm)
+```
+
 ### TODO
 
 - element text:block(\<p>) text(\<span>) text:strong(\<strong>) text:hyperlink(\<a>)
