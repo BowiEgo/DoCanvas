@@ -21,7 +21,7 @@ A tool for rendering canvas like html.
 ## Features
 
 - render element like HTML
-- extend most used css styles
+- extend mostly used css styles
 
 how to use:
 
