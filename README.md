@@ -45,7 +45,11 @@ const DoCanvas = createDoCanvas({
   backgroundColor: '#fff',
   debug: false
 })
+```
 
+create element with properties:
+
+```ts
 const elm = DoCanvas.createElement('view', { id: 'container' })
 const childElm = DoCanvas.createElement('view', {
   id: 'childElm:text-container',
@@ -59,14 +63,24 @@ const childElm = DoCanvas.createElement('view', {
   }
 })
 
+elm.appendChild(childElm)
+```
+
+create text element:
+
+```ts
 const textElm = DoCanvas.createElement(
   'text',
   { style: { fontSize: 15 } },
-  STR_CN
+  'Hello World! 👌👌👌'
 )
 
 childEm.appendChild(textElm)
-elm.appendChild(childElm)
+```
+
+append to body like HTML to render elements:
+
+```ts
 DoCanvas.body.appendChild(elm)
 ```
 
