@@ -32,8 +32,8 @@ const rect = canvas.getBoundingClientRect()
 const w = 375
 const h = 800
 
-canvas.width = rect.width * dpr
-canvas.height = rect.height * dpr
+canvas.width = rect.w * dpr
+canvas.height = rect.h * dpr
 ctx.scale(dpr, dpr)
 
 const DoCanvas = createDoCanvas({
