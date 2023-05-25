@@ -18,7 +18,7 @@ A tool for rendering canvas like html.
 <br>
 <br>
 
-### Features
+## Features
 
 - render element like HTML
 
@@ -84,11 +84,12 @@ append to body like HTML to render elements:
 DoCanvas.body.appendChild(elm)
 ```
 
-### TODO
+## TODO
 
 - element text:block(\<p>) text(\<span>) text:strong(\<strong>) text:hyperlink(\<a>)
 - element image
-- element scrollview
+- element scrollview/render viewport
 - render HTML space characters like \&nbsp;
 - auto resize canvas when element out of viewport
 - event capturing and bubbling
+- debug mode
