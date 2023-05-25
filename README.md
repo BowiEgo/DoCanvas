@@ -21,6 +21,9 @@ A tool for rendering canvas like html.
 ## Features
 
 - render element like HTML
+- extend most used css styles
+
+how to use:
 
 ```ts
 import { createDoCanvas } from 'do-canvas'
