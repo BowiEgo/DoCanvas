@@ -90,5 +90,5 @@ DoCanvas.body.appendChild(elm)
 - element image
 - element scrollview
 - render HTML space characters like \&nbsp;
-- auto resize canvas when element over viewport
+- auto resize canvas when element out of viewport
 - event capturing and bubbling
