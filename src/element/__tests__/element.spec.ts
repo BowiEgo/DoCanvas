@@ -14,6 +14,10 @@ describe('create canvasElement', () => {
   })
   const textElm = DoCanvas.createElement('text', {}, 'hello')
 
+  it('should have appendChild API', () => {
+    expect(elm).toHaveProperty('appendChild')
+  })
+
   DoCanvas.body.appendChild(elm)
   childElm.appendChild(textElm)
   elm.appendChild(childElm)

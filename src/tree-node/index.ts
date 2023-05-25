@@ -1,3 +1,5 @@
+import { isString } from '../utils'
+
 export type TreeNodeChildren = Array<TreeNode>
 
 export interface TreeNode {
@@ -94,7 +96,7 @@ export function createTreeNode(options?) {
 
   function remove() {}
 
-  if (treeNode.instance) {
+  if (treeNode.instance && !isString(treeNode.instance)) {
     treeNode.instance.node = treeNode
   }
   return treeNode
