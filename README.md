@@ -87,12 +87,14 @@ append to body like HTML to render elements:
 DoCanvas.body.appendChild(elm)
 ```
 
-## TODO
+## Progress
 
-- element text:block(\<p>) text(\<span>) text:strong(\<strong>) text:hyperlink(\<a>)
-- element image
-- element scrollview/render viewport
-- render HTML space characters like \&nbsp;
-- auto resize canvas when element out of viewport
-- event capturing and bubbling
-- debug mode
+Current Status: **Working in progress**
+
+- [ ] element text:block(\<p>) text(\<span>) text:strong(\<strong>) text:hyperlink(\<a>)
+- [ ] element image
+- [ ] element scrollview/render viewport
+- [ ] render HTML space characters like \&nbsp;
+- [ ] auto resize canvas when element out of viewport
+- [ ] event capturing and bubbling
+- [ ] debug mode
