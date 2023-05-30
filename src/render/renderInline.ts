@@ -1,68 +1,97 @@
-import { createLayoutBox } from '../layout'
+import { CanvasElement } from '../element/element'
+import { createLayoutBox } from '../layout/layoutBox-bp'
+import { createTreeNode } from '../tree-node'
+import { pipe, withConstructor } from '../utils'
 import { LineBox, createLineBox } from './lineBox'
-import { RenderObject } from './renderObject'
+import {
+  RenderObject,
+  RenderObjectOptions,
+  createBaseRenderObject
+} from './renderObject'
+
+export type CreateRenderInlineFn = (
+  element: CanvasElement,
+  options?: RenderObjectOptions
+) => RenderInline
 
 export interface RenderInline extends RenderObject {
   type: string
+  lineBox: LineBox | null
   layout(): void
   measureBoxSize(): void
-  lineBox: LineBox | null
 }
 
-export function toRenderInline(renderObject): RenderInline {
-  renderObject.type = 'inline'
-  renderObject.layout = layout
-  renderObject.measureBoxSize = measureBoxSize
-  renderObject.lineBox = null
-  renderObject.initLayout = initLayout
+export const createBaseRenderInline =
+  () =>
+  (o): RenderInline => {
+    let renderInline = {
+      ...o,
+      type: 'inline',
+      lineBox: null,
+      layout,
+      measureBoxSize,
+      initLayout
+    }
 
-  function initLayout() {
-    if (!renderObject.layoutBox) {
-      renderObject.layoutBox = createLayoutBox(
-        renderObject.lineBox.layoutBox,
-        renderObject.lineBox.layoutBox.top,
-        renderObject.lineBox.layoutBox.left,
+    function initLayout() {
+      this.layoutBox = createLayoutBox(
+        this.lineBox.layoutBox,
+        this.lineBox.layoutBox.top,
+        this.lineBox.layoutBox.left,
         0,
         0
       )
     }
-  }
 
-  function layout() {
-    console.log('layout-inline', renderObject.element.id)
-    console.log('layout-inline:prevSibling', renderObject.prevSibling)
+    function layout() {
+      console.log('layout-inline', this, this.element.id)
 
-    if (
-      renderObject.prevSibling &&
-      renderObject.prevSibling.type.indexOf('inline') > -1
-    ) {
-      renderObject.lineBox = renderObject.prevSibling.lineBox
-    } else {
-      renderObject.lineBox = createLineBox(renderObject.parent.layoutBox)
+      if (
+        this.previousSibling &&
+        this.previousSibling.type.indexOf('inline') > -1
+      ) {
+        this.lineBox = this.previousSibling.lineBox
+      } else {
+        this.lineBox = createLineBox(this.getContainer().layoutBox)
+      }
+
+      if (!this.layoutBox) {
+        this.initLayout()
+      }
+
+      this.lineBox.add(this)
     }
 
-    renderObject.initLayout()
-    renderObject.lineBox.add(renderObject)
-  }
+    function measureBoxSize() {
+      console.log('measureBoxSize-inline', this)
 
-  function measureBoxSize() {
-    console.log('measureBoxSize-inline', renderObject.element.id)
+      if (this.hasChildNode()) {
+        this.element.computedStyles.width = this.children.reduce(
+          (acc, curr) => {
+            return acc + Number(curr.element.computedStyles.width)
+          },
+          0
+        )
 
-    if (renderObject.hasChildren()) {
-      renderObject.computedStyles.width = renderObject.children.reduce(
-        (acc, curr) => {
-          return acc + Number(curr.computedStyles.width)
-        },
-        0
-      )
-
-      renderObject.computedStyles.height = renderObject.children.reduce(
-        (acc, curr) => {
-          return acc + Number(curr.computedStyles.height)
-        },
-        0
-      )
+        this.element.computedStyles.height = this.children.reduce(
+          (acc, curr) => {
+            return acc + Number(curr.element.computedStyles.height)
+          },
+          0
+        )
+      }
     }
+    return renderInline
   }
-  return renderObject
+
+export const createRenderInline: CreateRenderInlineFn = function RenderInline(
+  element,
+  options
+) {
+  return pipe(
+    createTreeNode(),
+    createBaseRenderObject(element, (options = {})),
+    createBaseRenderInline(),
+    withConstructor(RenderInline)
+  )({} as RenderInline)
 }

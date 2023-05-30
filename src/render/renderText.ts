@@ -1,62 +1,82 @@
 // import { splitGraphemes } from '../text/graphemeBreak'
 import { LineBreaker } from '../text/lineBreak'
 import { fromCodePoint, toCodePoints } from '../text/Util'
-import { createLayoutBox } from '../layout'
+import { createLayoutBox } from '../layout/layoutBox-bp'
+import { pipe, withConstructor } from '../utils'
+import { createTreeNode } from '../tree-node'
+import {
+  RenderObject,
+  RenderObjectOptions,
+  createBaseRenderObject
+} from './renderObject'
+import { CanvasTextNode } from '../element/textNode'
 
-export function toRenderText(renderObject) {
-  renderObject.type = 'text'
-  renderObject.layout = layout
-  renderObject.measureBoxSize = measureBoxSize
-  renderObject.getTextStyles = getTextStyles
-  renderObject.textLines = []
+export type CreateRenderTextFn = (
+  element: CanvasTextNode,
+  options?: RenderObjectOptions
+) => RenderText
+
+export interface RenderText extends RenderObject {
+  type: string
+  textLines: []
+  layout(): void
+  measureBoxSize(): void
+}
+
+export const createBaseRenderText = () => (o) => {
+  let renderText = {
+    ...o,
+    type: 'text',
+    textLines: [],
+    layout,
+    measureBoxSize,
+    getTextStyles
+  }
 
   function layout() {
-    console.log('layout-text', renderObject.element)
-    const { width, height } = renderObject.computedStyles
-    const parentBox = renderObject.parent.layoutBox
+    console.log('layout-text', this.element)
+    const { width, height } = this.element.computedStyles
+    const parentBox = this.getContainer().layoutBox
     let top = parentBox.top
     let left = parentBox.left
 
-    if (!renderObject.layoutBox) {
-      renderObject.layoutBox = createLayoutBox(
-        parentBox,
-        top,
-        left,
-        width,
-        height
-      )
+    if (!this.layoutBox) {
+      this.layoutBox = createLayoutBox(parentBox, top, left, width, height)
     } else {
-      renderObject.layoutBox.setTop(top)
-      renderObject.layoutBox.setLeft(left)
-      renderObject.layoutBox.setWidth(width)
-      renderObject.layoutBox.setHeight(height)
+      this.layoutBox.setTop(top)
+      this.layoutBox.setLeft(left)
+      this.layoutBox.setWidth(width)
+      this.layoutBox.setHeight(height)
     }
   }
 
   function measureBoxSize() {
-    console.log('measureBoxSize-text', renderObject.element)
-    const ctx = renderObject.parent.element.context.renderer.ctx
+    console.log('measureBoxSize-text', this.element)
+    const ctx = this.element.getContainer().getRootNode().context.renderer.ctx
     ctx.save()
-    ctx.font = `normal ${renderObject.getTextStyles().fontSize}px PingFang SC`
+    ctx.font = `normal ${this.getTextStyles().fontSize}px PingFang SC`
 
-    const words = breakWords(renderObject.element, renderObject.computedStyles)
+    const words = breakWords(
+      this.element.textContent,
+      this.element.getContainer().computedStyles
+    )
 
     const textLines = wrapText(
       ctx,
       words,
       0,
       0,
-      renderObject.parent.parent.computedStyles.width,
-      renderObject.getTextStyles().lineHeight || 23
+      this.element.getContainer().getContainer().computedStyles.width,
+      this.getTextStyles().lineHeight || 23
     )
     ctx.restore()
-    renderObject.textLines = textLines
-    renderObject.computedStyles.width = textLines.maxLineWidth
-    renderObject.computedStyles.height = textLines.outerHeight
+    this.textLines = textLines
+    this.element.computedStyles.width = textLines.maxLineWidth
+    this.element.computedStyles.height = textLines.outerHeight
   }
 
   function getTextStyles() {
-    const parentStyles = renderObject.parent.computedStyles
+    const parentStyles = this.element.getContainer().computedStyles
     const { color, fontSize, fontWeight } = parentStyles
 
     return {
@@ -66,7 +86,7 @@ export function toRenderText(renderObject) {
     }
   }
 
-  return renderObject
+  return renderText
 }
 
 // TODO: 用二分法进行优化，减少ctx.measureText()调用次数
@@ -140,4 +160,16 @@ const breakWords = (str: string, styles): string[] => {
   }
 
   return words
+}
+
+export const createRenderText: CreateRenderTextFn = function RenderText(
+  element,
+  options
+) {
+  return pipe(
+    createTreeNode(),
+    createBaseRenderObject(element, (options = {})),
+    createBaseRenderText(),
+    withConstructor(RenderText)
+  )({} as RenderText)
 }

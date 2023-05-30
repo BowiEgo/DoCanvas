@@ -1,3 +1,10 @@
+type AnyFunc = (...arg: any) => any
+
+export const withConstructor = (constructor) => (o) => {
+  const proto = Object.assign({}, Object.getPrototypeOf(o), { constructor })
+  return Object.assign(Object.create(proto), o)
+}
+
 export const curry = (fn) => {
   return function curried(...args) {
     if (args.length >= fn.length) {
@@ -10,23 +17,26 @@ export const curry = (fn) => {
   }
 }
 
-export const pipe = function (funcs) {
-  let len = funcs.length
-  let index = 0
-  let result
-  return function f1(...args) {
-    // 第一次args是传进来的参数，之后args==result
-    result = funcs[index].apply(this, args)
-    if (index >= len - 1) {
-      // 重置下标为0
-      index = 0
-      return result
+export const pipe =
+  <T>(...fns: Array<(arg: T) => T>) =>
+  (x: T): any => {
+    return fns.reduce((y, f) => f(y), x)
+  }
+
+export const pipeWithBreak = () => {
+  let breakFlag = false
+
+  return {
+    breakFlag,
+    pipe:
+      <T>(...fns: Array<(arg: T) => T>) =>
+      (x: T) => {
+        return fns.reduce((y, f) => (breakFlag ? x : f(y)), x)
+      },
+    breakPipe: () => {
+      breakFlag = true
     }
-    index++
-    return f1.call(null, result)
   }
 }
-// compose的实现
-export const compose = function (args) {
-  return pipe(args.reverse())
-}
+
+export const compose = (args) => pipe(args.reverse())

@@ -46,8 +46,11 @@ export interface BoundCurves {
 }
 
 export function createBoundCurves(renderObject) {
-  let styles = renderObject.computedStyles
+  console.log('createBoundCurves', renderObject)
+  let styles = renderObject.element.computedStyles
   let bounds = renderObject.layoutBox
+
+  if (!styles) return
 
   let [tlh, tlv] = getAbsoluteValueForTuple(
     styles.borderTopLeftRadius,

@@ -6,6 +6,7 @@
 // | | |—— RenderText {#text} at (0, 24) size 48x24 "Second one."
 
 import { TreeNode, createTreeNode } from '../tree-node'
+import { pipe, withConstructor } from '../utils'
 
 // BoxModel
 // |-------------------------------------------------|
@@ -49,10 +50,16 @@ import { TreeNode, createTreeNode } from '../tree-node'
 // SC = scroll corner
 // SW = scrollbar width
 
-export interface LayoutBox {
+export type CreateLayoutFn = (
+  parent: LayoutBox,
+  top: number,
+  left: number,
+  width: number,
+  height: number
+) => LayoutBox
+
+export interface LayoutBox extends TreeNode {
   __v_isLayoutBox: boolean
-  node: TreeNode | null
-  parent: LayoutBox | null
   top: number
   left: number
   width: number
@@ -64,68 +71,70 @@ export interface LayoutBox {
   setHeight(val: number): void
 }
 
-export function createLayoutBox(parent, top, left, width, height): LayoutBox {
-  let layoutBox = {
-    __v_isLayoutBox: true,
-    node: null,
-    parent: null,
-    top,
-    left,
-    width,
-    height,
-    appendChild,
-    setTop,
-    setLeft,
-    setWidth,
-    setHeight
-  }
-
-  let treeNode = createTreeNode({ instance: layoutBox })
-  parent && parent.appendChild(layoutBox)
-
-  Object.defineProperty(layoutBox, 'parent', {
-    get() {
-      return treeNode.parent ? treeNode.parent.instance : null
+export const createBaseLayoutBox =
+  (parent, top, left, width, height) =>
+  (o): LayoutBox => {
+    let layoutBox = {
+      __v_isLayoutBox: true,
+      ...o,
+      top,
+      bottom: 0,
+      left,
+      right: 0,
+      width,
+      height,
+      appendChild,
+      setTop,
+      setLeft,
+      setWidth,
+      setHeight
     }
-  })
 
-  Object.defineProperty(layoutBox, 'children', {
-    get() {
-      return treeNode.children.map((item) => item.instance)
+    Object.defineProperty(layoutBox, 'bottom', {
+      get() {
+        return this.top + this.height
+      }
+    })
+
+    Object.defineProperty(layoutBox, 'right', {
+      get() {
+        return this.left + this.width
+      }
+    })
+
+    function appendChild(child) {
+      this.appendChildNode(child)
     }
-  })
 
-  Object.defineProperty(layoutBox, 'bottom', {
-    get() {
-      return layoutBox.top + layoutBox.height
+    function setTop(val) {
+      this.top = val
     }
-  })
 
-  Object.defineProperty(layoutBox, 'right', {
-    get() {
-      return layoutBox.left + layoutBox.width
+    function setLeft(val) {
+      this.left = val
     }
-  })
 
-  function appendChild(child) {
-    treeNode.appendChild(child.node)
+    function setWidth(val) {
+      this.width = val
+    }
+
+    function setHeight(val) {
+      this.height = val
+    }
+
+    return layoutBox
   }
 
-  function setTop(val) {
-    layoutBox.top = val
-  }
-
-  function setLeft(val) {
-    layoutBox.left = val
-  }
-
-  function setWidth(val) {
-    layoutBox.width = val
-  }
-
-  function setHeight(val) {
-    layoutBox.height = val
-  }
-
-  return layoutBox
+export const createLayoutBox: CreateLayoutFn = function LayoutBox(
+  parent,
+  top,
+  left,
+  width,
+  height
+) {
+  return pipe(
+    createTreeNode(),
+    createBaseLayoutBox(parent, top, left, width, height),
+    withConstructor(LayoutBox)
+  )({} as any)
 }

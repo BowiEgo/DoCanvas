@@ -1,4 +1,4 @@
-import { CanvasElement } from './element'
+import { CanvasElement } from './element/element'
 import { RenderObject, createRenderObject } from './render/renderObject'
 import { BFS, PostOrderDFS } from './utils/treeSearch'
 
@@ -37,6 +37,7 @@ export function createEngine(renderer, options): Engine {
   }
 
   function createRoot(rootElm) {
+    return
     engine.createRenderTree(rootElm)
     engine.createLayoutTree()
     // engine.measureBoxSize(rootElm)
@@ -72,7 +73,7 @@ export function createEngine(renderer, options): Engine {
         (item) => `${item.type} ${item.element.id}`
       )
     )
-    elm.renderObject.computeStyles()
+    elm.computeStyles()
     BFS(elm.renderObject)
       .reverse()
       .forEach((item) => item.measureBoxSize())
@@ -85,7 +86,7 @@ export function createEngine(renderer, options): Engine {
 
   function reflow(elm) {
     console.log('reflow', elm)
-    elm.renderObject.computeStyles()
+    elm.computeStyles()
     elm.renderObject.flow()
     elm.hasRootElement() && repaint(elm)
   }

@@ -2,19 +2,24 @@ import { isString } from '../utils'
 
 export type TreeNodeChildren = Array<TreeNode>
 
+export type TreeNodeOptions = {
+  children?: []
+  textContent?: string
+}
+
 export interface TreeNode {
   __v_isTreeNode: boolean
   _children: TreeNodeChildren
   children: TreeNodeChildren
-  parent: TreeNode | null
-  root: TreeNode | null
-  prev: TreeNode | null
-  next: TreeNode | null
-  instance: any
-  hasChildren(): boolean
-  appendChild(child: TreeNode): void
-  prependChild(child: TreeNode): void
-  removeChild(child: TreeNode): void
+  parentNode: TreeNode | null
+  previousSibling: TreeNode | null
+  nextSibling: TreeNode | null
+  setParentNode(parent: TreeNode): void
+  getRootNode(): TreeNode | null
+  appendChildNode(child: TreeNode): void
+  prependChildNode(child: TreeNode): void
+  removeChildNode(child: TreeNode): void
+  hasChildNode(): boolean
   append(): void
   prepend(): void
   remove(): void
@@ -25,102 +30,113 @@ export function isTreeNode(value: any): value is TreeNode {
 }
 
 export function isEndNode(node) {
-  return node.parent && !node.next && !node.hasChildren()
+  return node.parentNode && !node.next && !node.hasChildNode()
 }
 
-export function createTreeNode(options?) {
-  const treeNode: TreeNode = {
-    __v_isTreeNode: true,
-    _children: options.children || [],
-    parent: null,
-    prev: null,
-    next: null,
-    instance: options.instance || null,
-    set children(value) {
-      treeNode._children = value
-    },
-    get children() {
-      return treeNode._children || []
-    },
-    get root() {
-      return getRoot(this)
-    },
-    hasChildren,
-    appendChild,
-    prependChild,
-    removeChild,
-    append,
-    prepend,
-    remove
-  }
-
-  function getRoot(node) {
-    if (node.parent) {
-      return getRoot(node.parent)
-    } else {
-      return node
-    }
-  }
-
-  function hasChildren() {
-    return Array.isArray(treeNode._children) && treeNode._children.length
-      ? true
-      : false
-  }
-
-  function appendChild(child) {
-    if (!isTreeNode(child)) throw Error('Unknown treeNode type')
-
-    const prev = treeNode._children[treeNode._children.length - 1] || null
-    if (prev && isTreeNode(prev)) {
-      _setSibling(prev, prev.prev, child)
+export const createTreeNode =
+  (options?: TreeNodeOptions) =>
+  (o): TreeNode => {
+    const treeNode: TreeNode = {
+      ...o,
+      __v_isTreeNode: true,
+      textContent: options ? options.textContent : null,
+      parentNode: null,
+      _children: options ? options.children : [],
+      previousSibling: null,
+      nextSibling: null,
+      set children(val) {
+        console.log('set children')
+        this._children = val
+      },
+      get children() {
+        return this._children || []
+      },
+      setParentNode,
+      getRootNode,
+      appendChildNode,
+      prependChildNode,
+      removeChildNode,
+      hasChildNode,
+      append,
+      prepend,
+      remove
     }
 
-    Array.isArray(treeNode._children) && treeNode._children.push(child)
+    function setParentNode(node) {
+      this.parentNode = node
+    }
 
-    _setParent(child, treeNode)
-    _setSibling(child, prev, null)
+    function getRootNode() {
+      return _getRoot(this)
+    }
+
+    function hasChildNode() {
+      return Array.isArray(this._children) && this._children.length
+        ? true
+        : false
+    }
+
+    function appendChildNode(child) {
+      if (!isTreeNode(child)) throw Error('Unknown treeNode type')
+
+      const prev = this._children[this._children.length - 1] || null
+      if (prev && isTreeNode(prev)) {
+        _setSiblingNode(prev, prev.previousSibling, child)
+      }
+
+      Array.isArray(this._children) && this._children.push(child)
+
+      child.setParentNode(this)
+      _setSiblingNode(child, prev, null)
+    }
+
+    function prependChildNode(child) {
+      if (!isTreeNode(child)) throw Error('Unknown treeNode type')
+    }
+
+    function removeChildNode(child) {
+      if (!isTreeNode(child)) throw Error('Unknown treeNode type')
+    }
+
+    function append() {}
+
+    function prepend() {}
+
+    function remove() {}
+
+    // if (treeNode.instance && !isString(treeNode.instance)) {
+    //   treeNode.instance.node = treeNode
+    // }
+    return treeNode
   }
 
-  function prependChild(child) {
-    if (!isTreeNode(child)) throw Error('Unknown treeNode type')
+function _getRoot(node) {
+  if (node.parentNode) {
+    return _getRoot(node.parentNode)
+  } else {
+    return node
   }
-
-  function removeChild(child) {
-    if (!isTreeNode(child)) throw Error('Unknown treeNode type')
-  }
-
-  function append() {}
-
-  function prepend() {}
-
-  function remove() {}
-
-  if (treeNode.instance && !isString(treeNode.instance)) {
-    treeNode.instance.node = treeNode
-  }
-  return treeNode
 }
 
-function _setParent(child: TreeNode, parent): void {
-  child.parent = parent
-}
-
-function _setSibling(
+function _setSiblingNode(
   node: TreeNode,
   prev: TreeNode | null,
   next: TreeNode | null
 ): void {
-  node.prev = prev
-  node.next = next
+  node.previousSibling = prev
+  node.nextSibling = next
 }
 
 export function connectChildren(node) {
   console.log('connectChildren', node)
   if (node.hasChildren()) {
     node._children.map((child, index) => {
-      _setParent(child, node)
-      _setSibling(child, node._children[index - 1], node._children[index + 1])
+      child.setParentNode(node)
+      _setSiblingNode(
+        child,
+        node._children[index - 1],
+        node._children[index + 1]
+      )
       connectChildren(child)
     })
   }
