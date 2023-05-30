@@ -1,14 +1,15 @@
 import { createCSSDeclaration } from '../css'
 import { BODY_STYLES, EXTEND_STYLE_KEYS } from '../css/constant'
-import { CanvasElement } from '../element'
-import { LayoutBox } from '../layout'
+import { CanvasElement } from '../element/element'
+import { isCanvasTextNode } from '../element/textNode'
+import { LayoutBox } from '../layout/layoutBox'
 import { TreeNode, createTreeNode } from '../tree-node'
-import { NOOP, isString, mergeDeep } from '../utils'
+import { NOOP, isString, mergeDeep, pipe, withConstructor } from '../utils'
 import { BoundCurves, createBoundCurves } from './canvas/boundCurves'
-import { toRenderBlock } from './renderBlock'
-import { toRenderInline } from './renderInline'
-import { toRenderInlineBlock } from './renderInlineBlock'
-import { toRenderText } from './renderText'
+import { createRenderBlock } from './renderBlock'
+import { createBaseRenderInline, createRenderInline } from './renderInline'
+import { createRenderInlineBlock } from './renderInlineBlock'
+import { createRenderText } from './renderText'
 
 export type RenderStyle = {
   backgroundColor: string
@@ -57,195 +58,94 @@ export type ComputedStyle = {
   // visible: boolean
 }
 
-export interface RenderObject {
+export type RenderObjectOptions = {}
+
+export type CreateRenderObjectFn = (
+  element: CanvasElement,
+  options?: RenderObjectOptions
+) => CanvasElement
+
+export interface RenderObject extends TreeNode {
   // TODO: enum type
+  __v_isRenderObject: boolean
   type: string
-  root: RenderObject | null
-  parent: RenderObject | null
-  nextSibling: RenderObject | null
-  prevSibling: RenderObject | null
-  children: RenderObject[]
   element: CanvasElement
-  node: TreeNode
-  renderStyles: RenderStyle
-  computedStyles: ComputedStyle
   viewport: { width: number; height: number } | null
   layoutBox: LayoutBox | null
   curves: BoundCurves
-  createRenderStyles(elm: CanvasElement): void
-  updateRenderStyles(): void
-  computeStyles(): void
+  getContainer(): RenderObject
   measureBoxSize(): void
-  flow(): void
   layout(): void
-  appendChild(child: RenderObject): void
-  hasChildren(): boolean
+  flow(): void
+  reflow(): void
+  isRoot(): boolean
 }
 
-export function createRenderObject(element, options = {}): RenderObject {
-  let renderObject = {
-    __v_isRenderObject: true,
-    type: 'block',
-    options,
-    root: null,
-    parent: null,
-    nextSibling: null,
-    prevSibling: null,
-    children: [],
-    element,
-    node: null,
-    renderStyles: {} as RenderStyle,
-    computedStyles: {} as ComputedStyle,
-    viewport: null,
-    layoutBox: null,
-    curves: null,
-    createRenderStyles,
-    updateRenderStyles,
-    computeStyles,
-    measureBoxSize: NOOP,
-    layout: NOOP,
-    flow,
-    reflow,
-    appendChild,
-    isRoot,
-    hasChildren
+export const createBaseRenderObject =
+  (element, options = {}) =>
+  (o): RenderObject => {
+    let renderObject = {
+      ...o,
+      __v_isRenderObject: true,
+      options,
+      element,
+      get viewport() {
+        let rootElm = element.getRootNode()
+        return rootElm && rootElm.type === 'body'
+          ? rootElm.context.viewport
+          : null
+      },
+      layoutBox: null,
+      curves: null,
+      getContainer,
+      appendChild,
+      measureBoxSize: NOOP,
+      layout: NOOP,
+      flow,
+      reflow,
+      isRoot
+    }
+
+    function getContainer() {
+      return this.parentNode
+    }
+
+    function appendChild(child) {
+      this.appendChildNode(child)
+    }
+
+    function flow() {
+      this.layout()
+      this.curves = createBoundCurves(this)
+      this.children.forEach((child) => child.flow())
+    }
+
+    function reflow() {}
+
+    function isRoot() {
+      return this.parentNode === null
+    }
+
+    return renderObject
   }
 
-  let treeNode = createTreeNode({ instance: renderObject })
-  renderObject.node = treeNode
-
-  Object.defineProperty(renderObject, 'root', {
-    get() {
-      return treeNode.root.instance
-    }
-  })
-
-  Object.defineProperty(renderObject, 'parent', {
-    get() {
-      return treeNode.parent ? treeNode.parent.instance : null
-    }
-  })
-
-  Object.defineProperty(renderObject, 'prevSibling', {
-    get() {
-      return treeNode.prev ? treeNode.prev.instance : null
-    }
-  })
-
-  Object.defineProperty(renderObject, 'nextSibling', {
-    get() {
-      return treeNode.next ? treeNode.next.instance : null
-    }
-  })
-
-  Object.defineProperty(renderObject, 'children', {
-    get() {
-      return treeNode.children.map((item) => item.instance)
-    }
-  })
-
-  function createRenderStyles(elm) {
-    if (elm.type === 'body') {
-      return createCSSDeclaration(elm.type, BODY_STYLES)
-    }
-    let renderStyles = createCSSDeclaration(elm.type, elm.styles)
-    return renderStyles
+export const createRenderObject = (element, options = {}) => {
+  if (element.type === 'body') {
+    return createRenderBlock(element, options)
+  }
+  console.log(element)
+  if (isCanvasTextNode(element)) {
+    return createRenderText(element, options)
   }
 
-  function updateRenderStyles() {}
-
-  function computeStyles() {
-    console.log('computeStyles', renderObject.type, renderObject.element.id)
-
-    if (renderObject.parent) {
-      EXTEND_STYLE_KEYS.forEach((key) => {
-        const value = _getParentStyle(renderObject, key)
-        if (value) renderObject.computedStyles[key] = value
-      })
-    }
-
-    // renderObject.measureBoxSize()
-
-    // Object.keys(renderObject.computedStyles).forEach((styleName) => {
-    //   if (
-    //     renderObject.computedStyles[styleName] === 'transparent' &&
-    //     renderObject.parent
-    //   ) {
-    //     renderObject.computedStyles[styleName] = _getParentStyle(
-    //       renderObject,
-    //       styleName
-    //     )
-    //   }
-    // })
-
-    if (renderObject.hasChildren()) {
-      renderObject.children.forEach((child) => {
-        if (child.type !== 'text') child.computeStyles()
-      })
-    }
-  }
-
-  function flow() {
-    renderObject.layout()
-    renderObject.curves = createBoundCurves(renderObject)
-    renderObject.children.forEach((child) => child.flow())
-  }
-
-  function reflow() {}
-
-  function appendChild(child) {
-    treeNode.appendChild(child.node)
-  }
-
-  function isRoot() {
-    return renderObject.parent === null
-  }
-
-  function hasChildren() {
-    return renderObject.node.hasChildren()
-  }
-
-  function _getExtendStyles(elm) {
-    let extendStyles = {}
-
-    if (elm.container) {
-      EXTEND_STYLE_KEYS.forEach((key) => {
-        const value = elm.container.styles[key]
-        if (value) extendStyles[key] = value
-      })
-    }
-
-    return extendStyles
-  }
-
-  function _getParentStyle(renderObject, styleName) {
-    if (!renderObject.parent) return
-    if (renderObject.computedStyles[styleName] === 'transparent') {
-      return renderObject.parent.computedStyles[styleName]
-    } else {
-      return _getParentStyle(renderObject.parent, styleName)
-    }
-  }
-
-  // function _getTransParentStyle(elm, styleKey) {
-  //   if (elm.container) {
-  //     if (elm.container.renderStyles[styleKey] !== '')
-  //   }
-  // }
-
-  if (isString(element)) return toRenderText(renderObject)
-
-  renderObject.renderStyles = createRenderStyles(element)
-  renderObject.computedStyles = { ...renderObject.renderStyles }
-  let type = renderObject.renderStyles.display
-  element.renderObject = renderObject
-
-  switch (type) {
+  switch (element.renderStyles.display) {
+    case 'block':
+      return createRenderBlock(element, options)
     case 'inline':
-      return toRenderInline(renderObject)
+      return createRenderInline(element, options)
     case 'inline-block':
-      return toRenderInlineBlock(renderObject)
+      return createRenderInlineBlock(element, options)
     default:
-      return toRenderBlock(renderObject)
+      return createRenderBlock(element, options)
   }
 }

@@ -1,6 +1,12 @@
+// RenderBody {BODY} at (0, 0) size 640x480 [bgcolor=# FFFFFF]
+// |—— RenderBlock {P} at (0, 0) size 640x80
+// | |—— RenderText {#text} at (0, 0) size 48x24 "First line."
+// | |—— RenderBR {BR} at (20, 20) size 0x0
+// | |—— RenderText {#text} at (0, 24) size 48x24 "Second one."
+
 import { BACKGROUND_CLIP } from '../css/property-descriptors/background-clip'
 import { Color, isTransparent } from '../css/types/color'
-import { CanvasElement } from '../element'
+import { CanvasElement } from '../element/element'
 import { Engine } from '../engine'
 import { getBackgroundValueForIndex } from './canvas/background'
 import { isBezierCurve } from './canvas/bezierCurve'
@@ -73,7 +79,7 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
         break
     }
 
-    if (renderObject.hasChildren()) {
+    if (renderObject.hasChildNode()) {
       renderObject.children.forEach((child) => paint(child))
     }
   }
@@ -119,7 +125,7 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
 
   function paintBackGroundAndBorder(renderObject) {
     const { ctx } = renderer
-    const styles = renderObject.computedStyles
+    const styles = renderObject.element.computedStyles
     const backgroundPaintingArea = calculateBackgroundCurvedPaintingArea(
       getBackgroundValueForIndex(styles.backgroundClip, 0),
       renderObject.curves

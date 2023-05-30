@@ -1,7 +1,15 @@
-import { createLayoutBox } from '../layout'
+import { CanvasElement } from '../element/element'
+import { createLayoutBox } from '../layout/layoutBox-bp'
+import { createTreeNode } from '../tree-node'
+import { pipe, withConstructor } from '../utils'
 import { LineBox, createLineBox } from './lineBox'
-import { RenderInline, toRenderInline } from './renderInline'
-import { RenderObject } from './renderObject'
+import { RenderInline, createBaseRenderInline } from './renderInline'
+import { RenderObjectOptions, createBaseRenderObject } from './renderObject'
+
+export type CreateRenderInlineBlockFn = (
+  element: CanvasElement,
+  options?: RenderObjectOptions
+) => RenderInlineBlock
 
 export interface RenderInlineBlock extends RenderInline {
   type: string
@@ -11,48 +19,63 @@ export interface RenderInlineBlock extends RenderInline {
   lineBox: LineBox | null
 }
 
-export function toRenderInlineBlock(renderObject): RenderInlineBlock {
-  renderObject = toRenderInline(renderObject)
-  renderObject.type = 'inline-block'
-  renderObject.initLayout = initLayout
-
-  function initLayout() {
-    const {
-      borderTopWidth,
-      borderBottomWidth,
-      borderLeftWidth,
-      borderRightWidth,
-      paddingTop,
-      paddingBottom,
-      paddingLeft,
-      paddingRight,
-      width,
-      height
-    } = renderObject.computedStyles
-
-    let w =
-      Number(borderLeftWidth) +
-      Number(paddingLeft) +
-      Number(width) +
-      Number(paddingRight) +
-      Number(borderRightWidth)
-    let h =
-      Number(borderTopWidth) +
-      Number(paddingTop) +
-      Number(height) +
-      Number(paddingBottom) +
-      Number(borderBottomWidth)
-
-    if (!renderObject.layoutBox) {
-      renderObject.layoutBox = createLayoutBox(
-        renderObject.lineBox.layoutBox,
-        renderObject.lineBox.layoutBox.top,
-        renderObject.lineBox.layoutBox.left,
-        w,
-        h
-      )
+export const createBaseRenderInlineBlock =
+  () =>
+  (o): RenderInlineBlock => {
+    let renderInlineBlock = {
+      ...o,
+      type: 'inline-block',
+      initLayout
     }
+
+    function initLayout() {
+      const {
+        borderTopWidth,
+        borderBottomWidth,
+        borderLeftWidth,
+        borderRightWidth,
+        paddingTop,
+        paddingBottom,
+        paddingLeft,
+        paddingRight,
+        width,
+        height
+      } = this.element.computedStyles
+
+      let w =
+        Number(borderLeftWidth) +
+        Number(paddingLeft) +
+        Number(width) +
+        Number(paddingRight) +
+        Number(borderRightWidth)
+      let h =
+        Number(borderTopWidth) +
+        Number(paddingTop) +
+        Number(height) +
+        Number(paddingBottom) +
+        Number(borderBottomWidth)
+
+      if (!this.layoutBox) {
+        this.layoutBox = createLayoutBox(
+          this.lineBox.layoutBox,
+          this.lineBox.layoutBox.top,
+          this.lineBox.layoutBox.left,
+          w,
+          h
+        )
+      }
+    }
+
+    return renderInlineBlock
   }
 
-  return renderObject
-}
+export const createRenderInlineBlock: CreateRenderInlineBlockFn =
+  function RenderInlineBlock(element, options) {
+    return pipe(
+      createTreeNode(),
+      createBaseRenderObject(element, (options = {})),
+      createBaseRenderInline(),
+      createBaseRenderInlineBlock(),
+      withConstructor(RenderInlineBlock)
+    )({} as RenderInlineBlock)
+  }

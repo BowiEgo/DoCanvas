@@ -18,15 +18,83 @@ A tool for rendering canvas like html.
 <br>
 <br>
 
-### Features
+## Features
 
 - render element like HTML
+- extend mostly used css styles
 
-### TODO
+how to use:
 
-- element text:block(\<p>) text(\<span>) text:strong(\<strong>) text:hyperlink(\<a>)
-- element image
-- element scrollview
-- render HTML space characters like \&nbsp;
-- auto resize canvas when element over viewport
-- event capturing and bubbling
+```ts
+import { createDoCanvas } from 'do-canvas'
+
+const canvas = document.querySelector('#canvas') as HTMLCanvasElement
+const ctx = canvas.getContext('2d') as CanvasRenderingContext2D
+const dpr = window.devicePixelRatio || 1
+const rect = canvas.getBoundingClientRect()
+const w = 375
+const h = 800
+
+canvas.width = rect.w * dpr
+canvas.height = rect.h * dpr
+ctx.scale(dpr, dpr)
+
+const DoCanvas = createDoCanvas({
+  canvas,
+  ctx,
+  dpr,
+  width: w,
+  height: h,
+  backgroundColor: '#fff',
+  debug: false
+})
+```
+
+create element with properties:
+
+```ts
+const elm = DoCanvas.createElement('view', { id: 'container' })
+const childElm = DoCanvas.createElement('view', {
+  id: 'childElm:text-container',
+  style: {
+    color: 'red',
+    textAlign: 'center',
+    backgroundColor: '#00aeec45',
+    width: 300,
+    height: 'auto',
+    marginTop: 40
+  }
+})
+
+elm.appendChild(childElm)
+```
+
+create text element:
+
+```ts
+const textElm = DoCanvas.createElement(
+  'text',
+  { style: { fontSize: 15 } },
+  'Hello World! 👌👌👌'
+)
+
+childEm.appendChild(textElm)
+```
+
+append to body like HTML to render elements:
+
+```ts
+DoCanvas.body.appendChild(elm)
+```
+
+## Progress
+
+Current Status: **Working in progress**
+
+- [ ] element text:block(\<p>) text(\<span>) text:strong(\<strong>) text:hyperlink(\<a>)
+- [ ] element image
+- [ ] element scrollview/render viewport
+- [ ] render HTML space characters like \&nbsp;
+- [ ] auto resize canvas when element out of viewport
+- [ ] event capturing and bubbling
+- [ ] debug mode

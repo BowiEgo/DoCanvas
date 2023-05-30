@@ -56,7 +56,7 @@ function initCanvas() {
       display: 'inline-block',
       backgroundColor: 'lightgreen',
       width: 150,
-      height: 50
+      height: 30
     }
   })
   const childElm4 = DoCanvas.createElement('view', {
@@ -65,7 +65,7 @@ function initCanvas() {
       display: 'inline-block',
       backgroundColor: 'darkorange',
       width: 150,
-      height: 50
+      height: 30
     }
   })
   const childElm5 = DoCanvas.createElement('view', {
@@ -74,7 +74,7 @@ function initCanvas() {
       display: 'inline-block',
       backgroundColor: 'pink',
       width: 150,
-      height: 50
+      height: 30
     }
   })
   const textElm1 = DoCanvas.createElement(
@@ -98,8 +98,22 @@ function initCanvas() {
   elm.appendChild(childElm5)
   DoCanvas.body.appendChild(elm)
 
+  console.log(
+    '11111',
+    elm.constructor.name,
+    elm,
+    elm.container,
+    elm.parent,
+    elm.getContainer()
+  )
+
   // console.log(elm.node.instance, elm)
-  // console.log(childElm1.container === elm)
+  console.log(
+    '1111',
+    textElm1.children[0].parentNode === textElm1,
+    textElm1.children[0].getContainer() === textElm1
+  )
+  console.log('2222', textElm1.getRootNode() === DoCanvas.body)
 }
 
 function initHTMLELement() {
@@ -128,21 +142,21 @@ function initHTMLELement() {
     'color: red; rext-align: center; background-color: #00aeec45; width: 300px; height: auto; margin-top: 40px;'
   childElm2.style = 'background-color: green; width: 50px; height: 40px'
   childElm3.style =
-    'display:inline-block; background-color: lightgreen; width: 150px; height: 50px;'
+    'display:inline-block; background-color: lightgreen; width: 150px; height: 30px;'
   childElm4.style =
-    'display:inline-block; background-color: darkorange; width: 150px; height: 50px'
+    'display:inline-block; background-color: darkorange; width: 150px; height: 30px'
   childElm5.style =
-    'display:inline-block; background-color: pink; width: 150px; height: 50px'
+    'display:inline-block; background-color: pink; width: 150px; height: 30px'
 
-  childElm6.style = 'background-color: lightgreen; width: 50px; height: 50px'
+  childElm6.style = 'background-color: lightgreen; width: 50px; height: 30px'
   childElm7.style =
-    'display:block; background-color: darkorange; width: 50px; height: 50px'
+    'display:block; background-color: darkorange; width: 50px; height: 30px'
   childElm8.style =
-    'display:block; background-color: pink; width: 50px; height: 50px'
+    'display:block; background-color: pink; width: 50px; height: 30px'
 
   document.body.insertBefore(elm, canvas)
   textElm1.appendChild(text1)
-  // textElm2.appendChild(text2)
+  textElm2.appendChild(text2)
   childElm1.appendChild(textElm1)
   childElm1.appendChild(textElm2)
   elm.appendChild(childElm1)
