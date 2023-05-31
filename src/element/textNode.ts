@@ -8,7 +8,7 @@ export function isCanvasTextNode(value: any): value is CanvasTextNode {
   return value ? value.__v_isCanvasTextNode === true : false
 }
 
-export interface CanvasTextNode extends TreeNode {
+export interface CanvasTextNode extends TreeNode<CanvasTextNode> {
   __v_isCanvasTextNode: boolean
   text: string
   debugColor: string | null

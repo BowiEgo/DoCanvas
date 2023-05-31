@@ -2,7 +2,7 @@ import { createCSSDeclaration } from '../css'
 import { BODY_STYLES, EXTEND_STYLE_KEYS } from '../css/constant'
 import { CanvasElement } from '../element/element'
 import { isCanvasTextNode } from '../element/textNode'
-import { LayoutBox } from '../layout/layoutBox'
+import { LayoutBox } from '../layout/layoutBox-bp'
 import { TreeNode, createTreeNode } from '../tree-node'
 import { NOOP, isString, mergeDeep, pipe, withConstructor } from '../utils'
 import { BoundCurves, createBoundCurves } from './canvas/boundCurves'
@@ -11,58 +11,14 @@ import { createBaseRenderInline, createRenderInline } from './renderInline'
 import { createRenderInlineBlock } from './renderInlineBlock'
 import { createRenderText } from './renderText'
 
-export type RenderStyle = {
-  backgroundColor: string
-  color: string
-  display: string
-  // width: number
-  // height: number
-  // paddingWidth: number
-  // paddingHeight: number
-  // paddingTop: number
-  // paddingBottom: number
-  // paddingLeft: number
-  // paddingRight: number
-  // marginLeft: number
-  // marginRight: number
-  // marginTop: number
-  // marginBottom: number
-  // contentWidth: number
-  // contentHeight: number
-  // fullBoxWidth: number
-  // fullBoxHeight: number
-  // lineCap: string // butt round square
-  // visible: boolean
-}
-
-export type ComputedStyle = {
-  backgroundColor: string
-  color: string
-  // width: number
-  // height: number
-  // paddingWidth: number
-  // paddingHeight: number
-  // paddingTop: number
-  // paddingBottom: number
-  // paddingLeft: number
-  // paddingRight: number
-  // marginLeft: number
-  // marginRight: number
-  // marginTop: number
-  // marginBottom: number
-  // contentWidth: number
-  // contentHeight: number
-  // fullBoxWidth: number
-  // fullBoxHeight: number
-  // lineCap: string // butt round square
-  // visible: boolean
-}
-
 export type RenderObjectOptions = {}
 
-export type CreateRenderObjectFn = (element: CanvasElement, options?: RenderObjectOptions) => CanvasElement
+export type CreateRenderObjectFn = (
+  element: CanvasElement,
+  options?: RenderObjectOptions
+) => CanvasElement
 
-export interface RenderObject extends TreeNode {
+export interface RenderObject extends TreeNode<RenderObject> {
   // TODO: enum type
   __v_isRenderObject: boolean
   type: string
@@ -70,6 +26,9 @@ export interface RenderObject extends TreeNode {
   viewport: { width: number; height: number } | null
   layoutBox: LayoutBox | null
   curves: BoundCurves
+  children: RenderObject[]
+  previousSibling: RenderObject | null
+  nextSibling: RenderObject | null
   getContainer(): RenderObject
   measureBoxSize(): void
   layout(): void
@@ -100,10 +59,11 @@ export const createRenderObject = (element, options = {}) => {
 
 export const createBaseRenderObject =
   (element, options = {}) =>
-  (o): RenderObject => {
+  (o: TreeNode<RenderObject>): RenderObject => {
     let renderObject = {
       ...o,
       __v_isRenderObject: true,
+      type: null,
       options,
       element,
       get viewport() {

@@ -1,7 +1,7 @@
 import { isString, pipe, withConstructor } from '../utils'
 import { ElementStyleType } from '../styleConstant'
 import { TreeNode, createTreeNode } from '../tree-node'
-import { ComputedStyle, RenderObject, createRenderObject } from '../render/renderObject'
+import { RenderObject, createRenderObject } from '../render/renderObject'
 import { Engine } from '../engine'
 import { createCSSDeclaration } from '../css'
 import { BODY_STYLES, EXTEND_STYLE_KEYS } from '../css/constant'
@@ -59,6 +59,58 @@ type ExtendStyles = {
   visible?: boolean
 }
 
+export type RenderStyles = {
+  display: string
+  backgroundColor: string
+  color: string
+  width: number
+  height: number
+  borderTopWidth: number
+  borderBottomWidth: number
+  borderLeftWidth: number
+  borderRightWidth: number
+  paddingTop: number
+  paddingBottom: number
+  paddingLeft: number
+  paddingRight: number
+  marginTop: number
+  marginBottom: number
+  marginLeft: number
+  marginRight: number
+  // contentWidth: number
+  // contentHeight: number
+  // fullBoxWidth: number
+  // fullBoxHeight: number
+  // lineCap: string // butt round square
+  // visible: boolean
+}
+
+export type ComputedStyles = {
+  display: string
+  backgroundColor: string
+  color: string
+  width: number
+  height: number
+  borderTopWidth: number
+  borderBottomWidth: number
+  borderLeftWidth: number
+  borderRightWidth: number
+  paddingTop: number
+  paddingBottom: number
+  paddingLeft: number
+  paddingRight: number
+  marginTop: number
+  marginBottom: number
+  marginLeft: number
+  marginRight: number
+  // contentWidth: number
+  // contentHeight: number
+  // fullBoxWidth: number
+  // fullBoxHeight: number
+  // lineCap: string // butt round square
+  // visible: boolean
+}
+
 export type Layout = {
   x: number
   y: number
@@ -84,12 +136,14 @@ export function isCanvasElement(value: any): value is CanvasElement {
   return value ? value.__v_isCanvasElement === true : false
 }
 
-export interface CanvasElement extends TreeNode {
+export interface CanvasElement extends TreeNode<CanvasElement> {
   __v_isCanvasElement: boolean
   type: string
   id: string | null
   options: ElementOptions
   styles: ElementStyleType
+  renderStyles: RenderStyles
+  computedStyles: ComputedStyles
   debugColor: string | null
   context: Engine
   renderObject: RenderObject
@@ -98,7 +152,7 @@ export interface CanvasElement extends TreeNode {
   computeStyles(): void
   hasChildren(): boolean
   getRootElement(): CanvasElement
-  getContainerStyle(): ComputedStyle
+  getContainerStyle(): ComputedStyles
   getContainer(): CanvasElement | null
   isVisible(): boolean
 }
@@ -150,6 +204,7 @@ export const createBaseElement =
       id: options.id || null,
       options,
       styles: options.style || {},
+      computedStyles: {},
       renderStyles: null,
       renderObject: null,
       debugColor: null,

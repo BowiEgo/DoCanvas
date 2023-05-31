@@ -1,6 +1,6 @@
 import { TreeNode } from '../tree-node'
 
-export interface LayoutObject extends TreeNode {
+export interface LayoutObject extends TreeNode<LayoutObject> {
   _setPreviousSibling(previous: LayoutObject): void
   _setNextSibling(next: LayoutObject): void
   _setParentSibling(parent: LayoutObject): void
