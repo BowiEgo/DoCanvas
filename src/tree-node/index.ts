@@ -3,7 +3,7 @@ import { isString } from '../utils'
 export type TreeNodeChildren = Array<TreeNode>
 
 export type TreeNodeOptions = {
-  children?: []
+  children?: TreeNode[]
   textContent?: string
 }
 
@@ -45,7 +45,6 @@ export const createTreeNode =
       previousSibling: null,
       nextSibling: null,
       set children(val) {
-        console.log('set children')
         this._children = val
       },
       get children() {
@@ -71,9 +70,7 @@ export const createTreeNode =
     }
 
     function hasChildNode() {
-      return Array.isArray(this._children) && this._children.length
-        ? true
-        : false
+      return Array.isArray(this._children) && this._children.length ? true : false
     }
 
     function appendChildNode(child) {
@@ -118,25 +115,16 @@ function _getRoot(node) {
   }
 }
 
-function _setSiblingNode(
-  node: TreeNode,
-  prev: TreeNode | null,
-  next: TreeNode | null
-): void {
+function _setSiblingNode(node: TreeNode, prev: TreeNode | null, next: TreeNode | null): void {
   node.previousSibling = prev
   node.nextSibling = next
 }
 
 export function connectChildren(node) {
-  console.log('connectChildren', node)
-  if (node.hasChildren()) {
+  if (node.hasChildNode()) {
     node._children.map((child, index) => {
       child.setParentNode(node)
-      _setSiblingNode(
-        child,
-        node._children[index - 1],
-        node._children[index + 1]
-      )
+      _setSiblingNode(child, node._children[index - 1], node._children[index + 1])
       connectChildren(child)
     })
   }

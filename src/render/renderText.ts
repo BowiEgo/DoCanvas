@@ -4,11 +4,7 @@ import { fromCodePoint, toCodePoints } from '../text/Util'
 import { createLayoutBox } from '../layout/layoutBox-bp'
 import { pipe, withConstructor } from '../utils'
 import { createTreeNode } from '../tree-node'
-import {
-  RenderObject,
-  RenderObjectOptions,
-  createBaseRenderObject
-} from './renderObject'
+import { RenderObject, RenderObjectOptions, createBaseRenderObject } from './renderObject'
 import { CanvasTextNode } from '../element/textNode'
 
 export type CreateRenderTextFn = (
@@ -21,6 +17,15 @@ export interface RenderText extends RenderObject {
   textLines: []
   layout(): void
   measureBoxSize(): void
+}
+
+export const createRenderText: CreateRenderTextFn = function RenderText(element, options) {
+  return pipe(
+    createTreeNode(),
+    createBaseRenderObject(element, (options = {})),
+    createBaseRenderText(),
+    withConstructor(RenderText)
+  )({} as RenderText)
 }
 
 export const createBaseRenderText = () => (o) => {
@@ -56,12 +61,9 @@ export const createBaseRenderText = () => (o) => {
     ctx.save()
     ctx.font = `normal ${this.getTextStyles().fontSize}px PingFang SC`
 
-    const words = breakWords(
-      this.element.textContent,
-      this.element.getContainer().computedStyles
-    )
+    const words = _breakWords(this.element.textContent, this.element.getContainer().computedStyles)
 
-    const textLines = wrapText(
+    const textLines = _wrapText(
       ctx,
       words,
       0,
@@ -90,7 +92,7 @@ export const createBaseRenderText = () => (o) => {
 }
 
 // TODO: 用二分法进行优化，减少ctx.measureText()调用次数
-function wrapText(ctx, words, x, y, maxWidth, lineHeight) {
+function _wrapText(ctx, words, x, y, maxWidth, lineHeight) {
   let line = ''
   let testLine = ''
   let lineArray = []
@@ -123,11 +125,9 @@ function wrapText(ctx, words, x, y, maxWidth, lineHeight) {
 }
 
 // https://drafts.csswg.org/css-text/#word-separator
-const wordSeparators = [
-  0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091
-]
+const wordSeparators = [0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091]
 
-const breakWords = (str: string, styles): string[] => {
+const _breakWords = (str: string, styles): string[] => {
   const breaker = LineBreaker(str, {
     lineBreak: styles.lineBreak,
     wordBreak: 'normal'
@@ -160,16 +160,4 @@ const breakWords = (str: string, styles): string[] => {
   }
 
   return words
-}
-
-export const createRenderText: CreateRenderTextFn = function RenderText(
-  element,
-  options
-) {
-  return pipe(
-    createTreeNode(),
-    createBaseRenderObject(element, (options = {})),
-    createBaseRenderText(),
-    withConstructor(RenderText)
-  )({} as RenderText)
 }

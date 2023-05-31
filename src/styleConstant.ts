@@ -100,23 +100,12 @@ export type AlignSelf =
 
 export type WhiteSpace =
   /* Keyword values */
-  | 'normal'
-  | 'nowrap'
-  | 'pre'
-  | 'pre-wrap'
-  | 'pre-line'
-  | 'break-spaces'
-  | GlobalValue
+  'normal' | 'nowrap' | 'pre' | 'pre-wrap' | 'pre-line' | 'break-spaces' | GlobalValue
 
-export type Position =
-  | 'static'
-  | 'relative'
-  | 'absolute'
-  | 'fixed'
-  | 'sticky'
-  | GlobalValue
+export type Position = 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky' | GlobalValue
 
 export interface ElementStyleType {
+  backgroundColor?: string
   display?: string
   fontSize?: number
   fontWeight?: number
