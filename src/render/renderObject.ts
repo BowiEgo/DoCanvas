@@ -1,13 +1,11 @@
-import { createCSSDeclaration } from '../css'
-import { BODY_STYLES, EXTEND_STYLE_KEYS } from '../css/constant'
 import { CanvasElement } from '../element/element'
 import { isCanvasTextNode } from '../element/textNode'
 import { LayoutBox } from '../layout/layoutBox-bp'
-import { TreeNode, createTreeNode } from '../tree-node'
-import { NOOP, isString, mergeDeep, pipe, withConstructor } from '../utils'
+import { TreeNode } from '../tree-node'
+import { NOOP } from '../utils'
 import { BoundCurves, createBoundCurves } from './canvas/boundCurves'
 import { createRenderBlock } from './renderBlock'
-import { createBaseRenderInline, createRenderInline } from './renderInline'
+import { createRenderInline } from './renderInline'
 import { createRenderInlineBlock } from './renderInlineBlock'
 import { createRenderText } from './renderText'
 
@@ -30,6 +28,7 @@ export interface RenderObject extends TreeNode<RenderObject> {
   previousSibling: RenderObject | null
   nextSibling: RenderObject | null
   getContainer(): RenderObject
+  appendChild(chid: RenderObject): void
   measureBoxSize(): void
   layout(): void
   flow(): void
@@ -81,25 +80,25 @@ export const createBaseRenderObject =
       isRoot
     }
 
-    function getContainer() {
-      return this.parentNode
-    }
-
-    function appendChild(child) {
-      this.appendChildNode(child)
-    }
-
-    function flow() {
-      this.layout()
-      this.curves = createBoundCurves(this)
-      this.children.forEach((child) => child.flow())
-    }
-
-    function reflow() {}
-
-    function isRoot() {
-      return this.parentNode === null
-    }
-
     return renderObject
   }
+
+function getContainer(this: RenderObject) {
+  return this.parentNode
+}
+
+function appendChild(this: RenderObject, child) {
+  this.appendChildNode(child)
+}
+
+function flow(this: RenderObject) {
+  this.layout()
+  this.curves = createBoundCurves(this)
+  this.children.forEach((child) => child.flow())
+}
+
+function reflow() {}
+
+function isRoot(this: RenderObject) {
+  return this.parentNode === null
+}

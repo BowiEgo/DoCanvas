@@ -13,8 +13,9 @@ export interface TreeNode<T> {
   previousSibling: T | null
   nextSibling: T | null
   children: T[]
+  textContent: string | null
   setParentNode(node: TreeNode<T>): void
-  getRootNode(): TreeNode<T> | null
+  getRootNode(): T | null
   appendChildNode(child: TreeNode<T>): void
   prependChildNode(child: TreeNode<T>): void
   removeChildNode(child: TreeNode<T>): void

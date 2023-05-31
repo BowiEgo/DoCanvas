@@ -1,5 +1,6 @@
-import { createRect } from '../geometry/rect'
-import { createSize } from '../geometry/size'
+import { Point, createPoint } from '../geometry/point'
+import { Rect, createRect } from '../geometry/rect'
+import { Size, createSize } from '../geometry/size'
 import { pipe } from '../utils'
 import { LayoutBoxModelObject, createLayoutBoxModelObject } from './layoutBoxModelObject'
 
@@ -99,6 +100,15 @@ import { LayoutBoxModelObject, createLayoutBoxModelObject } from './layoutBoxMod
 
 export interface LayoutBox extends LayoutBoxModelObject {
   _isLayoutBox: boolean
+  size: Size
+  location: Point
+  rect: Rect
+  clientWidth: number
+  clientHeight: number
+  setWidth(width: number): void
+  setHeight(height: number): void
+  setX(x: number): void
+  setY(y: number): void
 }
 
 export const createLayoutBox = function LayoutBox() {
@@ -112,7 +122,7 @@ export const createBaseLayoutBox =
     let location = createPoint()
     let rect = createRect(size, location)
 
-    let layoutBox = {
+    let layoutBox: LayoutBox = {
       ...o,
       _isLayoutBox: true,
       size,
@@ -142,22 +152,22 @@ export const createBaseLayoutBox =
     return layoutBox
   }
 
-function setWidth(width) {
-  if (width === this.size().width) return
-  this.size().setWidth(width)
+function setWidth(this: LayoutBox, width) {
+  if (width === this.size.width) return
+  this.size.setWidth(width)
 }
 
-function setHeight(height) {
-  if (height === this.size().height) return
-  this.size().setHeight(height)
+function setHeight(this: LayoutBox, height) {
+  if (height === this.size.height) return
+  this.size.setHeight(height)
 }
 
-function setX(x) {
-  if (x === this.location().x) return
-  this.location().setX(x)
+function setX(this: LayoutBox, x) {
+  if (x === this.location.x) return
+  this.location.setX(x)
 }
 
-function setY(y) {
-  if (y === this.location().y) return
-  this.location().setY(y)
+function setY(this: LayoutBox, y) {
+  if (y === this.location.y) return
+  this.location.setY(y)
 }

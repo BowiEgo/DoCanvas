@@ -6,6 +6,20 @@ import { pipe, withConstructor } from '../utils'
 import { createTreeNode } from '../tree-node'
 import { RenderObject, RenderObjectOptions, createBaseRenderObject } from './renderObject'
 import { CanvasTextNode } from '../element/textNode'
+import { CanvasBodyElement } from '../element/element'
+
+type TextStyles = {
+  color: string
+  fontSize: number
+  fontWeight: string
+  lineHeight: number
+}
+
+type TextLines = {
+  lines: string[]
+  maxLineWidth: number
+  outerHeight: number
+}
 
 export type CreateRenderTextFn = (
   element: CanvasTextNode,
@@ -14,85 +28,97 @@ export type CreateRenderTextFn = (
 
 export interface RenderText extends RenderObject {
   type: string
-  textLines: []
+  textLines: TextLines
   layout(): void
   measureBoxSize(): void
+  getTextStyles(): TextStyles
 }
 
 export const createRenderText: CreateRenderTextFn = function RenderText(element, options) {
   return pipe(
-    createTreeNode(),
+    createTreeNode<RenderObject>(),
     createBaseRenderObject(element, (options = {})),
     createBaseRenderText(),
     withConstructor(RenderText)
   )({} as RenderText)
 }
 
-export const createBaseRenderText = () => (o) => {
-  let renderText = {
-    ...o,
-    type: 'text',
-    textLines: [],
-    layout,
-    measureBoxSize,
-    getTextStyles
-  }
-
-  function layout() {
-    console.log('layout-text', this.element)
-    const { width, height } = this.element.computedStyles
-    const parentBox = this.getContainer().layoutBox
-    let top = parentBox.top
-    let left = parentBox.left
-
-    if (!this.layoutBox) {
-      this.layoutBox = createLayoutBox(parentBox, top, left, width, height)
-    } else {
-      this.layoutBox.setTop(top)
-      this.layoutBox.setLeft(left)
-      this.layoutBox.setWidth(width)
-      this.layoutBox.setHeight(height)
+export const createBaseRenderText =
+  () =>
+  (o: RenderObject): RenderText => {
+    let renderText: RenderText = {
+      ...o,
+      type: 'text',
+      textLines: null,
+      layout,
+      measureBoxSize,
+      getTextStyles
     }
+
+    return renderText
   }
 
-  function measureBoxSize() {
-    console.log('measureBoxSize-text', this.element)
-    const ctx = this.element.getContainer().getRootNode().context.renderer.ctx
-    ctx.save()
-    ctx.font = `normal ${this.getTextStyles().fontSize}px PingFang SC`
+function layout(this: RenderText) {
+  console.log('layout-text', this.element)
+  const { width, height } = this.element.computedStyles
+  const parentBox = this.getContainer().layoutBox
+  let top = parentBox.top
+  let left = parentBox.left
 
-    const words = _breakWords(this.element.textContent, this.element.getContainer().computedStyles)
-
-    const textLines = _wrapText(
-      ctx,
-      words,
-      0,
-      0,
-      this.element.getContainer().getContainer().computedStyles.width,
-      this.getTextStyles().lineHeight || 23
-    )
-    ctx.restore()
-    this.textLines = textLines
-    this.element.computedStyles.width = textLines.maxLineWidth
-    this.element.computedStyles.height = textLines.outerHeight
+  if (!this.layoutBox) {
+    this.layoutBox = createLayoutBox(parentBox, top, left, width, height)
+  } else {
+    this.layoutBox.setTop(top)
+    this.layoutBox.setLeft(left)
+    this.layoutBox.setWidth(width)
+    this.layoutBox.setHeight(height)
   }
+}
 
-  function getTextStyles() {
-    const parentStyles = this.element.getContainer().computedStyles
-    const { color, fontSize, fontWeight } = parentStyles
+function measureBoxSize(this: RenderText) {
+  console.log('measureBoxSize-text', this.element)
+  const body = this.element.getContainer().getRootNode() as CanvasBodyElement
+  const ctx = body.context.renderer.ctx
+  ctx.save()
+  ctx.font = `normal ${this.getTextStyles().fontSize}px PingFang SC`
 
-    return {
-      color,
-      fontSize,
-      fontWeight
-    }
+  const words = _breakWords(this.element.textContent, this.element.getContainer().computedStyles)
+
+  const textLines = _wrapText(
+    ctx,
+    words,
+    0,
+    0,
+    this.element.getContainer().getContainer().computedStyles.width,
+    23 || this.getTextStyles().lineHeight
+  )
+  ctx.restore()
+  this.textLines = textLines
+  this.element.computedStyles.width = textLines.maxLineWidth
+  this.element.computedStyles.height = textLines.outerHeight
+}
+
+function getTextStyles(this: RenderText) {
+  const parentStyles = this.element.getContainer().computedStyles
+  const { color, fontSize, fontWeight, lineHeight } = parentStyles
+
+  return {
+    color,
+    fontSize,
+    fontWeight,
+    lineHeight
   }
-
-  return renderText
 }
 
 // TODO: 用二分法进行优化，减少ctx.measureText()调用次数
-function _wrapText(ctx, words, x, y, maxWidth, lineHeight) {
+function _wrapText(
+  ctx: CanvasRenderingContext2D,
+  words: string[],
+  x: number,
+  y: number,
+  maxWidth: number,
+  lineHeight: number
+): TextLines {
   let line = ''
   let testLine = ''
   let lineArray = []
@@ -117,6 +143,7 @@ function _wrapText(ctx, words, x, y, maxWidth, lineHeight) {
       lineArray.push([line.trim(), x, y])
     }
   }
+
   return {
     lines: lineArray,
     maxLineWidth,

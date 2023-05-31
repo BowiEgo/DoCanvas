@@ -1,8 +1,11 @@
 import { CanvasElement } from './element/element'
+import { CanvasRenderer } from './render'
 import { RenderObject, createRenderObject } from './render/renderObject'
 import { BFS, PostOrderDFS } from './utils/treeSearch'
 
 export interface Engine {
+  renderer: CanvasRenderer
+  viewport: { width: number; height: number }
   rootRenderObject: RenderObject
   DFSRenderArray: RenderObject[]
   updateDFSRenderArray(renderObject: RenderObject): void
@@ -14,7 +17,7 @@ export interface Engine {
 }
 
 export function createEngine(renderer, options): Engine {
-  let engine = {
+  let engine: Engine = {
     renderer,
     viewport: {
       width: options.width,

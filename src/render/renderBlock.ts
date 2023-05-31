@@ -36,62 +36,56 @@ export const createRenderBlock: CreateRenderBlockFn = function RenderBlock(eleme
 export const createBaseRenderBlock =
   () =>
   (o: RenderObject): RenderBlock => {
-    let renderBlock = {
+    let renderBlock: RenderBlock = {
       ...o,
       type: 'block',
       layout,
       measureBoxSize
     }
 
-    function layout() {
-      console.log('layout', this)
-      const calc = (renderBlock: RenderBlock): Bounds =>
-        pipeLine(
-          when(() => renderBlock.isRoot(), initRootBounds(renderBlock), breakPipe),
-          calcBounds(renderBlock)
-        )({
-          parentBox: null,
-          top: 0,
-          left: 0,
-          width: 0,
-          height: 0
-        })
-
-      let bounds = calc(this)
-
-      if (!renderBlock.layoutBox) {
-        initLayout(this, bounds)
-      } else {
-        updateLayout(this, bounds)
-      }
-    }
-
-    // measure box size
-    function measureBoxSize() {
-      console.log('measureBoxSize', this)
-      const measure = (renderBlock: RenderBlock): Size =>
-        pipeLine(
-          initSize(renderBlock),
-          when(() => renderBlock.isRoot(), setRootSize(renderBlock), breakPipe),
-          when(() => !renderBlock.hasChildNode(), NOOP, breakPipe),
-          when(
-            () => isAuto(renderBlock.element.computedStyles.width),
-            calcWidthByChild(renderBlock)
-          ),
-          when(
-            () => isAuto(renderBlock.element.computedStyles.height),
-            calcHeightByChild(renderBlock)
-          )
-        )({ width: 0, height: 0 })
-
-      let size = measure(this)
-
-      this.element.computedStyles.width = size.width
-      this.element.computedStyles.height = size.height
-    }
-
     return renderBlock
   }
+
+function layout(this: RenderBlock) {
+  console.log('layout', this)
+  const calc = (renderBlock: RenderBlock): Bounds =>
+    pipeLine(
+      when(() => renderBlock.isRoot(), initRootBounds(renderBlock), breakPipe),
+      calcBounds(renderBlock)
+    )({
+      parentBox: null,
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0
+    })
+
+  let bounds = calc(this)
+
+  if (!this.layoutBox) {
+    initLayout(this, bounds)
+  } else {
+    updateLayout(this, bounds)
+  }
+}
+
+// measure box size
+function measureBoxSize(this: RenderBlock) {
+  console.log('measureBoxSize', this)
+  const measure = (renderBlock: RenderBlock): Size =>
+    pipeLine(
+      initSize(renderBlock),
+      when(() => renderBlock.isRoot(), setRootSize(renderBlock), breakPipe),
+      when(() => !renderBlock.hasChildNode(), NOOP, breakPipe),
+      when(() => isAuto(renderBlock.element.computedStyles.width), calcWidthByChild(renderBlock)),
+      when(() => isAuto(renderBlock.element.computedStyles.height), calcHeightByChild(renderBlock))
+    )({ width: 0, height: 0 })
+
+  let size = measure(this)
+
+  this.element.computedStyles.width = size.width
+  this.element.computedStyles.height = size.height
+}
 
 const initRootBounds =
   (renderBlock: RenderBlock) =>

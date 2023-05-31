@@ -1,3 +1,14 @@
+import { Point, createPoint } from './point'
+import { Size } from './size'
+
+export interface Rect {
+  location: Point
+  size: Size
+  x: number
+  y: number
+  getCenter(rect: Rect): Point
+}
+
 export function createRect(location, size) {
   let rect = {
     location,

@@ -1,4 +1,11 @@
-function createPoint(x = 0, y = 0) {
+export interface Point {
+  x: number
+  y: number
+  setX(x: number): void
+  setY(y: number): void
+}
+
+export function createPoint(x = 0, y = 0): Point {
   return {
     x,
     y,
