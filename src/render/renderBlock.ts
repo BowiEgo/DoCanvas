@@ -1,7 +1,15 @@
 import { CanvasElement } from '../element/element'
 import { createLayoutBox } from '../layout/layoutBox-bp'
 import { createTreeNode } from '../tree-node'
-import { NOOP, isAuto, pipe, pipeWithBreak, withConstructor } from '../utils'
+import {
+  NOOP,
+  breakPipe,
+  isAuto,
+  pipe,
+  pipeLine,
+  when,
+  withConstructor
+} from '../utils'
 import {
   RenderObject,
   RenderObjectOptions,
@@ -90,25 +98,16 @@ export const createBaseRenderBlock = () => (o) => {
       width: this.element.computedStyles.width,
       height: this.element.computedStyles.height
     }
-    let stream = pipeWithBreak()
 
     const measure = (renderBlock) =>
-      stream.pipe(
-        _whenWithBreak(
-          () => renderBlock.isRoot(),
-          setRootSize(renderBlock),
-          stream.breakPipe
-        ),
-        _whenWithBreak(
-          () => !renderBlock.hasChildNode(),
-          NOOP,
-          stream.breakPipe
-        ),
-        _when(
+      pipeLine(
+        when(() => renderBlock.isRoot(), setRootSize(renderBlock), breakPipe),
+        when(() => !renderBlock.hasChildNode(), NOOP, breakPipe),
+        when(
           () => isAuto(renderBlock.element.computedStyles.width),
           calcWidthByChild(renderBlock)
         ),
-        _when(
+        when(
           () => isAuto(renderBlock.element.computedStyles.height),
           calcHeightByChild(renderBlock)
         )
@@ -144,16 +143,6 @@ const calcHeightByChild = (renderBlock) => (o) => {
   }, 0)
   return o
 }
-
-const _when = (cond, f) => (x) => cond() ? f(x) : x
-
-const _whenWithBreak = (cond, f, breakPipe) => (x) =>
-  cond()
-    ? (() => {
-        breakPipe()
-        return f(x)
-      })()
-    : x
 
 export const createRenderBlock: CreateRenderBlockFn = function RenderBlock(
   element,
