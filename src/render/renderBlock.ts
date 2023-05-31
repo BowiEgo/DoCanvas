@@ -1,5 +1,5 @@
 import { CanvasElement } from '../element/element'
-import { createLayoutBox } from '../layout/layoutBox-bp'
+import { LayoutBox, createLayoutBox } from '../layout/layoutBox-bp'
 import { createTreeNode } from '../tree-node'
 import {
   NOOP,
@@ -15,6 +15,14 @@ import {
   RenderObjectOptions,
   createBaseRenderObject
 } from './renderObject'
+
+type Bounds = {
+  parentBox: LayoutBox
+  top: number
+  left: number
+  width: number
+  height: number
+}
 
 export type CreateRenderBlockFn = (
   element: CanvasElement,
@@ -33,60 +41,29 @@ export const createBaseRenderBlock = () => (o) => {
 
   function layout() {
     console.log('layout', this)
-    const {
-      borderTopWidth,
-      borderBottomWidth,
-      borderLeftWidth,
-      borderRightWidth,
-      paddingTop,
-      paddingBottom,
-      paddingLeft,
-      paddingRight,
-      marginTop,
-      width,
-      height
-    } = this.element.computedStyles
+    const calc = (renderBlock) =>
+      pipeLine(
+        when(
+          () => renderBlock.isRoot(),
+          initRootBounds(renderBlock),
+          breakPipe
+        ),
+        calcBounds(renderBlock)
+      )({
+        parentBox: null,
+        top: 0,
+        left: 0,
+        width: 0,
+        height: 0
+      })
 
-    if (this.isRoot()) {
-      if (!this.layoutBox) {
-        this.layoutBox = createLayoutBox(
-          null,
-          0,
-          0,
-          this.viewport.width,
-          this.viewport.height
-        )
-      }
+    let bounds = calc(this)
+    console.log('layout-bounds', bounds)
+
+    if (!renderBlock.layoutBox) {
+      initLayout(this, bounds)
     } else {
-      const parentBox = this.getContainer().layoutBox
-      const prevSiblingBox = this.previousSibling
-        ? this.previousSibling.layoutBox
-        : null
-
-      let top =
-        (prevSiblingBox ? prevSiblingBox.bottom : parentBox.top) + marginTop
-      let left = parentBox.left
-      let w =
-        Number(borderLeftWidth) +
-        Number(paddingLeft) +
-        Number(width) +
-        Number(paddingRight) +
-        Number(borderRightWidth)
-      let h =
-        Number(borderTopWidth) +
-        Number(paddingTop) +
-        Number(height) +
-        Number(paddingBottom) +
-        Number(borderBottomWidth)
-
-      if (!this.layoutBox) {
-        this.layoutBox = createLayoutBox(parentBox, top, left, w, h)
-      } else {
-        this.layoutBox.setTop(top)
-        this.layoutBox.setLeft(left)
-        this.layoutBox.setWidth(w)
-        this.layoutBox.setHeight(h)
-      }
+      updateLayout(this, bounds)
     }
   }
 
@@ -116,6 +93,76 @@ export const createBaseRenderBlock = () => (o) => {
   }
 
   return renderBlock
+}
+
+const initRootBounds = (renderBlock) => (o) => {
+  o.width = renderBlock.viewport.width
+  o.height = renderBlock.viewport.height
+
+  return o
+}
+
+const calcBounds =
+  (renderBlock) =>
+  (o): Bounds => {
+    const {
+      borderTopWidth,
+      borderBottomWidth,
+      borderLeftWidth,
+      borderRightWidth,
+      paddingTop,
+      paddingBottom,
+      paddingLeft,
+      paddingRight,
+      marginTop,
+      width,
+      height
+    } = renderBlock.element.computedStyles
+
+    const parentBox = renderBlock.getContainer().layoutBox
+    const prevSiblingBox = renderBlock.previousSibling
+      ? renderBlock.previousSibling.layoutBox
+      : null
+
+    let _top =
+      (prevSiblingBox ? prevSiblingBox.bottom : parentBox.top) + marginTop
+    let _left = parentBox.left
+    let _width =
+      Number(borderLeftWidth) +
+      Number(paddingLeft) +
+      Number(width) +
+      Number(paddingRight) +
+      Number(borderRightWidth)
+    let _height =
+      Number(borderTopWidth) +
+      Number(paddingTop) +
+      Number(height) +
+      Number(paddingBottom) +
+      Number(borderBottomWidth)
+
+    o.parentBox = parentBox
+    o.top = _top
+    o.left = _left
+    o.width = _width
+    o.height = _height
+    return o
+  }
+
+const initLayout = (renderBlock, bounds: Bounds) => {
+  renderBlock.layoutBox = createLayoutBox(
+    bounds.parentBox,
+    bounds.top,
+    bounds.left,
+    bounds.width,
+    bounds.height
+  )
+}
+
+const updateLayout = (renderBlock, bounds: Bounds) => {
+  renderBlock.layoutBox.setTop(bounds.top)
+  renderBlock.layoutBox.setLeft(bounds.left)
+  renderBlock.layoutBox.setWidth(bounds.width)
+  renderBlock.layoutBox.setHeight(bounds.height)
 }
 
 const initSize = (renderBlock) => (o) => {
