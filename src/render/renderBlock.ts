@@ -1,20 +1,8 @@
 import { CanvasElement } from '../element/element'
 import { LayoutBox, createLayoutBox } from '../layout/layoutBox-bp'
 import { createTreeNode } from '../tree-node'
-import {
-  NOOP,
-  breakPipe,
-  isAuto,
-  pipe,
-  pipeLine,
-  when,
-  withConstructor
-} from '../utils'
-import {
-  RenderObject,
-  RenderObjectOptions,
-  createBaseRenderObject
-} from './renderObject'
+import { NOOP, breakPipe, isAuto, pipe, pipeLine, when, withConstructor } from '../utils'
+import { RenderObject, RenderObjectOptions, createBaseRenderObject } from './renderObject'
 
 type Bounds = {
   parentBox: LayoutBox
@@ -31,6 +19,15 @@ export type CreateRenderBlockFn = (
 
 export interface RenderBlock extends RenderObject {}
 
+export const createRenderBlock: CreateRenderBlockFn = function RenderBlock(element, options = {}) {
+  return pipe(
+    createTreeNode(),
+    createBaseRenderObject(element, options),
+    createBaseRenderBlock(),
+    withConstructor(RenderBlock)
+  )({} as RenderBlock)
+}
+
 export const createBaseRenderBlock = () => (o) => {
   let renderBlock = {
     ...o,
@@ -43,11 +40,7 @@ export const createBaseRenderBlock = () => (o) => {
     console.log('layout', this)
     const calc = (renderBlock) =>
       pipeLine(
-        when(
-          () => renderBlock.isRoot(),
-          initRootBounds(renderBlock),
-          breakPipe
-        ),
+        when(() => renderBlock.isRoot(), initRootBounds(renderBlock), breakPipe),
         calcBounds(renderBlock)
       )({
         parentBox: null,
@@ -76,10 +69,7 @@ export const createBaseRenderBlock = () => (o) => {
         initSize(renderBlock),
         when(() => renderBlock.isRoot(), setRootSize(renderBlock), breakPipe),
         when(() => !renderBlock.hasChildNode(), NOOP, breakPipe),
-        when(
-          () => isAuto(renderBlock.element.computedStyles.width),
-          calcWidthByChild(renderBlock)
-        ),
+        when(() => isAuto(renderBlock.element.computedStyles.width), calcWidthByChild(renderBlock)),
         when(
           () => isAuto(renderBlock.element.computedStyles.height),
           calcHeightByChild(renderBlock)
@@ -124,8 +114,7 @@ const calcBounds =
       ? renderBlock.previousSibling.layoutBox
       : null
 
-    let _top =
-      (prevSiblingBox ? prevSiblingBox.bottom : parentBox.top) + marginTop
+    let _top = (prevSiblingBox ? prevSiblingBox.bottom : parentBox.top) + marginTop
     let _left = parentBox.left
     let _width =
       Number(borderLeftWidth) +
@@ -191,16 +180,4 @@ const calcHeightByChild = (renderBlock) => (o) => {
     return acc + Number(curr.element.computedStyles.height)
   }, 0)
   return o
-}
-
-export const createRenderBlock: CreateRenderBlockFn = function RenderBlock(
-  element,
-  options
-) {
-  return pipe(
-    createTreeNode(),
-    createBaseRenderObject(element, (options = {})),
-    createBaseRenderBlock(),
-    withConstructor(RenderBlock)
-  )({} as RenderBlock)
 }

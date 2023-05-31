@@ -3,11 +3,7 @@ import { createLayoutBox } from '../layout/layoutBox-bp'
 import { createTreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
 import { LineBox, createLineBox } from './lineBox'
-import {
-  RenderObject,
-  RenderObjectOptions,
-  createBaseRenderObject
-} from './renderObject'
+import { RenderObject, RenderObjectOptions, createBaseRenderObject } from './renderObject'
 
 export type CreateRenderInlineFn = (
   element: CanvasElement,
@@ -19,6 +15,18 @@ export interface RenderInline extends RenderObject {
   lineBox: LineBox | null
   layout(): void
   measureBoxSize(): void
+}
+
+export const createRenderInline: CreateRenderInlineFn = function RenderInline(
+  element,
+  options = {}
+) {
+  return pipe(
+    createTreeNode(),
+    createBaseRenderObject(element, options),
+    createBaseRenderInline(),
+    withConstructor(RenderInline)
+  )({} as RenderInline)
 }
 
 export const createBaseRenderInline =
@@ -46,10 +54,7 @@ export const createBaseRenderInline =
     function layout() {
       console.log('layout-inline', this, this.element.id)
 
-      if (
-        this.previousSibling &&
-        this.previousSibling.type.indexOf('inline') > -1
-      ) {
+      if (this.previousSibling && this.previousSibling.type.indexOf('inline') > -1) {
         this.lineBox = this.previousSibling.lineBox
       } else {
         this.lineBox = createLineBox(this.getContainer().layoutBox)
@@ -66,32 +71,14 @@ export const createBaseRenderInline =
       console.log('measureBoxSize-inline', this)
 
       if (this.hasChildNode()) {
-        this.element.computedStyles.width = this.children.reduce(
-          (acc, curr) => {
-            return acc + Number(curr.element.computedStyles.width)
-          },
-          0
-        )
+        this.element.computedStyles.width = this.children.reduce((acc, curr) => {
+          return acc + Number(curr.element.computedStyles.width)
+        }, 0)
 
-        this.element.computedStyles.height = this.children.reduce(
-          (acc, curr) => {
-            return acc + Number(curr.element.computedStyles.height)
-          },
-          0
-        )
+        this.element.computedStyles.height = this.children.reduce((acc, curr) => {
+          return acc + Number(curr.element.computedStyles.height)
+        }, 0)
       }
     }
     return renderInline
   }
-
-export const createRenderInline: CreateRenderInlineFn = function RenderInline(
-  element,
-  options
-) {
-  return pipe(
-    createTreeNode(),
-    createBaseRenderObject(element, (options = {})),
-    createBaseRenderInline(),
-    withConstructor(RenderInline)
-  )({} as RenderInline)
-}

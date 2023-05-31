@@ -62,6 +62,8 @@ export interface LayoutBox extends TreeNode {
   __v_isLayoutBox: boolean
   top: number
   left: number
+  bottom: number
+  right: number
   width: number
   height: number
   appendChild(child: LayoutBox): void
@@ -78,29 +80,21 @@ export const createBaseLayoutBox =
       __v_isLayoutBox: true,
       ...o,
       top,
-      bottom: 0,
       left,
-      right: 0,
       width,
       height,
+      get bottom() {
+        return this.top + this.height
+      },
+      get right() {
+        return this.left + this.width
+      },
       appendChild,
       setTop,
       setLeft,
       setWidth,
       setHeight
     }
-
-    Object.defineProperty(layoutBox, 'bottom', {
-      get() {
-        return this.top + this.height
-      }
-    })
-
-    Object.defineProperty(layoutBox, 'right', {
-      get() {
-        return this.left + this.width
-      }
-    })
 
     function appendChild(child) {
       this.appendChildNode(child)

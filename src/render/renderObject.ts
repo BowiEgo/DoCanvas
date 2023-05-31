@@ -60,10 +60,7 @@ export type ComputedStyle = {
 
 export type RenderObjectOptions = {}
 
-export type CreateRenderObjectFn = (
-  element: CanvasElement,
-  options?: RenderObjectOptions
-) => CanvasElement
+export type CreateRenderObjectFn = (element: CanvasElement, options?: RenderObjectOptions) => CanvasElement
 
 export interface RenderObject extends TreeNode {
   // TODO: enum type
@@ -81,6 +78,26 @@ export interface RenderObject extends TreeNode {
   isRoot(): boolean
 }
 
+export const createRenderObject = (element, options = {}) => {
+  if (element.type === 'body') {
+    return createRenderBlock(element, options)
+  }
+  if (isCanvasTextNode(element)) {
+    return createRenderText(element, options)
+  }
+
+  switch (element.renderStyles.display) {
+    case 'block':
+      return createRenderBlock(element, options)
+    case 'inline':
+      return createRenderInline(element, options)
+    case 'inline-block':
+      return createRenderInlineBlock(element, options)
+    default:
+      return createRenderBlock(element, options)
+  }
+}
+
 export const createBaseRenderObject =
   (element, options = {}) =>
   (o): RenderObject => {
@@ -91,9 +108,7 @@ export const createBaseRenderObject =
       element,
       get viewport() {
         let rootElm = element.getRootNode()
-        return rootElm && rootElm.type === 'body'
-          ? rootElm.context.viewport
-          : null
+        return rootElm && rootElm.type === 'body' ? rootElm.context.viewport : null
       },
       layoutBox: null,
       curves: null,
@@ -128,24 +143,3 @@ export const createBaseRenderObject =
 
     return renderObject
   }
-
-export const createRenderObject = (element, options = {}) => {
-  if (element.type === 'body') {
-    return createRenderBlock(element, options)
-  }
-  console.log(element)
-  if (isCanvasTextNode(element)) {
-    return createRenderText(element, options)
-  }
-
-  switch (element.renderStyles.display) {
-    case 'block':
-      return createRenderBlock(element, options)
-    case 'inline':
-      return createRenderInline(element, options)
-    case 'inline-block':
-      return createRenderInlineBlock(element, options)
-    default:
-      return createRenderBlock(element, options)
-  }
-}

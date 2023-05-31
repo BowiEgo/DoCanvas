@@ -69,13 +69,15 @@ export const createBaseRenderInlineBlock =
     return renderInlineBlock
   }
 
-export const createRenderInlineBlock: CreateRenderInlineBlockFn =
-  function RenderInlineBlock(element, options) {
-    return pipe(
-      createTreeNode(),
-      createBaseRenderObject(element, (options = {})),
-      createBaseRenderInline(),
-      createBaseRenderInlineBlock(),
-      withConstructor(RenderInlineBlock)
-    )({} as RenderInlineBlock)
-  }
+export const createRenderInlineBlock: CreateRenderInlineBlockFn = function RenderInlineBlock(
+  element,
+  options
+) {
+  return pipe(
+    createTreeNode(),
+    createBaseRenderObject(element, (options = {})),
+    createBaseRenderInline(),
+    createBaseRenderInlineBlock(),
+    withConstructor(RenderInlineBlock)
+  )({} as RenderInlineBlock)
+}
