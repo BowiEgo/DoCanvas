@@ -58,7 +58,7 @@ export type CreateLayoutFn = (
   height: number
 ) => LayoutBox
 
-export interface LayoutBox extends TreeNode {
+export interface LayoutBox extends TreeNode<LayoutBox> {
   __v_isLayoutBox: boolean
   top: number
   left: number

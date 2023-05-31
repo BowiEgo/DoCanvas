@@ -1,24 +1,17 @@
 import { TreeNode } from '../tree-node'
 
-export interface LayoutObject extends TreeNode {
-  _setPreviousSibling(previous: LayoutObject): void
-  _setNextSibling(next: LayoutObject): void
-  _setParentSibling(parent: LayoutObject): void
-}
+export interface LayoutObject extends TreeNode<LayoutObject> {}
 
 export const createLayoutObject =
   () =>
-  (o): LayoutObject => {
+  (o: TreeNode<LayoutObject>): LayoutObject => {
     let layoutObject = {
-      ...o,
-      _setPreviousSibling,
-      _setNextSibling,
-      _setParentSibling
+      ...o
     }
-
-    function _setPreviousSibling(previous: LayoutObject) {}
-    function _setNextSibling(next: LayoutObject) {}
-    function _setParentSibling(parent: LayoutObject) {}
 
     return layoutObject
   }
+
+function _setPreviousSibling(this: LayoutObject, previous: LayoutObject) {}
+function _setNextSibling(this: LayoutObject, next: LayoutObject) {}
+function _setParentSibling(this: LayoutObject, parent: LayoutObject) {}

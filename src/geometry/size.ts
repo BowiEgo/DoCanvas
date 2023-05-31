@@ -1,4 +1,11 @@
-export function createSize() {
+export interface Size {
+  width: number
+  height: number
+  setWidth(width: number): void
+  setHeight(height: number): void
+}
+
+export function createSize(): Size {
   return {
     width: 0,
     height: 0,

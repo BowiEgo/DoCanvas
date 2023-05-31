@@ -1,3 +1,4 @@
+import { createTreeNode } from '../tree-node'
 import { pipe } from '../utils'
 import { LayoutObject, createLayoutObject } from './layoutObject'
 
@@ -55,7 +56,11 @@ import { LayoutObject, createLayoutObject } from './layoutObject'
 export interface LayoutBoxModelObject extends LayoutObject {}
 
 export const createLayoutBoxModelObject = function LayoutBoxModelObject() {
-  return pipe(createLayoutObject(), createBaseLayoutBoxModelObject())({})
+  return pipe(
+    createTreeNode<LayoutObject>(),
+    createLayoutObject(),
+    createBaseLayoutBoxModelObject()
+  )({})
 }
 
 export const createBaseLayoutBoxModelObject = () => (o: LayoutObject) => {

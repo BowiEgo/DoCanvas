@@ -12,6 +12,11 @@ type Bounds = {
   height: number
 }
 
+type Size = {
+  width: number
+  height: number
+}
+
 export type CreateRenderBlockFn = (
   element: CanvasElement,
   options?: RenderObjectOptions
@@ -21,79 +26,78 @@ export interface RenderBlock extends RenderObject {}
 
 export const createRenderBlock: CreateRenderBlockFn = function RenderBlock(element, options = {}) {
   return pipe(
-    createTreeNode(),
+    createTreeNode<RenderObject>(),
     createBaseRenderObject(element, options),
     createBaseRenderBlock(),
     withConstructor(RenderBlock)
   )({} as RenderBlock)
 }
 
-export const createBaseRenderBlock = () => (o) => {
-  let renderBlock = {
-    ...o,
-    type: 'block',
-    layout,
-    measureBoxSize
-  }
-
-  function layout() {
-    console.log('layout', this)
-    const calc = (renderBlock) =>
-      pipeLine(
-        when(() => renderBlock.isRoot(), initRootBounds(renderBlock), breakPipe),
-        calcBounds(renderBlock)
-      )({
-        parentBox: null,
-        top: 0,
-        left: 0,
-        width: 0,
-        height: 0
-      })
-
-    let bounds = calc(this)
-    console.log('layout-bounds', bounds)
-
-    if (!renderBlock.layoutBox) {
-      initLayout(this, bounds)
-    } else {
-      updateLayout(this, bounds)
+export const createBaseRenderBlock =
+  () =>
+  (o: RenderObject): RenderBlock => {
+    let renderBlock: RenderBlock = {
+      ...o,
+      type: 'block',
+      layout,
+      measureBoxSize
     }
+
+    return renderBlock
   }
 
-  // measure box size
-  function measureBoxSize() {
-    console.log('measureBoxSize', this)
+function layout(this: RenderBlock) {
+  console.log('layout', this)
+  const calc = (renderBlock: RenderBlock): Bounds =>
+    pipeLine(
+      when(() => renderBlock.isRoot(), initRootBounds(renderBlock), breakPipe),
+      calcBounds(renderBlock)
+    )({
+      parentBox: null,
+      top: 0,
+      left: 0,
+      width: 0,
+      height: 0
+    })
 
-    const measure = (renderBlock) =>
-      pipeLine(
-        initSize(renderBlock),
-        when(() => renderBlock.isRoot(), setRootSize(renderBlock), breakPipe),
-        when(() => !renderBlock.hasChildNode(), NOOP, breakPipe),
-        when(() => isAuto(renderBlock.element.computedStyles.width), calcWidthByChild(renderBlock)),
-        when(
-          () => isAuto(renderBlock.element.computedStyles.height),
-          calcHeightByChild(renderBlock)
-        )
-      )({ width: 0, height: 0 })
+  let bounds = calc(this)
 
-    let size = measure(this)
-
-    this.element.computedStyles.width = size.width
-    this.element.computedStyles.height = size.height
+  if (!this.layoutBox) {
+    initLayout(this, bounds)
+  } else {
+    updateLayout(this, bounds)
   }
-
-  return renderBlock
 }
 
-const initRootBounds = (renderBlock) => (o) => {
-  o.width = renderBlock.viewport.width
-  o.height = renderBlock.viewport.height
+// measure box size
+function measureBoxSize(this: RenderBlock) {
+  console.log('measureBoxSize', this)
+  const measure = (renderBlock: RenderBlock): Size =>
+    pipeLine(
+      initSize(renderBlock),
+      when(() => renderBlock.isRoot(), setRootSize(renderBlock), breakPipe),
+      when(() => !renderBlock.hasChildNode(), NOOP, breakPipe),
+      when(() => isAuto(renderBlock.element.computedStyles.width), calcWidthByChild(renderBlock)),
+      when(() => isAuto(renderBlock.element.computedStyles.height), calcHeightByChild(renderBlock))
+    )({ width: 0, height: 0 })
 
-  return o
+  let size = measure(this)
+
+  this.element.computedStyles.width = size.width
+  this.element.computedStyles.height = size.height
 }
+
+const initRootBounds =
+  (renderBlock: RenderBlock) =>
+  (o): Bounds => {
+    o.width = renderBlock.viewport.width
+    o.height = renderBlock.viewport.height
+
+    return o
+  }
 
 const calcBounds =
-  (renderBlock) =>
+  (renderBlock: RenderBlock) =>
   (o): Bounds => {
     const {
       borderTopWidth,
@@ -137,7 +141,7 @@ const calcBounds =
     return o
   }
 
-const initLayout = (renderBlock, bounds: Bounds) => {
+const initLayout = (renderBlock: RenderBlock, bounds: Bounds): void => {
   renderBlock.layoutBox = createLayoutBox(
     bounds.parentBox,
     bounds.top,
@@ -147,37 +151,45 @@ const initLayout = (renderBlock, bounds: Bounds) => {
   )
 }
 
-const updateLayout = (renderBlock, bounds: Bounds) => {
+const updateLayout = (renderBlock: RenderBlock, bounds: Bounds): void => {
   renderBlock.layoutBox.setTop(bounds.top)
   renderBlock.layoutBox.setLeft(bounds.left)
   renderBlock.layoutBox.setWidth(bounds.width)
   renderBlock.layoutBox.setHeight(bounds.height)
 }
 
-const initSize = (renderBlock) => (o) => {
-  o.width = renderBlock.element.computedStyles.width
-  o.height = renderBlock.element.computedStyles.height
-  return o
-}
+const initSize =
+  (renderBlock: RenderBlock) =>
+  (o: Bounds): Bounds => {
+    o.width = renderBlock.element.computedStyles.width
+    o.height = renderBlock.element.computedStyles.height
+    return o
+  }
 
-const setRootSize = (renderBlock) => (o) => {
-  o.width = renderBlock.viewport.width
-  o.height = renderBlock.viewport.height
-  return o
-}
+const setRootSize =
+  (renderBlock: RenderBlock) =>
+  (o: Bounds): Bounds => {
+    o.width = renderBlock.viewport.width
+    o.height = renderBlock.viewport.height
+    return o
+  }
 
-const calcWidthByChild = (renderBlock) => (o) => {
-  o.width = renderBlock.children.reduce((acc, curr) => {
-    return Number(curr.element.computedStyles.width) > acc
-      ? Number(curr.element.computedStyles.width)
-      : acc
-  }, 0)
-  return o
-}
+const calcWidthByChild =
+  (renderBlock: RenderBlock) =>
+  (o: Size): Size => {
+    o.width = renderBlock.children.reduce((acc, curr) => {
+      return Number(curr.element.computedStyles.width) > acc
+        ? Number(curr.element.computedStyles.width)
+        : acc
+    }, 0)
+    return o
+  }
 
-const calcHeightByChild = (renderBlock) => (o) => {
-  o.height = renderBlock.children.reduce((acc, curr) => {
-    return acc + Number(curr.element.computedStyles.height)
-  }, 0)
-  return o
-}
+const calcHeightByChild =
+  (renderBlock: RenderBlock) =>
+  (o: Size): Size => {
+    o.height = renderBlock.children.reduce((acc, curr) => {
+      return acc + Number(curr.element.computedStyles.height)
+    }, 0)
+    return o
+  }
