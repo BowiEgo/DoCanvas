@@ -1,3 +1,5 @@
+import { isFunction } from './general'
+
 export const withConstructor = (constructor) => (o) => {
   const proto = Object.assign({}, Object.getPrototypeOf(o), { constructor })
   return Object.assign(Object.create(proto), o)
@@ -31,19 +33,20 @@ export const pipeLine =
     return fns.reduce((y, f) => (breakFlag ? resetPipeLine(x) : f(y)), x)
   }
 
-export const breakPipe = () => {
+export const breakPipe = (): void => {
   breakFlag = true
 }
 
-const resetPipeLine = (x) => {
+const resetPipeLine = (x: any): any => {
   breakFlag = false
   return x
 }
 
-export const when = (cond, f, hook?) => (x) =>
-  cond()
-    ? (() => {
-        hook && hook()
-        return f(x)
-      })()
-    : x
+export const when =
+  (cond: Function, f: Function, hook?: Function) => (x: any) =>
+    cond()
+      ? (() => {
+          hook && hook()
+          return f(x)
+        })()
+      : x

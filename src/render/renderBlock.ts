@@ -94,13 +94,9 @@ export const createBaseRenderBlock = () => (o) => {
   function measureBoxSize() {
     console.log('measureBoxSize', this)
 
-    let size = {
-      width: this.element.computedStyles.width,
-      height: this.element.computedStyles.height
-    }
-
     const measure = (renderBlock) =>
       pipeLine(
+        initSize(renderBlock),
         when(() => renderBlock.isRoot(), setRootSize(renderBlock), breakPipe),
         when(() => !renderBlock.hasChildNode(), NOOP, breakPipe),
         when(
@@ -111,15 +107,21 @@ export const createBaseRenderBlock = () => (o) => {
           () => isAuto(renderBlock.element.computedStyles.height),
           calcHeightByChild(renderBlock)
         )
-      )(size)
+      )({ width: 0, height: 0 })
 
-    measure(this)
+    let size = measure(this)
 
     this.element.computedStyles.width = size.width
     this.element.computedStyles.height = size.height
   }
 
   return renderBlock
+}
+
+const initSize = (renderBlock) => (o) => {
+  o.width = renderBlock.element.computedStyles.width
+  o.height = renderBlock.element.computedStyles.height
+  return o
 }
 
 const setRootSize = (renderBlock) => (o) => {
