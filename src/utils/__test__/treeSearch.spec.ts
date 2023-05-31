@@ -2,58 +2,67 @@ import { connectChildren, createTreeNode } from '../../tree-node'
 import { BFS, PostOrderDFS } from '../treeSearch'
 
 describe('utils/traversal test', () => {
-  const root = createTreeNode({
-    instance: 'root',
+  const tree = createTreeNode({
+    textContent: 'A',
     children: [
       createTreeNode({
-        instance: 'child1',
+        textContent: 'B',
         children: [
-          createTreeNode({ instance: 'child11', children: [] }),
+          createTreeNode({ textContent: 'C', children: [] })({}),
           createTreeNode({
-            instance: 'child12',
-            children: [createTreeNode({ instance: 'child121' })]
-          })
+            textContent: 'D',
+            children: [createTreeNode({ textContent: 'E' })({})]
+          })({})
         ]
-      }),
+      })({}),
       createTreeNode({
-        instance: 'child2',
-        children: [createTreeNode({ instance: 'child21' })]
-      }),
+        textContent: 'F',
+        children: [createTreeNode({ textContent: 'G' })({})]
+      })({}),
       createTreeNode({
-        instance: 'child3'
-      })
+        textContent: 'H'
+      })({})
     ]
-  })
+  })({})
 
-  connectChildren(root)
+  connectChildren(tree)
 
-  test('transpile an nodeTree to a breatchFirst array', () => {
-    const breathArr = BFS(root)
+  // +-- A
+  //     +-- B
+  //     |   +-- C
+  //     |   +-- D
+  //     |       +-- E
+  //     +-- F
+  //     |   +-- G
+  //     +-- H
 
-    expect(breathArr.map((item) => item.instance)).toEqual([
-      'root',
-      'child1',
-      'child2',
-      'child3',
-      'child11',
-      'child12',
-      'child21',
-      'child121'
+  test('transpile an nodeTree to a breathFirst array', () => {
+    const breathArr = BFS(tree)
+
+    expect(breathArr.map((item) => item.textContent)).toEqual([
+      'A',
+      'B',
+      'F',
+      'H',
+      'C',
+      'D',
+      'G',
+      'E'
     ])
   })
 
   test('transpile an nodeTree to an post-order deepFirst array', () => {
-    const deepArr = PostOrderDFS(root)
+    const deepArr = PostOrderDFS(tree)
 
-    expect(deepArr.map((item) => item.instance)).toEqual([
-      'child11',
-      'child121',
-      'child12',
-      'child1',
-      'child21',
-      'child2',
-      'child3',
-      'root'
+    expect(deepArr.map((item) => item.textContent)).toEqual([
+      'C',
+      'E',
+      'D',
+      'B',
+      'G',
+      'F',
+      'H',
+      'A'
     ])
   })
 })

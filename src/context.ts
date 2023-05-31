@@ -1,4 +1,6 @@
-import { CanvasElement } from './element'
+// Not Using!!
+
+import { CanvasElement } from './element/element'
 import { createStackingContext } from './render/stackingContext'
 
 export interface Context {

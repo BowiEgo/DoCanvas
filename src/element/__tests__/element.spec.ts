@@ -23,9 +23,9 @@ describe('create canvasElement', () => {
   elm.appendChild(childElm)
 
   test('canvasElement container', () => {
-    expect(elm.container).toEqual(DoCanvas.body)
-    expect(childElm.container).toEqual(elm)
-    expect(textElm.container).toEqual(childElm)
+    expect(elm.getContainer()).toEqual(DoCanvas.body)
+    expect(childElm.getContainer()).toEqual(elm)
+    expect(textElm.getContainer()).toEqual(childElm)
   })
 
   // test("extend container's style", () => {

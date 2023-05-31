@@ -19,6 +19,19 @@ export interface RenderInlineBlock extends RenderInline {
   lineBox: LineBox | null
 }
 
+export const createRenderInlineBlock: CreateRenderInlineBlockFn = function RenderInlineBlock(
+  element,
+  options
+) {
+  return pipe(
+    createTreeNode(),
+    createBaseRenderObject(element, (options = {})),
+    createBaseRenderInline(),
+    createBaseRenderInlineBlock(),
+    withConstructor(RenderInlineBlock)
+  )({} as RenderInlineBlock)
+}
+
 export const createBaseRenderInlineBlock =
   () =>
   (o): RenderInlineBlock => {
@@ -67,15 +80,4 @@ export const createBaseRenderInlineBlock =
     }
 
     return renderInlineBlock
-  }
-
-export const createRenderInlineBlock: CreateRenderInlineBlockFn =
-  function RenderInlineBlock(element, options) {
-    return pipe(
-      createTreeNode(),
-      createBaseRenderObject(element, (options = {})),
-      createBaseRenderInline(),
-      createBaseRenderInlineBlock(),
-      withConstructor(RenderInlineBlock)
-    )({} as RenderInlineBlock)
   }

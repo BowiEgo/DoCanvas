@@ -5,9 +5,6 @@ import { BFS, PostOrderDFS } from './utils/treeSearch'
 export interface Engine {
   rootRenderObject: RenderObject
   DFSRenderArray: RenderObject[]
-  createRoot(rootElm: CanvasElement): void
-  createRenderTree(rootElm: CanvasElement): void
-  createLayoutTree(rootElm: CanvasElement): void
   updateDFSRenderArray(renderObject: RenderObject): void
   measureBoxSize(elm: CanvasElement): void
   flow(elm: CanvasElement): void
@@ -25,31 +22,12 @@ export function createEngine(renderer, options): Engine {
     },
     rootRenderObject: null,
     DFSRenderArray: [],
-    createRoot,
-    createRenderTree,
-    createLayoutTree,
     updateDFSRenderArray,
     measureBoxSize,
     flow,
     reflow,
     paint,
     repaint
-  }
-
-  function createRoot(rootElm) {
-    return
-    engine.createRenderTree(rootElm)
-    engine.createLayoutTree()
-    // engine.measureBoxSize(rootElm)
-  }
-
-  function createRenderTree(rootElm) {
-    engine.rootRenderObject = createRenderObject(rootElm)
-    engine.rootRenderObject.viewport = engine.viewport
-  }
-
-  function createLayoutTree() {
-    engine.rootRenderObject.flow()
   }
 
   function updateDFSRenderArray(renderObject) {
@@ -69,26 +47,22 @@ export function createEngine(renderer, options): Engine {
       'flow',
       elm,
       BFS(elm.renderObject).map((item) => `${item.type} ${item.element.id}`),
-      PostOrderDFS(elm.renderObject).map(
-        (item) => `${item.type} ${item.element.id}`
-      )
+      PostOrderDFS(elm.renderObject).map((item) => `${item.type} ${item.element.id}`)
     )
     elm.computeStyles()
     BFS(elm.renderObject)
       .reverse()
       .forEach((item) => item.measureBoxSize())
     elm.renderObject.flow()
-    console.log(
-      `渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`
-    )
-    elm.hasRootElement() && paint(elm)
+    console.log(`渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`)
+    elm.getRootElement().type === 'body' && paint(elm)
   }
 
   function reflow(elm) {
     console.log('reflow', elm)
     elm.computeStyles()
     elm.renderObject.flow()
-    elm.hasRootElement() && repaint(elm)
+    elm.getRootElement().type === 'body' && repaint(elm)
   }
 
   function paint(elm) {

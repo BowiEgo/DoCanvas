@@ -1,8 +1,8 @@
 import { Engine } from '../engine'
-import { RenderObject, RenderStyle } from '../render/renderObject'
+import { RenderObject } from '../render/renderObject'
 import { TreeNode, createTreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
-import { CanvasElement, _createRenderObject } from './element'
+import { CanvasElement, _initRenderObject } from './element'
 
 export function isCanvasTextNode(value: any): value is CanvasTextNode {
   return value ? value.__v_isCanvasTextNode === true : false
@@ -21,6 +21,14 @@ export type CreateTextNodeAPI = (context: Engine) => CreateTextNodeFn
 
 export type CreateTextNodeFn = (text: string) => CanvasTextNode
 
+export const createTextNode = function CanvasTextNode(text: string) {
+  return pipe(
+    createTreeNode({ textContent: text }),
+    createBaseTextNode(),
+    withConstructor(CanvasTextNode)
+  )({} as CanvasTextNode)
+}
+
 export const createBaseTextNode =
   () =>
   (o): CanvasTextNode => {
@@ -38,18 +46,10 @@ export const createBaseTextNode =
 
     function attach(parent) {
       if (!this.renderObject) {
-        _createRenderObject(this)
+        _initRenderObject(this)
       }
       parent.renderObject.appendChild(this.renderObject)
     }
 
     return textNode
   }
-
-export const createTextNode = function CanvasTextNode(text: string) {
-  return pipe(
-    createTreeNode({ textContent: text }),
-    createBaseTextNode(),
-    withConstructor(CanvasTextNode)
-  )({} as CanvasTextNode)
-}

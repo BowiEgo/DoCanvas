@@ -1,12 +1,12 @@
 import { Engine, createEngine } from './engine'
 import { CanvasRenderer, createRenderer } from './render'
-import { CanvasElement, createElementAPI } from './element/element'
+import { CanvasElement, CreateElementFn, createElementAPI } from './element/element'
 
 export interface DoCanvas {
   body: CanvasElement
   engine: Engine
   renderer: CanvasRenderer
-  createElement
+  createElement: CreateElementFn
 }
 
 export function createDoCanvas(options) {
@@ -23,7 +23,6 @@ export function createDoCanvas(options) {
   }
 
   doCanvas.body = createElement('body')
-  engine.createRoot(doCanvas.body)
 
   return doCanvas
 }
