@@ -83,7 +83,8 @@ export const createTreeNode =
   }
 
 function setParentNode<T>(node: TreeNode<T>) {
-  this.parentNode = node
+  console.log('setParentNode', this, node)
+  this._parentNode = node
 }
 
 function getRootNode<T>(): TreeNode<T> | T {

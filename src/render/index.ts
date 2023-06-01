@@ -19,6 +19,7 @@ import {
 import { Path } from './canvas/path'
 import { Vector } from './canvas/vector'
 import { RenderObject } from './renderObject'
+import { RenderText } from './renderText'
 
 export type RenderConfigurations = RenderOptions & {
   backgroundColor: Color | null
@@ -34,73 +35,71 @@ export interface RenderOptions {
 }
 
 export interface CanvasRenderer {
+  context: Engine
   canvas: HTMLCanvasElement
   ctx: CanvasRenderingContext2D
   dpr?: number
   defaultFontFamily: string
   root: RenderObject
   render(elm?: CanvasElement): void
-  paint(renderObject: RenderObject): void
-  paintBlock(renderObject: RenderObject): void
-  paintInline(renderObject: RenderObject): void
-  paintText(renderObject: RenderObject): void
-  mask(paths: Path[]): void
 }
 
 export function createRenderer(options: RenderConfigurations): CanvasRenderer {
   let renderer: CanvasRenderer = {
+    context: null,
     canvas: options.canvas,
     ctx: options.ctx,
     dpr: options.dpr || 1,
     defaultFontFamily: options.defaultFontFamily,
     root: null,
-    render,
-    paint,
-    paintBlock,
-    paintInline,
-    paintText,
-    mask
+    render
   }
 
   return renderer
 }
 
 function render(this: CanvasRenderer, elm) {
-  this.paint(elm.renderObject)
+  _paint(this.ctx, elm.getRenderObject(), this.defaultFontFamily)
 }
 
-function paint(this: CanvasRenderer, renderObject: RenderObject) {
+function _paint(ctx, renderObject: RenderObject, defaultFontFamily) {
   switch (renderObject.type) {
     case 'block':
-      this.paintBlock(renderObject)
+      _paintBlock(ctx, renderObject)
       break
     case 'inline-block':
-      this.paintInline(renderObject)
+      _paintInline(ctx, renderObject)
       break
     case 'inline':
-      this.paintInline(renderObject)
+      _paintInline(ctx, renderObject)
       break
     case 'text':
-      this.paintText(renderObject)
+      const styles = (<RenderText>renderObject).getTextStyles()
+      const font = {
+        color: styles.color,
+        fontSize: styles.fontSize,
+        fontFamily: styles.fontFamily || defaultFontFamily
+      }
+      _paintText(ctx, renderObject, font)
       break
     default:
       break
   }
 
   if (renderObject.hasChildNode()) {
-    renderObject.children.forEach((child) => this.paint(child))
+    renderObject.children.forEach((child) => _paint(ctx, child, defaultFontFamily))
   }
 }
 
-function mask(paths: Path[]): void {
-  this.ctx.beginPath()
-  this.ctx.moveTo(0, 0)
-  this.ctx.lineTo(this.canvas.width, 0)
-  this.ctx.lineTo(this.canvas.width, this.canvas.height)
-  this.ctx.lineTo(0, this.canvas.height)
-  this.ctx.lineTo(0, 0)
-  this.formatPath(paths.slice(0).reverse())
-  this.ctx.closePath()
+function _mask(ctx, canvas, paths: Path[]): void {
+  ctx.beginPath()
+  ctx.moveTo(0, 0)
+  ctx.lineTo(canvas.width, 0)
+  ctx.lineTo(canvas.width, canvas.height)
+  ctx.lineTo(0, canvas.height)
+  ctx.lineTo(0, 0)
+  _formatPath(ctx, paths.slice(0).reverse())
+  ctx.closePath()
 }
 
 function _path(ctx: CanvasRenderingContext2D, paths: Path[]): void {
@@ -150,22 +149,18 @@ function _paintBackGroundAndBorder(ctx: CanvasRenderingContext2D, renderObject) 
   ctx.restore()
 }
 
-function paintBlock(this: CanvasRenderer, renderObject) {
-  _paintBackGroundAndBorder(this.ctx, renderObject)
+function _paintBlock(ctx: CanvasRenderingContext2D, renderObject) {
+  _paintBackGroundAndBorder(ctx, renderObject)
 }
 
-function paintInline(this: CanvasRenderer, renderObject) {
-  _paintBackGroundAndBorder(this.ctx, renderObject)
+function _paintInline(ctx: CanvasRenderingContext2D, renderObject) {
+  _paintBackGroundAndBorder(ctx, renderObject)
 }
 
-function paintText(this: CanvasRenderer, renderObject) {
-  const { ctx } = this
-  const styles = renderObject.getTextStyles()
-
+function _paintText(ctx: CanvasRenderingContext2D, renderObject, font) {
   ctx.textBaseline = 'ideographic'
-  console.log('fontFamily', styles.fontFamily, styles.fontSize)
-  ctx.font = `normal ${styles.fontSize}px ${styles.fontFamily || this.defaultFontFamily}`
-  ctx.fillStyle = styles.color
+  ctx.font = `normal ${font.fontSize}px ${font.fontFamily}`
+  ctx.fillStyle = font.color
   renderObject.textLines.lines.forEach((line) =>
     ctx.fillText(line[0], line[1], line[2] + renderObject.layoutBox.top)
   )

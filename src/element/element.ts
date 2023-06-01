@@ -6,6 +6,11 @@ import { Engine } from '../engine'
 import { createCSSDeclaration } from '../css'
 import { BODY_STYLES, EXTEND_STYLE_KEYS } from '../css/constant'
 import { CanvasTextNode, createTextNode } from './textNode'
+import { LayoutObject, createLayoutObject } from '../layout/layoutObject'
+import { LayoutBlock } from '../layout/layoutBlock'
+import { LayoutInline } from '../layout/layoutInline'
+import { LayoutText } from '../layout/layoutText'
+import { LayoutInlineBlock } from '../layout/layoutInlineBlock'
 
 export const DEFAULT_CONTAINER = {
   styles: {},
@@ -109,6 +114,7 @@ export type ComputedStyles = {
   fontSize: number
   fontWeight: string
   lineHeight: number
+  fontFamily: string
   // contentWidth: number
   // contentHeight: number
   // fullBoxWidth: number
@@ -138,10 +144,6 @@ export type ElementOptions = {
   text?: string
 }
 
-export interface CanvasBodyElement extends CanvasElement {
-  context: Engine
-}
-
 export interface CanvasElement extends TreeNode<CanvasElement> {
   __v_isCanvasElement: boolean
   type: string
@@ -151,7 +153,8 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   renderStyles: RenderStyles
   computedStyles: ComputedStyles | null
   debugColor: string | null
-  renderObject: RenderObject
+  isBody(): boolean
+  isVisible(): boolean
   attach(parent: CanvasElement): void
   appendChild(child: CanvasElement): void
   computeStyles(): void
@@ -159,7 +162,10 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   getRootElement(): CanvasElement
   getContainerStyle(styleName: string): ComputedStyles
   getContainer(): CanvasElement | null
-  isVisible(): boolean
+  getComputedStyles(): ComputedStyles
+  getLayoutObject(): LayoutObject<LayoutBlock | LayoutInline | LayoutInlineBlock | LayoutText>
+  getRenderObject(): RenderObject
+  getContext(): Engine
 }
 
 export type CreateElementAPI = (context: Engine) => CreateElementFn
@@ -177,7 +183,7 @@ export const createElementAPI = (context: Engine): CreateElementFn => {
     children?: CanvasElement[] | string
   ) {
     return pipe(
-      createTreeNode(),
+      createTreeNode<CanvasElement | CanvasTextNode>(),
       createBaseElement(context, type, options, children),
       withConstructor(CanvasElement),
       createTextNodeIfHasText()
@@ -191,7 +197,6 @@ const createTextNodeIfHasText = () => (o) => {
   if (isString(o.children)) {
     let textNode = createTextNode(o.children)
     o.children = [textNode]
-    _initRenderObject(o)
     textNode.setParentNode(o)
     textNode.attach(o)
   }
@@ -206,6 +211,7 @@ export function isCanvasElement(value: any): value is CanvasElement {
 export const createBaseElement =
   (context: Engine, type: string, options: ElementOptions = {}, children?) =>
   (o: TreeNode<CanvasElement>): CanvasElement => {
+    let renderObject, layoutObject
     let element: CanvasElement = {
       ...o,
       __v_isCanvasElement: true,
@@ -215,16 +221,32 @@ export const createBaseElement =
       styles: options.style || {},
       computedStyles: null,
       renderStyles: null,
-      renderObject: null,
       debugColor: null,
+      isBody,
+      isVisible,
+      hasChildren,
       attach,
       appendChild,
       computeStyles,
-      hasChildren,
       getRootElement,
       getContainerStyle,
       getContainer,
-      isVisible
+      getComputedStyles,
+      getLayoutObject,
+      getRenderObject,
+      getContext
+    }
+
+    function getLayoutObject() {
+      return layoutObject
+    }
+
+    function getRenderObject() {
+      return renderObject
+    }
+
+    function getContext() {
+      return context
     }
 
     if (children) {
@@ -232,25 +254,45 @@ export const createBaseElement =
     }
 
     if (element.type === 'body') {
-      ;(<CanvasBodyElement>element).context = context
       element.styles = {
         width: '100%',
         height: '100%'
       } as ElementStyleType
-      _initRenderObject(element)
     }
 
     _createRenderStyles(element)
-    element.computedStyles = { ...element.renderStyles }
+    element.computedStyles = {
+      ...element.renderStyles,
+      fontFamily: context.renderer.defaultFontFamily
+    }
+    layoutObject = createLayoutObject(element)
+    renderObject = createRenderObject(element)
 
     return element
   }
 
+function isBody(this: CanvasElement) {
+  return this.type === 'body'
+}
+
+function isVisible() {
+  return true
+  // return (
+  //   this.styles.display > 0 &&
+  //   this.styles.opacity > 0 &&
+  //   this.style.visibility === VISIBILITY.VISIBLE
+  // )
+}
+
+function hasChildren(this: CanvasElement) {
+  return this.hasChildNode()
+}
+
 function attach(this: CanvasElement, parent: CanvasElement) {
-  if (!this.renderObject) {
-    _initRenderObject(this)
-  }
-  parent.renderObject.appendChild(this.renderObject)
+  console.log('attach', parent)
+  parent.getLayoutObject().appendChild(this.getLayoutObject())
+
+  parent.getRenderObject().appendChild(this.getRenderObject())
   if (this.hasChildren()) {
     this.children.forEach((child) => {
       child.attach(this)
@@ -265,7 +307,7 @@ function appendChild(this: CanvasElement, child: CanvasElement) {
   const rootElm = this.getRootElement()
   if (rootElm && rootElm.type === 'body') {
     child.attach(this)
-    ;(<CanvasBodyElement>rootElm).context.flow(this)
+    this.getContext().flow(this)
   }
 }
 
@@ -282,10 +324,6 @@ function computeStyles(this: CanvasElement) {
       child.computeStyles()
     })
   }
-}
-
-function hasChildren(this: CanvasElement) {
-  return this.hasChildNode()
 }
 
 function getRootElement(this: CanvasElement) {
@@ -307,13 +345,8 @@ function getContainer(this: CanvasElement) {
   return this.parentNode
 }
 
-function isVisible() {
-  return true
-  // return (
-  //   this.styles.display > 0 &&
-  //   this.styles.opacity > 0 &&
-  //   this.style.visibility === VISIBILITY.VISIBLE
-  // )
+function getComputedStyles(this: CanvasElement) {
+  return this.computedStyles
 }
 
 function _createRenderStyles(element: CanvasElement) {
@@ -322,8 +355,4 @@ function _createRenderStyles(element: CanvasElement) {
   } else {
     element.renderStyles = createCSSDeclaration(element.type, element.styles)
   }
-}
-
-export function _initRenderObject(element: CanvasElement | CanvasTextNode) {
-  element.renderObject = createRenderObject(element)
 }

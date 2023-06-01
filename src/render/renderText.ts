@@ -6,13 +6,13 @@ import { pipe, withConstructor } from '../utils'
 import { createTreeNode } from '../tree-node'
 import { RenderObject, RenderObjectOptions, createBaseRenderObject } from './renderObject'
 import { CanvasTextNode } from '../element/textNode'
-import { CanvasBodyElement } from '../element/element'
 
 type TextStyles = {
   color: string
   fontSize: number
   fontWeight: string
   lineHeight: number
+  fontFamily: string
 }
 
 type TextLines = {
@@ -28,6 +28,7 @@ export type CreateRenderTextFn = (
 
 export interface RenderText extends RenderObject {
   type: string
+  element: CanvasTextNode
   textLines: TextLines
   layout(): void
   measureBoxSize(): void
@@ -38,18 +39,19 @@ export const createRenderText: CreateRenderTextFn = function RenderText(element,
   return pipe(
     createTreeNode<RenderObject>(),
     createBaseRenderObject(element, (options = {})),
-    createBaseRenderText(),
+    createBaseRenderText(element),
     withConstructor(RenderText)
   )({} as RenderText)
 }
 
 export const createBaseRenderText =
-  () =>
+  (element: CanvasTextNode) =>
   (o: RenderObject): RenderText => {
     let renderText: RenderText = {
       ...o,
       type: 'text',
-      textLines: null,
+      element,
+      textLines: { lines: [], maxLineWidth: 0, outerHeight: 0 },
       layout,
       measureBoxSize,
       getTextStyles
@@ -76,10 +78,10 @@ function layout(this: RenderText) {
 }
 
 function measureBoxSize(this: RenderText) {
-  console.log('measureBoxSize-text', this.element)
-  const body = this.element.getContainer().getRootNode() as CanvasBodyElement
-  const ctx = body.context.renderer.ctx
-  const defaultFontFamily = body.context.renderer.defaultFontFamily
+  console.log('measureBoxSize', this.element, this.element.getContainer())
+  const renderer = this.element.getContext().renderer
+  const ctx = renderer.ctx
+  const defaultFontFamily = renderer.defaultFontFamily
   ctx.save()
   ctx.font = `normal ${this.getTextStyles().fontSize}px ${defaultFontFamily}`
 
@@ -101,13 +103,14 @@ function measureBoxSize(this: RenderText) {
 
 function getTextStyles(this: RenderText) {
   const parentStyles = this.element.getContainer().computedStyles
-  const { color, fontSize, fontWeight, lineHeight } = parentStyles
+  const { color, fontSize, fontWeight, lineHeight, fontFamily } = parentStyles
 
   return {
     color,
     fontSize,
     fontWeight,
-    lineHeight
+    lineHeight,
+    fontFamily
   }
 }
 

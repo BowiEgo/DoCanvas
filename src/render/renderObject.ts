@@ -1,5 +1,5 @@
 import { CanvasElement } from '../element/element'
-import { isCanvasTextNode } from '../element/textNode'
+import { CanvasTextNode, isCanvasTextNode } from '../element/textNode'
 import { LayoutBox } from '../layout/layoutBox-bp'
 import { TreeNode } from '../tree-node'
 import { NOOP } from '../utils'
@@ -20,13 +20,13 @@ export interface RenderObject extends TreeNode<RenderObject> {
   // TODO: enum type
   __v_isRenderObject: boolean
   type: string
-  element: CanvasElement
-  viewport: { width: number; height: number } | null
+  element: CanvasElement | CanvasTextNode
   layoutBox: LayoutBox | null
   curves: BoundCurves
   children: RenderObject[]
   previousSibling: RenderObject | null
   nextSibling: RenderObject | null
+  getViewPort: { width: number; height: number }
   getContainer(): RenderObject
   appendChild(chid: RenderObject): void
   measureBoxSize(): void
@@ -65,12 +65,9 @@ export const createBaseRenderObject =
       type: null,
       options,
       element,
-      get viewport() {
-        let rootElm = element.getRootNode()
-        return rootElm && rootElm.type === 'body' ? rootElm.context.viewport : null
-      },
       layoutBox: null,
       curves: null,
+      getViewPort,
       getContainer,
       appendChild,
       measureBoxSize: NOOP,
@@ -82,6 +79,10 @@ export const createBaseRenderObject =
 
     return renderObject
   }
+
+function getViewPort(this: RenderObject) {
+  return this.element.getContext().viewport
+}
 
 function getContainer(this: RenderObject) {
   return this.parentNode

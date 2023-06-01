@@ -1,7 +1,13 @@
+import { DoCanvas } from '.'
 import { CanvasElement } from './element/element'
 import { CanvasRenderer } from './render'
 import { RenderObject, createRenderObject } from './render/renderObject'
 import { BFS, PostOrderDFS } from './utils/treeSearch'
+
+type EngineOptions = {
+  width: number
+  height: number
+}
 
 export interface Engine {
   renderer: CanvasRenderer
@@ -14,9 +20,14 @@ export interface Engine {
   reflow(elm: CanvasElement): void
   paint(elm: CanvasElement): void
   repaint(elm: CanvasElement): void
+  getDoc(): DoCanvas
 }
 
-export function createEngine(renderer, options): Engine {
+export function createEngine(
+  doc: DoCanvas,
+  renderer: CanvasRenderer,
+  options: EngineOptions
+): Engine {
   let engine: Engine = {
     renderer,
     viewport: {
@@ -30,7 +41,8 @@ export function createEngine(renderer, options): Engine {
     flow,
     reflow,
     paint,
-    repaint
+    repaint,
+    getDoc
   }
 
   function updateDFSRenderArray(renderObject) {
@@ -38,7 +50,7 @@ export function createEngine(renderer, options): Engine {
   }
 
   function measureBoxSize(elm) {
-    engine.updateDFSRenderArray(elm.renderObject)
+    engine.updateDFSRenderArray(elm.getRenderObject())
     engine.DFSRenderArray.forEach((item) => {
       item.measureBoxSize()
     })
@@ -46,17 +58,29 @@ export function createEngine(renderer, options): Engine {
 
   function flow(elm) {
     const startTime = Date.now()
+    const renderObject = elm.getRenderObject()
     console.log(
       'flow',
       elm,
-      BFS(elm.renderObject).map((item) => `${item.type} ${item.element.id}`),
-      PostOrderDFS(elm.renderObject).map((item) => `${item.type} ${item.element.id}`)
+      PostOrderDFS(renderObject)[0],
+      BFS(renderObject).map((item) => `${item.type} ${item.element.id}`),
+      PostOrderDFS(renderObject).map((item) => `${item.type} ${item.element.id}`)
     )
     elm.computeStyles()
-    BFS(elm.renderObject)
+    BFS(renderObject)
       .reverse()
       .forEach((item) => item.measureBoxSize())
-    elm.renderObject.flow()
+
+    console.log(`flow-updateSize-`)
+
+    BFS(elm.layoutObject)
+      .reverse()
+      .forEach((item) => {
+        item.updateSize()
+        console.log(`flow-updateSize-${item.element.id}`, item.size)
+      })
+
+    renderObject.flow()
     console.log(`渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`)
     elm.getRootElement().type === 'body' && paint(elm)
   }
@@ -64,29 +88,33 @@ export function createEngine(renderer, options): Engine {
   function reflow(elm) {
     console.log('reflow', elm)
     elm.computeStyles()
-    elm.renderObject.flow()
+    elm.getRenderObject().flow()
     elm.getRootElement().type === 'body' && repaint(elm)
   }
 
   function paint(elm) {
     console.log('paint', elm)
     if (!elm) {
-      renderer.paint(engine.rootRenderObject)
+      renderer.render(elm)
     } else {
-      renderer.paint(elm.renderObject)
+      renderer.render(elm)
     }
   }
 
   function repaint(elm) {
     console.log('repaint', elm)
     if (!elm) {
-      renderer.paint(engine.rootRenderObject)
+      renderer.render(elm)
     } else {
-      renderer.paint(elm.renderObject)
+      renderer.render(elm)
     }
   }
 
-  renderer.engine = engine
+  function getDoc() {
+    return doc
+  }
+
+  renderer.context = engine
 
   return engine
 }
