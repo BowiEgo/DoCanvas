@@ -1,7 +1,8 @@
+import { CanvasElement, Layout, isCanvasElement } from '../element/element'
 import { Point, createPoint } from '../geometry/point'
 import { Rect, createRect } from '../geometry/rect'
 import { Size, createSize } from '../geometry/size'
-import { pipe } from '../utils'
+import { NOOP, breakPipe, isAuto, pipe, pipeLine, when, withConstructor } from '../utils'
 import { LayoutBoxModelObject, createLayoutBoxModelObject } from './layoutBoxModelObject'
 
 // LayoutBox implements the full CSS box model.
@@ -98,26 +99,33 @@ import { LayoutBoxModelObject, createLayoutBoxModelObject } from './layoutBoxMod
 // manipulating. Also of critical importance is the coordinate system used (see
 // the COORDINATE SYSTEMS section in LayoutBoxModelObject).
 
-export interface LayoutBox extends LayoutBoxModelObject {
+export interface LayoutBox extends LayoutBoxModelObject<LayoutBox> {
   _isLayoutBox: boolean
   size: Size
   location: Point
   rect: Rect
-  clientWidth: number
-  clientHeight: number
+  firstChildBox(): null
+  firstInFlowChildBox(): null
+  lastChildBox(): null
+  clientWidth(): number
+  clientHeight(): number
   setWidth(width: number): void
   setHeight(height: number): void
   setX(x: number): void
   setY(y: number): void
+  updateSize(): void
 }
 
-export const createLayoutBox = function LayoutBox() {
-  return pipe(createBaseLayoutBox())(createLayoutBoxModelObject())
+export const createLayoutBox = function LayoutBox(element: CanvasElement) {
+  return pipe(
+    createBaseLayoutBox(),
+    withConstructor(LayoutBox)
+  )(createLayoutBoxModelObject<LayoutBox>(element))
 }
 
 export const createBaseLayoutBox =
   () =>
-  (o: LayoutBoxModelObject): LayoutBox => {
+  (o: LayoutBoxModelObject<LayoutBox>): LayoutBox => {
     let size = createSize()
     let location = createPoint()
     let rect = createRect(size, location)
@@ -128,26 +136,29 @@ export const createBaseLayoutBox =
       size,
       location,
       rect,
-      get firstChildBox() {
+      firstChildBox() {
         return null
       },
-      get firstInFlowChildBox() {
+      firstInFlowChildBox() {
         return null
       },
-      get lastChildBox() {
+      lastChildBox() {
         return null
       },
-      get clientWidth() {
+      clientWidth() {
         return this.size.width - this.borderLeft - this.borderRight
       },
-      get clientHeight() {
+      clientHeight() {
         return this.size.height - this.borderTop - this.borderBottom
       },
       setWidth,
       setHeight,
       setX,
-      setY
+      setY,
+      updateSize
     }
+
+    isCanvasElement(layoutBox.element) && _initSize(layoutBox.element)
 
     return layoutBox
   }
@@ -171,3 +182,123 @@ function setY(this: LayoutBox, y) {
   if (y === this.location.y) return
   this.location.setY(y)
 }
+
+function updateSize(this: LayoutBox) {
+  const size = _measureSize(this)
+  this.size.setWidth(size.width)
+  this.size.setHeight(size.height)
+}
+
+const _measureSize = (layoutBox: LayoutBox): Size =>
+  pipeLine(
+    _initSize(layoutBox.element),
+    when(() => layoutBox.element.isBody(), _calcBodySize(layoutBox.element), breakPipe),
+    when(() => !layoutBox.hasChildNode(), NOOP, breakPipe),
+    when(() => isAuto(layoutBox.getStyles().width), _calcWidthByChild(layoutBox)),
+    when(() => isAuto(layoutBox.getStyles().height), _calcHeightByChild(layoutBox))
+  )(createSize())
+
+// const initRootBounds =
+//   (renderBlock: RenderBlock) =>
+//   (o): Bounds => {
+//     o.width = renderBlock.viewport.width
+//     o.height = renderBlock.viewport.height
+
+//     return o
+//   }
+
+// const calcBounds =
+//   (renderBlock: RenderBlock) =>
+//   (o): Bounds => {
+//     const {
+//       borderTopWidth,
+//       borderBottomWidth,
+//       borderLeftWidth,
+//       borderRightWidth,
+//       paddingTop,
+//       paddingBottom,
+//       paddingLeft,
+//       paddingRight,
+//       marginTop,
+//       width,
+//       height
+//     } = renderBlock.element.computedStyles
+
+//     const parentBox = renderBlock.getContainer().layoutBox
+//     const prevSiblingBox = renderBlock.previousSibling
+//       ? renderBlock.previousSibling.layoutBox
+//       : null
+
+//     let _top = (prevSiblingBox ? prevSiblingBox.bottom : parentBox.top) + marginTop
+//     let _left = parentBox.left
+//     let _width =
+//       Number(borderLeftWidth) +
+//       Number(paddingLeft) +
+//       Number(width) +
+//       Number(paddingRight) +
+//       Number(borderRightWidth)
+//     let _height =
+//       Number(borderTopWidth) +
+//       Number(paddingTop) +
+//       Number(height) +
+//       Number(paddingBottom) +
+//       Number(borderBottomWidth)
+
+//     o.parentBox = parentBox
+//     o.top = _top
+//     o.left = _left
+//     o.width = _width
+//     o.height = _height
+//     return o
+//   }
+
+// const initLayout = (renderBlock: RenderBlock, bounds: Bounds): void => {
+//   renderBlock.layoutBox = createLayoutBox(
+//     bounds.parentBox,
+//     bounds.top,
+//     bounds.left,
+//     bounds.width,
+//     bounds.height
+//   )
+// }
+
+// const updateLayout = (renderBlock: RenderBlock, bounds: Bounds): void => {
+//   renderBlock.layoutBox.setTop(bounds.top)
+//   renderBlock.layoutBox.setLeft(bounds.left)
+//   renderBlock.layoutBox.setWidth(bounds.width)
+//   renderBlock.layoutBox.setHeight(bounds.height)
+// }
+
+const _initSize =
+  (element: CanvasElement) =>
+  (o: Size): Size => {
+    o.setWidth(Number(element.computedStyles.width))
+    o.setHeight(Number(element.computedStyles.height))
+    return o
+  }
+
+const _calcBodySize =
+  (element: CanvasBodyElement) =>
+  (o: Size): Size => {
+    o.setWidth(element.context.viewport.width)
+    o.setHeight(element.context.viewport.height)
+    return o
+  }
+
+const _calcWidthByChild =
+  (layoutBox: LayoutBox) =>
+  (o: Size): Size => {
+    o.width = layoutBox.children.reduce((acc, curr) => {
+      return Number(curr.size.width) > acc ? Number(curr.size.width) : acc
+    }, 0)
+    return o
+  }
+
+const _calcHeightByChild =
+  (layoutBox: LayoutBox) =>
+  (o: Size): Size => {
+    o.height = layoutBox.children.reduce((acc, curr) => {
+      return acc + Number(curr.size.height)
+    }, 0)
+    return o
+  }

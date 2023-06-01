@@ -1,4 +1,5 @@
-import { pipe } from '../utils'
+import { CanvasElement } from '../element/element'
+import { pipe, withConstructor } from '../utils'
 import { LayoutBox, createBaseLayoutBox, createLayoutBox } from './layoutBox'
 import { createLayoutBoxModelObject } from './layoutBoxModelObject'
 
@@ -60,10 +61,13 @@ import { createLayoutBoxModelObject } from './layoutBoxModelObject'
 //     ...
 // }
 
-export interface LayoutBlock extends LayoutBox {}
+export interface LayoutBlock extends LayoutBox {
+  _isLayoutBlock: boolean
+  updateLayout(): void
+}
 
-export const createLayoutblock = function LayoutBlock() {
-  return pipe(createBaseLayoutBlock())(createLayoutBox())
+export const createLayoutBlock = function LayoutBlock(element: CanvasElement) {
+  return pipe(createBaseLayoutBlock(), withConstructor(LayoutBlock))(createLayoutBox(element))
 }
 
 const createBaseLayoutBlock =
@@ -71,8 +75,11 @@ const createBaseLayoutBlock =
   (o): LayoutBlock => {
     let layoutBlock = {
       ...o,
-      _isLayoutBlock: true
+      _isLayoutBlock: true,
+      updateLayout
     }
 
     return layoutBlock
   }
+
+function updateLayout(this: LayoutBlock) {}
