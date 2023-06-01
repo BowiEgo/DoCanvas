@@ -5,14 +5,15 @@ const STR_CN =
 const STR_EN =
   '😱 😱 😱 👌👌👌This webpage transforms plain text into the immaculate emoji language.Want emoji tokens for the VOIP service Discord instead of Unicode characters? Tick that checkbox!'
 
-function initCanvas() {
+function initCanvas(fontFamily) {
   const canvas = document.querySelector('#canvas')
   canvas.style.display = 'block'
 
   const _ctx = canvas.getContext('2d')
   const dpr = window.devicePixelRatio
-  const _w = window.innerWidth
-  const _h = window.innerHeight / 2
+  const rect = canvas.getBoundingClientRect()
+  const _w = rect.width
+  const _h = rect.height
   canvas.width = _w * dpr
   canvas.height = _h * dpr
 
@@ -27,6 +28,7 @@ function initCanvas() {
     width: _w,
     height: _h,
     backgroundColor: '#fff',
+    fontFamily,
     debug: false
   })
 
@@ -79,13 +81,13 @@ function initCanvas() {
   })
   const textElm1 = DoCanvas.createElement(
     'text',
-    { style: { fontSize: 16 } },
+    { style: { fontSize: 16, lineHeight: 23 } },
     STR_CN
   )
 
   const textElm2 = DoCanvas.createElement(
     'text',
-    { style: { fontSize: 16 } },
+    { style: { fontSize: 16, lineHeight: 23 } },
     STR_EN
   )
 
@@ -98,14 +100,7 @@ function initCanvas() {
   elm.appendChild(childElm5)
   DoCanvas.body.appendChild(elm)
 
-  console.log(
-    '11111',
-    elm.constructor.name,
-    elm,
-    elm.container,
-    elm.parent,
-    elm.getContainer()
-  )
+  console.log('11111', elm.constructor.name, elm, elm.container, elm.parent, elm.getContainer())
 
   // console.log(elm.node.instance, elm)
   console.log(
@@ -135,6 +130,8 @@ function initHTMLELement() {
   const childElm7 = document.createElement('div')
   const childElm8 = document.createElement('div')
 
+  textElm1.style = 'font-size: 16px; line-height: 23px'
+
   elm.style = `height: ${
     window.innerHeight / 2
   }px; border-bottom: 1px solid #000;box-sizing: border-box`
@@ -143,16 +140,12 @@ function initHTMLELement() {
   childElm2.style = 'background-color: green; width: 50px; height: 40px'
   childElm3.style =
     'display:inline-block; background-color: lightgreen; width: 150px; height: 30px;'
-  childElm4.style =
-    'display:inline-block; background-color: darkorange; width: 150px; height: 30px'
-  childElm5.style =
-    'display:inline-block; background-color: pink; width: 150px; height: 30px'
+  childElm4.style = 'display:inline-block; background-color: darkorange; width: 150px; height: 30px'
+  childElm5.style = 'display:inline-block; background-color: pink; width: 150px; height: 30px'
 
   childElm6.style = 'background-color: lightgreen; width: 50px; height: 30px'
-  childElm7.style =
-    'display:block; background-color: darkorange; width: 50px; height: 30px'
-  childElm8.style =
-    'display:block; background-color: pink; width: 50px; height: 30px'
+  childElm7.style = 'display:block; background-color: darkorange; width: 50px; height: 30px'
+  childElm8.style = 'display:block; background-color: pink; width: 50px; height: 30px'
 
   document.body.insertBefore(elm, canvas)
   textElm1.appendChild(text1)
@@ -173,6 +166,7 @@ function initHTMLELement() {
 }
 
 // let f = new FontFace('PingFang SC', 'url(./)');
+var defaultFont = window.getComputedStyle(document.documentElement).fontFamily
 
-initCanvas()
+initCanvas(defaultFont)
 initHTMLELement()

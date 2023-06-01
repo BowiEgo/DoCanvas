@@ -79,8 +79,9 @@ function measureBoxSize(this: RenderText) {
   console.log('measureBoxSize-text', this.element)
   const body = this.element.getContainer().getRootNode() as CanvasBodyElement
   const ctx = body.context.renderer.ctx
+  const defaultFontFamily = body.context.renderer.defaultFontFamily
   ctx.save()
-  ctx.font = `normal ${this.getTextStyles().fontSize}px PingFang SC`
+  ctx.font = `normal ${this.getTextStyles().fontSize}px ${defaultFontFamily}`
 
   const words = _breakWords(this.element.textContent, this.element.getContainer().computedStyles)
 
@@ -90,7 +91,7 @@ function measureBoxSize(this: RenderText) {
     0,
     0,
     this.element.getContainer().getContainer().computedStyles.width,
-    23 || this.getTextStyles().lineHeight
+    Number(this.getTextStyles().lineHeight) || this.getTextStyles().fontSize
   )
   ctx.restore()
   this.textLines = textLines
