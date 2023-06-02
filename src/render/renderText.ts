@@ -98,6 +98,9 @@ function measureBoxSize(this: RenderText) {
   )
   ctx.restore()
   this.textLines = textLines
+  // this.element.setComputedStyles('width', textLines.maxLineWidth)
+  // this.element.setComputedStyles('height', textLines.outerHeight)
+
   this.element.getComputedStyles().width = textLines.maxLineWidth
   this.element.getComputedStyles().height = textLines.outerHeight
 }

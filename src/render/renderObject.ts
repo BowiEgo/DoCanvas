@@ -44,7 +44,7 @@ export const createRenderObject = (element, options = {}) => {
     return createRenderText(element, options)
   }
 
-  switch (element.renderStyles.display) {
+  switch (element.styles.display) {
     case 'block':
       return createRenderBlock(element, options)
     case 'inline':

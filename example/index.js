@@ -110,13 +110,16 @@ function initCanvas(fontFamily) {
   )
   console.log('2222', textElm1.getRootNode() === DoCanvas.body)
   childElm1.getComputedStyles().marginTop = 100
+  // childElm1.setComputedStyles('marginTop', 100)
   console.log(
     '3333',
     childElm1,
     childElm1.getLayoutObject(),
     childElm1.getLayoutObject().element === childElm1,
-    childElm1.getLayoutObject().marginTop,
-    childElm1.getComputedStyles().marginTop
+    childElm1.getLayoutObject().marginTop(),
+    childElm1.getLayoutObject().element.getComputedStyles().marginTop,
+    childElm1.getComputedStyles().marginTop,
+    DoCanvas.body.getComputedStyles()
   )
 }
 

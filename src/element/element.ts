@@ -63,7 +63,7 @@ type ExtendStyles = {
   visible?: boolean
 }
 
-export type RenderStyles = {
+export type ElementStyles = {
   display: string
   width: number
   height: number
@@ -151,8 +151,7 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   type: string
   id: string | null
   options: ElementOptions
-  styles: ElementStyleType
-  renderStyles: RenderStyles
+  styles: ElementStyles
   debugColor: string | null
   renderObject: RenderObject
   initLayoutObject(): void
@@ -165,6 +164,7 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   getContainer(): CanvasElement | null
   getLayoutObject(): LayoutObject<LayoutBlock | LayoutInline | LayoutInline | LayoutText> | null
   getComputedStyles(): ComputedStyles
+  setComputedStyles(styleName: string, value: any): void
   isVisible(): boolean
 }
 
@@ -219,8 +219,7 @@ export const createBaseElement =
       type,
       id: options.id || null,
       options,
-      styles: options.style || {},
-      renderStyles: null,
+      styles: null,
       renderObject: null,
       debugColor: null,
       initLayoutObject,
@@ -233,24 +232,18 @@ export const createBaseElement =
       getContainer,
       getLayoutObject,
       getComputedStyles,
+      setComputedStyles,
       isVisible
     }
 
-    if (children) {
-      element.children = children
-    }
-
-    if (element.type === 'body') {
-      ;(<CanvasBodyElement>element).context = context
-      element.styles = {
-        width: '100%',
-        height: '100%'
-      } as ElementStyleType
-      _initRenderObject(element)
-    }
-
-    _createRenderStyles(element)
-    _computedStyles = { ...element.renderStyles }
+    Object.defineProperty(element, 'styles', {
+      get() {
+        return _computedStyles || options.style || {}
+      },
+      set() {
+        throw Error('styles is not writable')
+      }
+    })
 
     function initLayoutObject() {
       _layoutObject = createLayoutObject(this)
@@ -263,6 +256,25 @@ export const createBaseElement =
     function getComputedStyles() {
       return _computedStyles
     }
+
+    function setComputedStyles(propName, value) {
+      _computedStyles = {
+        ..._computedStyles,
+        [propName]: value
+      }
+      Object.freeze(_computedStyles)
+    }
+
+    if (children) {
+      element.children = children
+    }
+
+    if (element.type === 'body') {
+      ;(<CanvasBodyElement>element).context = context
+      _initRenderObject(element)
+    }
+
+    _computedStyles = { ..._createRenderStyles(element) }
 
     return element
   }
@@ -299,6 +311,8 @@ function computeStyles(this: CanvasElement) {
       const value = this.getContainerStyle(key)
       if (value) this.getComputedStyles()[key] = value
     })
+
+    Object.freeze(this.getComputedStyles())
   }
 
   if (this.hasChildren()) {
@@ -342,9 +356,9 @@ function isVisible() {
 
 function _createRenderStyles(element: CanvasElement) {
   if (element.type === 'body') {
-    element.renderStyles = createCSSDeclaration(element.type, BODY_STYLES)
+    return createCSSDeclaration(element.type, BODY_STYLES)
   } else {
-    element.renderStyles = createCSSDeclaration(element.type, element.styles)
+    return createCSSDeclaration(element.type, element.styles)
   }
 }
 

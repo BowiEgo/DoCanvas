@@ -89,8 +89,8 @@ function measureBoxSize(this: RenderBlock) {
 
   let size = measure(this)
 
-  this.element.getComputedStyles().width = size.width
-  this.element.getComputedStyles().height = size.height
+  this.element.setComputedStyles('width', size.width)
+  this.element.setComputedStyles('height', size.height)
 }
 
 const initRootBounds =

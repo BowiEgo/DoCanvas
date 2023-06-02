@@ -83,3 +83,7 @@ const createBaseLayoutBlock =
   }
 
 function updateLayout(this: LayoutBlock) {}
+
+function mergeInlineChild() {
+  this.children
+}
