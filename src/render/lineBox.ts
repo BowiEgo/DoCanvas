@@ -17,8 +17,8 @@ export function createLineBox(parentLayoutBox): LineBox {
   function _init(renderInline, parentBox, prevBox) {
     let top = prevBox ? prevBox.bottom : parentBox.top
     let left = parentBox.left
-    let w = Number(renderInline.element.computedStyles.width)
-    let h = Number(renderInline.element.computedStyles.height)
+    let w = Number(renderInline.element.getComputedStyles().width)
+    let h = Number(renderInline.element.getComputedStyles().height)
 
     lineBox.layoutBox.setTop(top)
     lineBox.layoutBox.setLeft(left)
@@ -38,19 +38,12 @@ export function createLineBox(parentLayoutBox): LineBox {
       _init(
         renderInline,
         renderInline.getContainer().layoutBox,
-        renderInline.previousSibling
-          ? renderInline.previousSibling.layoutBox
-          : null
+        renderInline.previousSibling ? renderInline.previousSibling.layoutBox : null
       )
       return
     }
-    const {
-      borderLeftWidth,
-      borderRightWidth,
-      paddingLeft,
-      paddingRight,
-      width
-    } = renderInline.element.computedStyles
+    const { borderLeftWidth, borderRightWidth, paddingLeft, paddingRight, width } =
+      renderInline.element.getComputedStyles()
 
     let w =
       Number(borderLeftWidth) +
@@ -60,29 +53,24 @@ export function createLineBox(parentLayoutBox): LineBox {
       Number(borderRightWidth)
 
     let testWidth = lineBox.layoutBox.width + w
-    if (testWidth > renderInline.getContainer().element.computedStyles.width) {
+    if (testWidth > renderInline.getContainer().element.getComputedStyles().width) {
       console.log(
         'h:',
         testWidth,
         renderInline,
         lineBox.layoutBox.height,
-        Number(renderInline.element.computedStyles.height)
+        Number(renderInline.element.getComputedStyles().height)
       )
 
-      renderInline.lineBox = createLineBox(
-        renderInline.getContainer().layoutBox
-      )
+      renderInline.lineBox = createLineBox(renderInline.getContainer().layoutBox)
       renderInline.lineBox.add(renderInline)
     } else {
       lineBox.lines.push(renderInline)
       renderInline.layoutBox.setTop(lineBox.layoutBox.top)
-      renderInline.layoutBox.setLeft(
-        renderInline.previousSibling.layoutBox.right
-      )
+      renderInline.layoutBox.setLeft(renderInline.previousSibling.layoutBox.right)
 
       lineBox.layoutBox.setWidth(
-        lineBox.layoutBox.width +
-          Number(renderInline.element.computedStyles.width)
+        lineBox.layoutBox.width + Number(renderInline.element.getComputedStyles().width)
       )
     }
   }

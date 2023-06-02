@@ -6,6 +6,10 @@ import { Engine } from '../engine'
 import { createCSSDeclaration } from '../css'
 import { BODY_STYLES, EXTEND_STYLE_KEYS } from '../css/constant'
 import { CanvasTextNode, createTextNode } from './textNode'
+import { LayoutObject, createLayoutObject } from '../layout/layoutObject'
+import { LayoutBlock } from '../layout/layoutBlock'
+import { LayoutInline } from '../layout/layoutInline'
+import { LayoutText } from '../layout/layoutText'
 
 export const DEFAULT_CONTAINER = {
   styles: {},
@@ -149,9 +153,9 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   options: ElementOptions
   styles: ElementStyleType
   renderStyles: RenderStyles
-  computedStyles: ComputedStyles | null
   debugColor: string | null
   renderObject: RenderObject
+  initLayoutObject(): void
   attach(parent: CanvasElement): void
   appendChild(child: CanvasElement): void
   computeStyles(): void
@@ -159,6 +163,8 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   getRootElement(): CanvasElement
   getContainerStyle(styleName: string): ComputedStyles
   getContainer(): CanvasElement | null
+  getLayoutObject(): LayoutObject<LayoutBlock | LayoutInline | LayoutInline | LayoutText> | null
+  getComputedStyles(): ComputedStyles
   isVisible(): boolean
 }
 
@@ -206,6 +212,7 @@ export function isCanvasElement(value: any): value is CanvasElement {
 export const createBaseElement =
   (context: Engine, type: string, options: ElementOptions = {}, children?) =>
   (o: TreeNode<CanvasElement>): CanvasElement => {
+    let _layoutObject, _computedStyles
     let element: CanvasElement = {
       ...o,
       __v_isCanvasElement: true,
@@ -213,10 +220,10 @@ export const createBaseElement =
       id: options.id || null,
       options,
       styles: options.style || {},
-      computedStyles: null,
       renderStyles: null,
       renderObject: null,
       debugColor: null,
+      initLayoutObject,
       attach,
       appendChild,
       computeStyles,
@@ -224,6 +231,8 @@ export const createBaseElement =
       getRootElement,
       getContainerStyle,
       getContainer,
+      getLayoutObject,
+      getComputedStyles,
       isVisible
     }
 
@@ -241,12 +250,27 @@ export const createBaseElement =
     }
 
     _createRenderStyles(element)
-    element.computedStyles = { ...element.renderStyles }
+    _computedStyles = { ...element.renderStyles }
+
+    function initLayoutObject() {
+      _layoutObject = createLayoutObject(this)
+    }
+
+    function getLayoutObject() {
+      return _layoutObject
+    }
+
+    function getComputedStyles() {
+      return _computedStyles
+    }
 
     return element
   }
 
 function attach(this: CanvasElement, parent: CanvasElement) {
+  if (!this.getLayoutObject()) {
+    this.initLayoutObject()
+  }
   if (!this.renderObject) {
     _initRenderObject(this)
   }
@@ -273,7 +297,7 @@ function computeStyles(this: CanvasElement) {
   if (this.getContainer()) {
     EXTEND_STYLE_KEYS.forEach((key) => {
       const value = this.getContainerStyle(key)
-      if (value) this.computedStyles[key] = value
+      if (value) this.getComputedStyles()[key] = value
     })
   }
 
@@ -296,8 +320,8 @@ function getContainerStyle(this: CanvasElement, styleName: string): ComputedStyl
   const container = this.getContainer()
 
   if (!container) return
-  if (this.computedStyles[styleName] === 'transparent') {
-    return container.computedStyles[styleName]
+  if (this.getComputedStyles()[styleName] === 'transparent') {
+    return container.getComputedStyles()[styleName]
   } else {
     return container.getContainerStyle(styleName)
   }

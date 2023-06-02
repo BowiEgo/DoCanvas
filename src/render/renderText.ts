@@ -60,7 +60,7 @@ export const createBaseRenderText =
 
 function layout(this: RenderText) {
   console.log('layout-text', this.element)
-  const { width, height } = this.element.computedStyles
+  const { width, height } = this.element.getComputedStyles()
   const parentBox = this.getContainer().layoutBox
   let top = parentBox.top
   let left = parentBox.left
@@ -83,24 +83,27 @@ function measureBoxSize(this: RenderText) {
   ctx.save()
   ctx.font = `normal ${this.getTextStyles().fontSize}px ${defaultFontFamily}`
 
-  const words = _breakWords(this.element.textContent, this.element.getContainer().computedStyles)
+  const words = _breakWords(
+    this.element.textContent,
+    this.element.getContainer().getComputedStyles()
+  )
 
   const textLines = _wrapText(
     ctx,
     words,
     0,
     0,
-    this.element.getContainer().getContainer().computedStyles.width,
+    this.element.getContainer().getContainer().getComputedStyles().width,
     Number(this.getTextStyles().lineHeight) || this.getTextStyles().fontSize
   )
   ctx.restore()
   this.textLines = textLines
-  this.element.computedStyles.width = textLines.maxLineWidth
-  this.element.computedStyles.height = textLines.outerHeight
+  this.element.getComputedStyles().width = textLines.maxLineWidth
+  this.element.getComputedStyles().height = textLines.outerHeight
 }
 
 function getTextStyles(this: RenderText) {
-  const parentStyles = this.element.getContainer().computedStyles
+  const parentStyles = this.element.getContainer().getComputedStyles()
   const { color, fontSize, fontWeight, lineHeight } = parentStyles
 
   return {

@@ -56,7 +56,7 @@ function initLayout(this: RenderInlineBlock) {
     paddingRight,
     width,
     height
-  } = this.element.computedStyles
+  } = this.element.getComputedStyles()
 
   let w =
     Number(borderLeftWidth) +

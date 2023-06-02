@@ -60,16 +60,17 @@ export const createLayoutBoxModelObject = function LayoutBoxModelObject<T>(eleme
   return pipe(
     createTreeNode<T>(),
     createBaseLayoutObject<T>(element),
-    createBaseLayoutBoxModelObject<T>(),
+    createBaseLayoutBoxModelObject<T>(element),
     withConstructor(LayoutBoxModelObject)
   )({})
 }
 
 export const createBaseLayoutBoxModelObject =
-  <T>() =>
+  <T>(element) =>
   (o: LayoutObject<T>) => {
     let layoutBoxModelObject = {
       ...o,
+      element,
       offsetLeft: 0,
       offsetTop: 0,
       offsetWidth: 0,
@@ -133,8 +134,8 @@ export const createBaseLayoutBoxModelObject =
         const { paddingTop, paddingRight, paddingBottom, paddingLeft } = this
         return { paddingTop, paddingRight, paddingBottom, paddingLeft }
       },
-      marginTop() {
-        return this.getStyles().marginTop || 0
+      get marginTop() {
+        return element.getComputedStyles().marginTop
       },
       marginBottom() {
         return this.getStyles().marginBottom || 0
@@ -175,6 +176,11 @@ export const createBaseLayoutBoxModelObject =
       physicalPaddingToLogical,
       physicalBorderToLogical,
       physicalMarginToLogical
+      // getStyles
+    }
+
+    function getStyles() {
+      return this.element.computedStyles
     }
 
     return layoutBoxModelObject

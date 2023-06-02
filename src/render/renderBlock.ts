@@ -77,14 +77,20 @@ function measureBoxSize(this: RenderBlock) {
       initSize(renderBlock),
       when(() => renderBlock.isRoot(), setRootSize(renderBlock), breakPipe),
       when(() => !renderBlock.hasChildNode(), NOOP, breakPipe),
-      when(() => isAuto(renderBlock.element.computedStyles.width), calcWidthByChild(renderBlock)),
-      when(() => isAuto(renderBlock.element.computedStyles.height), calcHeightByChild(renderBlock))
+      when(
+        () => isAuto(renderBlock.element.getComputedStyles().width),
+        calcWidthByChild(renderBlock)
+      ),
+      when(
+        () => isAuto(renderBlock.element.getComputedStyles().height),
+        calcHeightByChild(renderBlock)
+      )
     )({ width: 0, height: 0 })
 
   let size = measure(this)
 
-  this.element.computedStyles.width = size.width
-  this.element.computedStyles.height = size.height
+  this.element.getComputedStyles().width = size.width
+  this.element.getComputedStyles().height = size.height
 }
 
 const initRootBounds =
@@ -111,7 +117,7 @@ const calcBounds =
       marginTop,
       width,
       height
-    } = renderBlock.element.computedStyles
+    } = renderBlock.element.getComputedStyles()
 
     const parentBox = renderBlock.getContainer().layoutBox
     const prevSiblingBox = renderBlock.previousSibling
@@ -161,8 +167,8 @@ const updateLayout = (renderBlock: RenderBlock, bounds: Bounds): void => {
 const initSize =
   (renderBlock: RenderBlock) =>
   (o: Bounds): Bounds => {
-    o.width = renderBlock.element.computedStyles.width
-    o.height = renderBlock.element.computedStyles.height
+    o.width = renderBlock.element.getComputedStyles().width
+    o.height = renderBlock.element.getComputedStyles().height
     return o
   }
 
@@ -178,8 +184,8 @@ const calcWidthByChild =
   (renderBlock: RenderBlock) =>
   (o: Size): Size => {
     o.width = renderBlock.children.reduce((acc, curr) => {
-      return Number(curr.element.computedStyles.width) > acc
-        ? Number(curr.element.computedStyles.width)
+      return Number(curr.element.getComputedStyles().width) > acc
+        ? Number(curr.element.getComputedStyles().width)
         : acc
     }, 0)
     return o
@@ -189,7 +195,7 @@ const calcHeightByChild =
   (renderBlock: RenderBlock) =>
   (o: Size): Size => {
     o.height = renderBlock.children.reduce((acc, curr) => {
-      return acc + Number(curr.element.computedStyles.height)
+      return acc + Number(curr.element.getComputedStyles().height)
     }, 0)
     return o
   }

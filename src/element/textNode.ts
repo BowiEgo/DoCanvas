@@ -10,10 +10,10 @@ export function isCanvasTextNode(value: any): value is CanvasTextNode {
 
 export interface CanvasTextNode extends TreeNode<CanvasElement> {
   __v_isCanvasTextNode: boolean
-  computedStyles: ComputedStyles | { width: number; height: number }
   renderObject: RenderObject | null
   debugColor: string | null
   getContainer(): CanvasElement
+  getComputedStyles(): ComputedStyles | { width: number; height: number }
   attach(parent: CanvasElement): void
 }
 
@@ -32,14 +32,19 @@ export const createTextNode = function CanvasTextNode(text: string) {
 export const createBaseTextNode =
   () =>
   (o: TreeNode<CanvasElement>): CanvasTextNode => {
+    let _computedStyles = { width: 0, height: 0 }
     let textNode: CanvasTextNode = {
       ...o,
       __v_isCanvasTextNode: true,
-      computedStyles: { width: 0, height: 0 },
       renderObject: null,
       debugColor: null,
       getContainer,
+      getComputedStyles,
       attach
+    }
+
+    function getComputedStyles() {
+      return _computedStyles
     }
 
     return textNode

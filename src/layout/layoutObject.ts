@@ -114,7 +114,7 @@ export const createLayoutObject = function LayoutObject(element) {
     return createLayoutText(element)
   }
 
-  switch (element.computedStyles.display) {
+  switch (element.getComputedStyles().display) {
     case 'block':
       return createLayoutBlock(element)
     case 'inline':

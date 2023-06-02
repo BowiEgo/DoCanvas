@@ -132,7 +132,7 @@ function _formatPath(ctx: CanvasRenderingContext2D, paths: Path[]): void {
 }
 
 function _paintBackGroundAndBorder(ctx: CanvasRenderingContext2D, renderObject) {
-  const styles = renderObject.element.computedStyles
+  const styles = renderObject.element.getComputedStyles()
   const backgroundPaintingArea = calculateBackgroundCurvedPaintingArea(
     getBackgroundValueForIndex(styles.backgroundClip, 0),
     renderObject.curves

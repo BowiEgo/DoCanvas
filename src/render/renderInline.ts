@@ -75,12 +75,12 @@ function measureBoxSize(this: RenderInline) {
   console.log('measureBoxSize-inline', this)
 
   if (this.hasChildNode()) {
-    this.element.computedStyles.width = this.children.reduce((acc, curr) => {
-      return acc + Number(curr.element.computedStyles.width)
+    this.element.getComputedStyles().width = this.children.reduce((acc, curr) => {
+      return acc + Number(curr.element.getComputedStyles().width)
     }, 0)
 
-    this.element.computedStyles.height = this.children.reduce((acc, curr) => {
-      return acc + Number(curr.element.computedStyles.height)
+    this.element.getComputedStyles().height = this.children.reduce((acc, curr) => {
+      return acc + Number(curr.element.getComputedStyles().height)
     }, 0)
   }
 }
