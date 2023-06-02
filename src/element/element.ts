@@ -152,8 +152,9 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   id: string | null
   options: ElementOptions
   styles: ElementStyles
-  debugColor: string | null
+  // children: Array<CanvasElement | CanvasTextNode>
   renderObject: RenderObject
+  debugColor: string | null
   initLayoutObject(): void
   attach(parent: CanvasElement): void
   appendChild(child: CanvasElement): void
@@ -183,7 +184,7 @@ export const createElementAPI = (context: Engine): CreateElementFn => {
     children?: CanvasElement[] | string
   ) {
     return pipe(
-      createTreeNode(),
+      createTreeNode<CanvasElement>(),
       createBaseElement(context, type, options, children),
       withConstructor(CanvasElement),
       createTextNodeIfHasText()
@@ -213,8 +214,7 @@ export const createBaseElement =
   (context: Engine, type: string, options: ElementOptions = {}, children?) =>
   (o: TreeNode<CanvasElement>): CanvasElement => {
     let _layoutObject, _computedStyles
-    let element: CanvasElement = {
-      ...o,
+    let element = {
       __v_isCanvasElement: true,
       type,
       id: options.id || null,
@@ -222,6 +222,9 @@ export const createBaseElement =
       styles: null,
       renderObject: null,
       debugColor: null,
+      get children() {
+        return o.children
+      },
       initLayoutObject,
       attach,
       appendChild,
@@ -234,7 +237,9 @@ export const createBaseElement =
       getComputedStyles,
       setComputedStyles,
       isVisible
-    }
+    } as CanvasElement
+
+    Object.setPrototypeOf(element, o)
 
     Object.defineProperty(element, 'styles', {
       get() {
@@ -266,7 +271,7 @@ export const createBaseElement =
     }
 
     if (children) {
-      element.children = children
+      o.children = children
     }
 
     if (element.type === 'body') {

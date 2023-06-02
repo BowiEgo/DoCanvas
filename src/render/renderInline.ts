@@ -42,6 +42,8 @@ export const createBaseRenderInline =
       measureBoxSize
     }
 
+    Object.setPrototypeOf(renderInline, o)
+
     return renderInline
   }
 

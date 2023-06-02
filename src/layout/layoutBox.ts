@@ -158,8 +158,6 @@ export const createBaseLayoutBox =
       updateSize
     }
 
-    isCanvasElement(layoutBox.element) && _initSize(layoutBox.element)
-
     return layoutBox
   }
 

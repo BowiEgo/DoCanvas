@@ -20,6 +20,7 @@ export interface RenderObject extends TreeNode<RenderObject> {
   // TODO: enum type
   __v_isRenderObject: boolean
   type: string
+  options: RenderObjectOptions
   element: CanvasElement
   viewport: { width: number; height: number } | null
   layoutBox: LayoutBox | null
@@ -71,6 +72,9 @@ export const createBaseRenderObject =
       },
       layoutBox: null,
       curves: null,
+      get children() {
+        return o.children
+      },
       getContainer,
       appendChild,
       measureBoxSize: NOOP,
@@ -80,6 +84,10 @@ export const createBaseRenderObject =
       isRoot
     }
 
+    console.log(o)
+
+    Object.setPrototypeOf(renderObject, o)
+
     return renderObject
   }
 
@@ -87,7 +95,8 @@ function getContainer(this: RenderObject) {
   return this.parentNode
 }
 
-function appendChild(this: RenderObject, child) {
+function appendChild(this: RenderObject, child: RenderObject) {
+  console.log(this)
   this.appendChildNode(child)
 }
 

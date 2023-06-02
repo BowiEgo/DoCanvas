@@ -74,17 +74,20 @@ export const createBaseLayoutBoxModelObject =
       offsetTop: 0,
       offsetWidth: 0,
       offsetHeight: 0,
+      get element() {
+        return o.element
+      },
       paddingTop() {
-        return this.getStyles().paddingTop || 0
+        return o.getStyles().paddingTop || 0
       },
       paddingBottom() {
-        return this.getStyles().paddingBottom || 0
+        return o.getStyles().paddingBottom || 0
       },
       paddingLeft() {
-        return this.getStyles().paddingLeft || 0
+        return o.getStyles().paddingLeft || 0
       },
       paddingRight() {
-        return this.getStyles().paddingRight || 0
+        return o.getStyles().paddingRight || 0
       },
       paddingBefore() {
         return this.physicalPaddingToLogical().before()
@@ -96,16 +99,16 @@ export const createBaseLayoutBoxModelObject =
         return this.physicalPaddingToLogical().end()
       },
       borderTop() {
-        return this.getStyles().borderTopWidth || 0
+        return o.getStyles().borderTopWidth || 0
       },
       borderBottom() {
-        return this.getStyles().borderBottomWidth || 0
+        return o.getStyles().borderBottomWidth || 0
       },
       borderLeft() {
-        return this.getStyles().borderLeftWidth || 0
+        return o.getStyles().borderLeftWidth || 0
       },
       borderRight() {
-        return this.getStyles().borderRightWidth || 0
+        return o.getStyles().borderRightWidth || 0
       },
       borderBefore() {
         return this.physicalBorderToLogical().before()
@@ -134,16 +137,16 @@ export const createBaseLayoutBoxModelObject =
         return { paddingTop, paddingRight, paddingBottom, paddingLeft }
       },
       marginTop() {
-        return this.getStyles().marginTop
+        return o.getStyles().marginTop
       },
       marginBottom() {
-        return this.getStyles().marginBottom || 0
+        return o.getStyles().marginBottom || 0
       },
       marginLeft() {
-        return this.getStyles().marginLeft || 0
+        return o.getStyles().marginLeft || 0
       },
       marginRight() {
-        return this.getStyles().marginRight || 0
+        return o.getStyles().marginRight || 0
       },
       marginBefore() {
         return this.physicalMarginToLogical().before()
@@ -176,6 +179,14 @@ export const createBaseLayoutBoxModelObject =
       physicalBorderToLogical,
       physicalMarginToLogical
     }
+
+    // for (let key in o) {
+    //   if (typeof o[key] === 'function') {
+    //     layoutBoxModelObject.__proto__[key] = o[key]
+    //   }
+    // }
+
+    // Object.setPrototypeOf(layoutBoxModelObject, o)
 
     return layoutBoxModelObject
   }

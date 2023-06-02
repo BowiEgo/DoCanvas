@@ -1,3 +1,5 @@
+import { pipe, withConstructor } from '../utils'
+
 export type TreeNodeOptions<T> = {
   children?: TreeNode<T>[]
   textContent?: string
@@ -33,7 +35,11 @@ export function isEndNode<T>(node: TreeNode<T>) {
   return node.parentNode && !node.nextSibling && !node.hasChildNode()
 }
 
-export const createTreeNode =
+export const createTreeNode = function TreeNode<T>(options?) {
+  return pipe(createBaseTreeNode<T>(options), withConstructor(TreeNode))
+}
+
+const createBaseTreeNode =
   <T>(options?: TreeNodeOptions<T>) =>
   (o): TreeNode<T> => {
     const treeNode: TreeNode<T> = {

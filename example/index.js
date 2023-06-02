@@ -115,7 +115,11 @@ function initCanvas(fontFamily) {
     '3333',
     childElm1,
     childElm1.getLayoutObject(),
-    childElm1.getLayoutObject().element === childElm1,
+    childElm1.getLayoutObject().element === childElm1
+  )
+
+  console.log(
+    '4444',
     childElm1.getLayoutObject().marginTop(),
     childElm1.getLayoutObject().element.getComputedStyles().marginTop,
     childElm1.getComputedStyles().marginTop,
