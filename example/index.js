@@ -100,31 +100,32 @@ function initCanvas(fontFamily) {
   elm.appendChild(childElm5)
   DoCanvas.body.appendChild(elm)
 
-  console.log('0000', elm.constructor.name, elm, elm.container, elm.parentNode, elm.getContainer())
+  console.log('0000', elm.constructor.name, elm, elm.container)
 
   // console.log(elm.node.instance, elm)
   console.log(
     '1111',
     textElm1.children[0].parentNode === textElm1,
-    textElm1.children[0].getContainer() === textElm1
+    textElm1.children[0].container === textElm1
   )
   console.log('2222', textElm1.getRootNode() === DoCanvas.body)
   childElm1.getComputedStyles().marginTop = 100
+  console.log(DoCanvas.body.context)
   // childElm1.setComputedStyles('marginTop', 100)
-  console.log(
-    '3333',
-    childElm1,
-    childElm1.getLayoutObject(),
-    childElm1.getLayoutObject().element === childElm1
-  )
+  // console.log(
+  //   '3333',
+  //   childElm1,
+  //   childElm1.getLayoutObject(),
+  //   childElm1.getLayoutObject().element === childElm1
+  // )
 
-  console.log(
-    '4444',
-    childElm1.getLayoutObject().marginTop(),
-    childElm1.getLayoutObject().element.getComputedStyles().marginTop,
-    childElm1.getComputedStyles().marginTop,
-    DoCanvas.body.getComputedStyles()
-  )
+  // console.log(
+  //   '4444',
+  //   childElm1.getLayoutObject().marginTop(),
+  //   childElm1.getLayoutObject().element.getComputedStyles().marginTop,
+  //   childElm1.getComputedStyles().marginTop,
+  //   DoCanvas.body.getComputedStyles()
+  // )
 }
 
 function initHTMLELement() {

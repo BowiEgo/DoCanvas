@@ -1,29 +1,33 @@
 import { Engine, createEngine } from './engine'
-import { CanvasRenderer, createRenderer } from './render'
+import { CanvasRenderer, createRenderer } from './render/index'
 import { CanvasElement, CreateElementFn, createElementAPI } from './element/element'
+import { CreateTextNodeFn, createTextNodeAPI } from './element/textNode'
 
 export interface DoCanvas {
   body: CanvasElement
   engine: Engine
   renderer: CanvasRenderer
   createElement: CreateElementFn
+  createTextNode: CreateTextNodeFn
 }
 
 export function createDoCanvas(options) {
   console.log('createDoCanvas', options)
-  let doCanvas = {} as DoCanvas
+  let doc = {} as DoCanvas
   const renderer = createRenderer(options)
   const engine = createEngine(renderer, options)
   const createElement = createElementAPI(engine)
+  const createTextNode = createTextNodeAPI()
 
-  doCanvas = {
+  doc = {
     body: null,
     engine,
     renderer,
-    createElement
+    createElement,
+    createTextNode
   }
 
-  doCanvas.body = createElement('body')
+  doc.body = createElement('body')
 
-  return doCanvas
+  return doc
 }

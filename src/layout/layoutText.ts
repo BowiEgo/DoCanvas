@@ -1,7 +1,5 @@
 import { CanvasTextNode } from '../element/textNode'
-import { createTreeNode } from '../tree-node'
-import { pipe, withConstructor } from '../utils'
-import { LayoutObject, createBaseLayoutObject, createLayoutObject } from './layoutObject'
+import { LayoutObject } from './layoutObject'
 
 // LayoutText is the root class for anything that represents
 // a text node (see core/dom/text.h).
@@ -28,32 +26,38 @@ import { LayoutObject, createBaseLayoutObject, createLayoutObject } from './layo
 // The previous comment applies also for painting. See e.g.
 // BlockFlowPainter::paintContents in particular the use of LineBoxListPainter.
 
-export interface LayoutText extends LayoutObject<LayoutText> {
-  _isLayoutText: boolean
-  updateLayout(): void
-}
+// export interface LayoutText extends LayoutObject<LayoutText> {
+//   _isLayoutText: boolean
+//   updateLayout(): void
+// }
 
-export const createLayoutText = function LayoutText(element: CanvasTextNode) {
-  return pipe(
-    createTreeNode<LayoutText>(),
-    createBaseLayoutObject(element),
-    createBaseLayoutText(),
-    withConstructor(LayoutText)
-  )({})
-}
-
-const createBaseLayoutText =
-  () =>
-  (o: LayoutObject<LayoutText>): LayoutText => {
-    let layoutText = {
-      ...o,
-      _isLayoutText: true,
-      updateSize,
-      updateLayout
-    }
-
-    return layoutText
+export class LayoutText extends LayoutObject {
+  constructor(element: CanvasTextNode) {
+    super(element)
+    this.element = element
   }
+}
 
-function updateSize(this: LayoutText) {}
-function updateLayout(this: LayoutText) {}
+// export const createLayoutText = function LayoutText(element: CanvasTextNode) {
+//   return pipe(
+//     createBaseLayoutObject(element),
+//     createBaseLayoutText(),
+//     withConstructor(LayoutText)
+//   )(new TreeNode())
+// }
+
+// const createBaseLayoutText =
+//   () =>
+//   (o: LayoutObject<LayoutText>): LayoutText => {
+//     let layoutText = {
+//       ...o,
+//       _isLayoutText: true,
+//       updateSize,
+//       updateLayout
+//     }
+
+//     return layoutText
+//   }
+
+// function updateSize(this: LayoutText) {}
+// function updateLayout(this: LayoutText) {}

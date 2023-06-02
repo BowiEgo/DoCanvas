@@ -1,6 +1,6 @@
 import { CanvasElement } from '../element/element'
 import { LayoutBox, createLayoutBox } from '../layout/layoutBox-bp'
-import { createTreeNode } from '../tree-node'
+import { TreeNode } from '../tree-node'
 import { NOOP, breakPipe, isAuto, pipe, pipeLine, when, withConstructor } from '../utils'
 import { RenderObject, RenderObjectOptions, createBaseRenderObject } from './renderObject'
 
@@ -26,12 +26,63 @@ export interface RenderBlock extends RenderObject {}
 
 export const createRenderBlock: CreateRenderBlockFn = function RenderBlock(element, options = {}) {
   return pipe(
-    createTreeNode<RenderObject>(),
     createBaseRenderObject(element, options),
     createBaseRenderBlock(),
     withConstructor(RenderBlock)
-  )({} as RenderBlock)
+  )(new TreeNode())
 }
+
+// export class RenderBlock extends RenderObject {
+//   constructor(element, options = {}) {
+//     console.log('constructor', element, options)
+//     super(element, options)
+//     this.type = 'block'
+//   }
+//   layout() {
+//     console.log('layout', this)
+//     const calc = (renderBlock: RenderBlock): Bounds =>
+//       pipeLine(
+//         when(() => renderBlock.isRoot(), initRootBounds(renderBlock), breakPipe),
+//         calcBounds(renderBlock)
+//       )({
+//         parentBox: null,
+//         top: 0,
+//         left: 0,
+//         width: 0,
+//         height: 0
+//       })
+
+//     let bounds = calc(this)
+
+//     if (!this.layoutBox) {
+//       initLayout(this, bounds)
+//     } else {
+//       updateLayout(this, bounds)
+//     }
+//   }
+//   measureBoxSize() {
+//     console.log('measureBoxSize', this)
+//     const measure = (renderBlock: RenderBlock): Size =>
+//       pipeLine(
+//         initSize(renderBlock),
+//         when(() => renderBlock.isRoot(), setRootSize(renderBlock), breakPipe),
+//         when(() => !renderBlock.hasChildNode(), NOOP, breakPipe),
+//         when(
+//           () => isAuto(renderBlock.element.getComputedStyles().width),
+//           calcWidthByChild(renderBlock)
+//         ),
+//         when(
+//           () => isAuto(renderBlock.element.getComputedStyles().height),
+//           calcHeightByChild(renderBlock)
+//         )
+//       )({ width: 0, height: 0 })
+
+//     let size = measure(this)
+
+//     this.element.setComputedStyles('width', size.width)
+//     this.element.setComputedStyles('height', size.height)
+//   }
+// }
 
 export const createBaseRenderBlock =
   () =>

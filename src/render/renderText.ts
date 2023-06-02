@@ -3,7 +3,7 @@ import { LineBreaker } from '../text/lineBreak'
 import { fromCodePoint, toCodePoints } from '../text/Util'
 import { createLayoutBox } from '../layout/layoutBox-bp'
 import { pipe, withConstructor } from '../utils'
-import { createTreeNode } from '../tree-node'
+import { TreeNode } from '../tree-node'
 import { RenderObject, RenderObjectOptions, createBaseRenderObject } from './renderObject'
 import { CanvasTextNode } from '../element/textNode'
 import { CanvasBodyElement } from '../element/element'
@@ -36,11 +36,10 @@ export interface RenderText extends RenderObject {
 
 export const createRenderText: CreateRenderTextFn = function RenderText(element, options) {
   return pipe(
-    createTreeNode<RenderObject>(),
     createBaseRenderObject(element, (options = {})),
     createBaseRenderText(),
     withConstructor(RenderText)
-  )({} as RenderText)
+  )(new TreeNode())
 }
 
 export const createBaseRenderText =

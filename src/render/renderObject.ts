@@ -1,8 +1,7 @@
 import { CanvasElement } from '../element/element'
-import { isCanvasTextNode } from '../element/textNode'
 import { LayoutBox } from '../layout/layoutBox-bp'
-import { TreeNode } from '../tree-node'
-import { NOOP } from '../utils'
+import { TreeNode } from '../tree-node/index'
+import { NOOP } from '../utils/index'
 import { BoundCurves, createBoundCurves } from './canvas/boundCurves'
 import { createRenderBlock } from './renderBlock'
 import { createRenderInline } from './renderInline'
@@ -16,34 +15,34 @@ export type CreateRenderObjectFn = (
   options?: RenderObjectOptions
 ) => CanvasElement
 
-export interface RenderObject extends TreeNode<RenderObject> {
-  // TODO: enum type
-  __v_isRenderObject: boolean
-  type: string
-  options: RenderObjectOptions
-  element: CanvasElement
-  viewport: { width: number; height: number } | null
-  layoutBox: LayoutBox | null
-  curves: BoundCurves
-  children: RenderObject[]
-  previousSibling: RenderObject | null
-  nextSibling: RenderObject | null
-  getContainer(): RenderObject
-  appendChild(chid: RenderObject): void
-  measureBoxSize(): void
-  layout(): void
-  flow(): void
-  reflow(): void
-  isRoot(): boolean
-}
+// export interface RenderObject extends TreeNode<RenderObject> {
+//   // TODO: enum type
+//   __v_isRenderObject: boolean
+//   type: string
+//   options: RenderObjectOptions
+//   element: CanvasElement
+//   viewport: { width: number; height: number } | null
+//   layoutBox: LayoutBox | null
+//   curves: BoundCurves
+//   children: RenderObject[]
+//   previousSibling: RenderObject | null
+//   nextSibling: RenderObject | null
+//   getContainer(): RenderObject
+//   appendChild(chid: RenderObject): void
+//   measureBoxSize(): void
+//   layout(): void
+//   flow(): void
+//   reflow(): void
+//   isRoot(): boolean
+// }
 
 export const createRenderObject = (element, options = {}) => {
   if (element.type === 'body') {
     return createRenderBlock(element, options)
   }
-  if (isCanvasTextNode(element)) {
-    return createRenderText(element, options)
-  }
+  // if (isCanvasTextNode(element)) {
+  //   return createRenderText(element, options)
+  // }
 
   switch (element.styles.display) {
     case 'block':
@@ -55,6 +54,41 @@ export const createRenderObject = (element, options = {}) => {
     default:
       return createRenderBlock(element, options)
   }
+}
+
+export class RenderObject extends TreeNode<RenderObject> {
+  __v_isRenderObject: boolean
+  type: string
+  options: RenderObjectOptions
+  element: CanvasElement
+  viewport: { width: number; height: number } | null
+  layoutBox: LayoutBox | null
+  curves: BoundCurves
+  children: RenderObject[]
+  previousSibling: RenderObject | null
+  nextSibling: RenderObject | null
+  constructor(element, options = {}) {
+    super()
+    this.element = element
+    this.options = options
+  }
+  getContainer() {
+    return this.parentNode
+  }
+  appendChild(child) {
+    console.log(this)
+    this.appendChildNode(child)
+  }
+  flow() {
+    this.layout()
+    this.curves = createBoundCurves(this)
+    this.children.forEach((child) => child.flow())
+  }
+  isRoot() {
+    return this.parentNode === null
+  }
+  measureBoxSize() {}
+  layout() {}
 }
 
 export const createBaseRenderObject =
@@ -88,16 +122,16 @@ export const createBaseRenderObject =
 
     Object.setPrototypeOf(renderObject, o)
 
+    function appendChild(this: RenderObject, child: RenderObject) {
+      console.log(this)
+      this.appendChildNode(child)
+    }
+
     return renderObject
   }
 
 function getContainer(this: RenderObject) {
   return this.parentNode
-}
-
-function appendChild(this: RenderObject, child: RenderObject) {
-  console.log(this)
-  this.appendChildNode(child)
 }
 
 function flow(this: RenderObject) {

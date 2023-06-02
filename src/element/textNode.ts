@@ -1,62 +1,35 @@
-import { Engine } from '../engine'
 import { RenderObject } from '../render/renderObject'
-import { TreeNode, createTreeNode } from '../tree-node'
-import { pipe, withConstructor } from '../utils'
+import { TreeNode } from '../tree-node/index'
 import { CanvasElement, ComputedStyles, _initRenderObject } from './element'
-
-export function isCanvasTextNode(value: any): value is CanvasTextNode {
-  return value ? value.__v_isCanvasTextNode === true : false
-}
-
-export interface CanvasTextNode extends TreeNode<CanvasElement> {
-  __v_isCanvasTextNode: boolean
-  renderObject: RenderObject | null
-  debugColor: string | null
-  getContainer(): CanvasElement
-  getComputedStyles(): ComputedStyles | { width: number; height: number }
-  attach(parent: CanvasElement): void
-}
-
-export type CreateTextNodeAPI = (context: Engine) => CreateTextNodeFn
 
 export type CreateTextNodeFn = (text: string) => CanvasTextNode
 
-export const createTextNode = function CanvasTextNode(text: string) {
-  return pipe(
-    createTreeNode<CanvasTextNode>({ textContent: text }),
-    createBaseTextNode(),
-    withConstructor(CanvasTextNode)
-  )({} as CanvasTextNode)
+export const createTextNodeAPI = (): CreateTextNodeFn => (text: string) => new CanvasTextNode(text)
+
+export function isCanvasTextNode(value: any) {
+  return value instanceof CanvasTextNode
 }
 
-export const createBaseTextNode =
-  () =>
-  (o: TreeNode<CanvasElement>): CanvasTextNode => {
-    let _computedStyles = { width: 0, height: 0 }
-    let textNode: CanvasTextNode = {
-      ...o,
-      __v_isCanvasTextNode: true,
-      renderObject: null,
-      debugColor: null,
-      getContainer,
-      getComputedStyles,
-      attach
-    }
-
-    function getComputedStyles() {
-      return _computedStyles
-    }
-
-    return textNode
+export class CanvasTextNode extends TreeNode<CanvasTextNode> {
+  text: string
+  _computedStyles: { width: number; height: 0 } = { width: 0, height: 0 }
+  renderObject: RenderObject
+  debugColor: string
+  readonly isBody: boolean = false
+  constructor(text) {
+    super()
+    this.text = text
   }
-
-function getContainer(this: CanvasTextNode) {
-  return this.parentNode
-}
-
-function attach(this: CanvasTextNode, parent: CanvasElement) {
-  if (!this.renderObject) {
-    _initRenderObject(this)
+  getContainer(this: TreeNode<CanvasTextNode>) {
+    return this._parentNode
   }
-  parent.renderObject.appendChild(this.renderObject)
+  getComputedStyles() {
+    return this._computedStyles as ComputedStyles
+  }
+  attach(this: CanvasTextNode, parent: CanvasElement) {
+    // if (!this.renderObject) {
+    //   _initRenderObject(this)
+    // }
+    // parent.renderObject.appendChild(this.renderObject)
+  }
 }

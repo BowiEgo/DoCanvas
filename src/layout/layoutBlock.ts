@@ -1,7 +1,5 @@
 import { CanvasElement } from '../element/element'
-import { pipe, withConstructor } from '../utils'
-import { LayoutBox, createBaseLayoutBox, createLayoutBox } from './layoutBox'
-import { createLayoutBoxModelObject } from './layoutBoxModelObject'
+import { LayoutBox } from './layoutBox'
 
 // LayoutBlock is the class that is used by any LayoutObject
 // that is a containing block.
@@ -61,29 +59,38 @@ import { createLayoutBoxModelObject } from './layoutBoxModelObject'
 //     ...
 // }
 
-export interface LayoutBlock extends LayoutBox {
-  _isLayoutBlock: boolean
-  updateLayout(): void
-}
+// export interface LayoutBlock extends LayoutBox {
+//   _isLayoutBlock: boolean
+//   updateLayout(): void
+// }
 
-export const createLayoutBlock = function LayoutBlock(element: CanvasElement) {
-  return pipe(createBaseLayoutBlock(), withConstructor(LayoutBlock))(createLayoutBox(element))
-}
+// export const createLayoutBlock = function LayoutBlock(element: CanvasElement) {
+//   return pipe(createBaseLayoutBlock(), withConstructor(LayoutBlock))(createLayoutBox(element))
+// }
 
-const createBaseLayoutBlock =
-  () =>
-  (o): LayoutBlock => {
-    let layoutBlock = {
-      ...o,
-      _isLayoutBlock: true,
-      updateLayout
-    }
-
-    return layoutBlock
+export class LayoutBlock extends LayoutBox {
+  constructor(element) {
+    super(element)
   }
 
-function updateLayout(this: LayoutBlock) {}
-
-function mergeInlineChild() {
-  this.children
+  updateLayout(this: LayoutBlock) {}
+  mergeInlineChild() {}
 }
+
+// const createBaseLayoutBlock =
+//   () =>
+//   (o): LayoutBlock => {
+//     let layoutBlock = {
+//       ...o,
+//       _isLayoutBlock: true,
+//       updateLayout
+//     }
+
+//     return layoutBlock
+//   }
+
+// function updateLayout(this: LayoutBlock) {}
+
+// function mergeInlineChild() {
+//   this.children
+// }

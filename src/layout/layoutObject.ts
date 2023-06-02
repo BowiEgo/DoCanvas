@@ -1,10 +1,6 @@
-import { CanvasElement, ComputedStyles, Layout } from '../element/element'
-import { CanvasTextNode, isCanvasTextNode } from '../element/textNode'
-import { TreeNode } from '../tree-node'
-import { createLayoutBlock } from './layoutBlock'
-import { createLayoutInline } from './layoutInline'
-import { createLayoutInlineBlock } from './layoutInlineBlock'
-import { createLayoutText } from './layoutText'
+import { CanvasElement, ComputedStyles } from '../element/element'
+import { CanvasTextNode } from '../element/textNode'
+import { TreeNode } from '../tree-node/index'
 
 // LayoutObject is the base class for all layout tree objects.
 //
@@ -100,53 +96,20 @@ import { createLayoutText } from './layoutText'
 //
 // See the individual getters below for more details about what each width is.
 
-export interface LayoutObject<T> extends TreeNode<T> {
+export class LayoutObject extends TreeNode<LayoutObject> {
   element: CanvasElement | CanvasTextNode
-  getStyles(): ComputedStyles
-  appendChild(layoutObject: LayoutObject<T>): void
-}
-
-export const createLayoutObject = function LayoutObject(element) {
-  if (element.type === 'body') {
-    return createLayoutBlock(element)
+  constructor(element) {
+    super()
+    this.element = element
   }
-  if (isCanvasTextNode(element)) {
-    return createLayoutText(element)
+  getStyles(): ComputedStyles {
+    return this.element.getComputedStyles()
   }
-
-  switch (element.getComputedStyles().display) {
-    case 'block':
-      return createLayoutBlock(element)
-    case 'inline':
-      return createLayoutInline(element)
-    case 'inline-block':
-      return createLayoutInlineBlock(element)
-    default:
-      return createLayoutBlock(element)
+  appendChild(child: LayoutObject) {
+    super.appendChildNode(child)
   }
 }
 
-export const createBaseLayoutObject =
-  <T>(element) =>
-  (o: TreeNode<T>): LayoutObject<T> => {
-    let layoutObject = {
-      ...o,
-      element,
-      getStyles,
-      appendChild
-    }
-
-    return layoutObject
-  }
-
-function getStyles<T>(this: LayoutObject<T>) {
-  return (<CanvasElement>this.element).getComputedStyles()
-}
-
-function appendChild<T>(this: LayoutObject<T>, child) {
-  this.appendChildNode(child)
-}
-
-function _setPreviousSibling<T>(this: LayoutObject<T>, previous: LayoutObject<T>) {}
-function _setNextSibling<T>(this: LayoutObject<T>, next: LayoutObject<T>) {}
-function _setParentSibling<T>(this: LayoutObject<T>, parent: LayoutObject<T>) {}
+// function _setPreviousSibling<T>(this: LayoutObject<T>, previous: LayoutObject<T>) {}
+// function _setNextSibling<T>(this: LayoutObject<T>, next: LayoutObject<T>) {}
+// function _setParentSibling<T>(this: LayoutObject<T>, parent: LayoutObject<T>) {}

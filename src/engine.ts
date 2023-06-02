@@ -1,6 +1,6 @@
 import { CanvasElement } from './element/element'
-import { CanvasRenderer } from './render'
-import { RenderObject, createRenderObject } from './render/renderObject'
+import { CanvasRenderer } from './render/index'
+import { RenderObject } from './render/renderObject'
 import { BFS, PostOrderDFS } from './utils/treeSearch'
 
 export interface Engine {
@@ -46,6 +46,11 @@ export function createEngine(renderer, options): Engine {
 
   function flow(elm) {
     const startTime = Date.now()
+    console.log(BFS(elm.layoutObject))
+    BFS(elm.layoutObject)
+      .reverse()
+      .forEach((item) => item.updateSize && item.updateSize())
+    return
     console.log(
       'flow',
       elm,

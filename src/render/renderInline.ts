@@ -1,6 +1,6 @@
 import { CanvasElement } from '../element/element'
 import { createLayoutBox } from '../layout/layoutBox-bp'
-import { createTreeNode } from '../tree-node'
+import { TreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
 import { LineBox, createLineBox } from './lineBox'
 import { RenderObject, RenderObjectOptions, createBaseRenderObject } from './renderObject'
@@ -23,11 +23,10 @@ export const createRenderInline: CreateRenderInlineFn = function RenderInline(
   options = {}
 ) {
   return pipe(
-    createTreeNode<RenderObject>(),
     createBaseRenderObject(element, options),
     createBaseRenderInline(),
     withConstructor(RenderInline)
-  )({} as RenderInline)
+  )(new TreeNode())
 }
 
 export const createBaseRenderInline =

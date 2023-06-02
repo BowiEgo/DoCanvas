@@ -1,34 +1,36 @@
-import { CanvasElement } from '../element/element'
-import { createTreeNode } from '../tree-node'
-import { pipe, withConstructor } from '../utils'
-import { LayoutBox, createLayoutBox } from './layoutBox'
-import { LayoutObject } from './layoutObject'
+import { LayoutBox } from './layoutBox'
 
-export interface LayoutInlineBlock extends LayoutBox {
-  _isLayoutInlineBlock: boolean
-  updateLayout(): void
-}
+// export interface LayoutInlineBlock extends LayoutBox {
+//   _isLayoutInlineBlock: boolean
+//   updateLayout(): void
+// }
 
-export const createLayoutInlineBlock = function LayoutInlineBlock(element: CanvasElement) {
-  return pipe(
-    createBaseLayoutInlineBlock(),
-    withConstructor(LayoutInlineBlock)
-  )(createLayoutBox(element))
-}
+// export const createLayoutInlineBlock = function LayoutInlineBlock(element: CanvasElement) {
+//   return pipe(
+//     createBaseLayoutInlineBlock(),
+//     withConstructor(LayoutInlineBlock)
+//   )(createLayoutBox(element))
+// }
 
-const createBaseLayoutInlineBlock =
-  () =>
-  (o: LayoutBox): LayoutInlineBlock => {
-    let layoutInlineBlock = {
-      ...o,
-      _isLayoutInlineBlock: true,
-      updateSize,
-      updateLayout
-    }
-
-    return layoutInlineBlock
+export class LayoutInlineBlock extends LayoutBox {
+  constructor(element) {
+    super(element)
   }
+}
 
-function updateSize(this: LayoutInlineBlock) {}
+// const createBaseLayoutInlineBlock =
+//   () =>
+//   (o: LayoutBox): LayoutInlineBlock => {
+//     let layoutInlineBlock = {
+//       ...o,
+//       _isLayoutInlineBlock: true,
+//       updateSize,
+//       updateLayout
+//     }
 
-function updateLayout(this: LayoutInlineBlock) {}
+//     return layoutInlineBlock
+//   }
+
+// function updateSize(this: LayoutInlineBlock) {}
+
+// function updateLayout(this: LayoutInlineBlock) {}

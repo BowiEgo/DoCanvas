@@ -5,7 +5,7 @@
 // | | |—— RenderBR {BR} at (20, 20) size 0x0
 // | | |—— RenderText {#text} at (0, 24) size 48x24 "Second one."
 
-import { TreeNode, createTreeNode } from '../tree-node'
+import { TreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
 
 // BoxModel
@@ -127,8 +127,7 @@ export const createLayoutBox: CreateLayoutFn = function LayoutBox(
   height
 ) {
   return pipe(
-    createTreeNode(),
     createBaseLayoutBox(parent, top, left, width, height),
     withConstructor(LayoutBox)
-  )({} as any)
+  )(new TreeNode())
 }
