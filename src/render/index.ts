@@ -5,9 +5,9 @@
 // | |—— RenderText {#text} at (0, 24) size 48x24 "Second one."
 
 import { BACKGROUND_CLIP } from '../css/property-descriptors/background-clip'
-import { Color, isTransparent } from '../css/types/color'
+import { Color } from '../css/types/color'
 import { CanvasElement } from '../element/element'
-import { Engine } from '../engine'
+import { isLayoutInlineBlock } from '../layout/layoutInlineBlock'
 import { getBackgroundValueForIndex } from './canvas/background'
 import { isBezierCurve } from './canvas/bezierCurve'
 import {
@@ -43,6 +43,7 @@ export interface CanvasRenderer {
   paint(renderObject: RenderObject): void
   paintBlock(renderObject: RenderObject): void
   paintInline(renderObject: RenderObject): void
+  paintInlineBlock(renderObject: RenderObject): void
   paintText(renderObject: RenderObject): void
   mask(paths: Path[]): void
 }
@@ -58,6 +59,7 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
     paint,
     paintBlock,
     paintInline,
+    paintInlineBlock,
     paintText,
     mask
   }
@@ -75,13 +77,13 @@ function paint(this: CanvasRenderer, renderObject: RenderObject) {
       this.paintBlock(renderObject)
       break
     case 'inline-block':
-      this.paintInline(renderObject)
+      this.paintInlineBlock(renderObject)
       break
     case 'inline':
       this.paintInline(renderObject)
       break
     case 'text':
-      this.paintText(renderObject)
+      // this.paintText(renderObject)
       break
     default:
       break
@@ -155,7 +157,38 @@ function paintBlock(this: CanvasRenderer, renderObject) {
 }
 
 function paintInline(this: CanvasRenderer, renderObject) {
-  _paintBackGroundAndBorder(this.ctx, renderObject)
+  // _paintBackGroundAndBorder(this.ctx, renderObject)
+  console.log('paintInline', renderObject, renderObject.element.getLayoutObject())
+  const lineArray = renderObject.element.getLayoutObject().lineArray
+  lineArray.forEach((line) => {
+    line.forEach((lineItem) => {
+      if (isLayoutInlineBlock(lineItem)) {
+        _paintBackGroundAndBorder(this.ctx, lineItem.element.renderObject)
+      } else {
+        const { ctx } = this
+        if (renderObject.children.length === 0) return
+        console.log('paintInline-children', renderObject, renderObject.children[0])
+        const styles = renderObject.children[0].getTextStyles()
+
+        ctx.textBaseline = 'ideographic'
+        console.log('fontFamily', styles.fontFamily, styles.fontSize)
+        ctx.font = `normal ${styles.fontSize}px ${styles.fontFamily || this.defaultFontFamily}`
+        ctx.fillStyle = styles.color
+        console.log(
+          'paintInline-block',
+          lineItem,
+          lineItem.text,
+          lineItem.x,
+          lineItem.y + renderObject.layoutBox.top
+        )
+        ctx.fillText(lineItem.text, lineItem.x, lineItem.y + renderObject.layoutBox.top)
+      }
+    })
+  })
+}
+
+function paintInlineBlock(this: CanvasRenderer, renderObject) {
+  this.paintInline(renderObject)
 }
 
 function paintText(this: CanvasRenderer, renderObject) {

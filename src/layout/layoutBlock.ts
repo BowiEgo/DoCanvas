@@ -3,6 +3,7 @@ import { fromCodePoint, toCodePoints } from '../text/Util'
 import { LineBreaker } from '../text/lineBreak'
 import { pipe, withConstructor } from '../utils'
 import { LayoutBox, createLayoutBox } from './layoutBox'
+import { isLayoutInlineBlock } from './layoutInlineBlock'
 import { LayoutFlag, LayoutType, isLayoutObject } from './layoutObject'
 import { LayoutText, isLayoutText } from './layoutText'
 
@@ -118,7 +119,7 @@ function updateLayout(this: LayoutBlock) {
     let lineArray = []
     let end = 0
 
-    let lineText = { text: '', x: 0, y: 0 }
+    let lineText = { text: '', x: 0, y: 0, end: 0 }
     let testLineText = ''
 
     let lineHeight = 0
@@ -151,6 +152,7 @@ function updateLayout(this: LayoutBlock) {
           lineHeight,
           Number(grandChild.getTextStyles().lineHeight) || grandChild.getTextStyles().fontSize
         )
+        lineText.y += lineHeight
 
         for (let j = 0; j < words.length; j++) {
           testLineText += words[j]
@@ -170,9 +172,12 @@ function updateLayout(this: LayoutBlock) {
             // lineHeight = metrics.height
             end = metrics.width
             testWidth = end
+
+            lineText.end = end
           } else {
             lineText.text += words[j]
             end += metrics.width
+            lineText.end = end
           }
           if (j === words.length - 1) {
             line.push(lineText)
@@ -197,9 +202,14 @@ function updateLayout(this: LayoutBlock) {
         if (i === this.children.length - 1) {
           lineArray.push(line)
         }
+        lineHeight = 0
       }
     }
-    console.log('updateLayout-words-block-line', lineArray, end)
+
+    this.children.forEach((child) => {
+      child.lineArray = lineArray
+    })
+    // console.log('updateLayout-words-block-line', lineArray, end)
     // this.lineArray = lineArray
   }
 }

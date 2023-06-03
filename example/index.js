@@ -1,7 +1,7 @@
 const { createDoCanvas } = XCanvas
 
 const STR_CN =
-  '😱一、选择适合的报纸在进行登报挂失前，您需要选择一家有一定知名度和影响力的报纸进行登报。目前，大多数地区都有本地的日报、晚报、周报等媒体，您可以选择其中的一家来登报。二、撰写登报文章登报文章的撰写需要遵守一定的规定和格式。一般来说，登报文章应该包含以下几个方面的内容： 👌'
+  '😱一、选择适合的报纸在进行登报挂失前，您需要选择一家有一定知名度和影响力的报纸进行登报。目前，大多数地区都有本地的日报、晚报、周报等媒体，您可以选择其中的一家来登报。 👌'
 const STR_EN =
   '😱 😱 😱 👌👌👌This webpage transforms plain text into the immaculate emoji language.Want emoji tokens for the VOIP service Discord instead of Unicode characters? Tick that checkbox!'
 
@@ -89,7 +89,7 @@ function initCanvas(fontFamily) {
     style: {
       display: 'inline-block',
       backgroundColor: 'pink',
-      width: 100,
+      width: 50,
       height: 30
     }
   })
@@ -150,6 +150,7 @@ function initHTMLELement() {
   const textElm2 = document.createElement('span')
   const text1 = document.createTextNode(STR_CN)
   const text2 = document.createTextNode(STR_EN)
+  const inlineElm = document.createElement('div')
 
   const childElm6 = document.createElement('span')
   const childElm66 = document.createElement('span')
@@ -158,6 +159,7 @@ function initHTMLELement() {
   const childElm8 = document.createElement('div')
 
   textElm1.style = 'font-size: 16px; line-height: 23px'
+  inlineElm.style = 'display: inline-block; background-color: pink;width: 50px;height: 30px'
 
   elm.style = `height: ${
     window.innerHeight / 2
@@ -178,6 +180,7 @@ function initHTMLELement() {
   textElm1.appendChild(text1)
   textElm2.appendChild(text2)
   childElm1.appendChild(textElm1)
+  childElm1.appendChild(inlineElm)
   childElm1.appendChild(textElm2)
   elm.appendChild(childElm1)
   elm.appendChild(childElm2)
