@@ -47,7 +47,6 @@ export const createBaseRenderBlock =
   }
 
 function layout(this: RenderBlock) {
-  console.log('layout', this)
   const calc = (renderBlock: RenderBlock): Bounds =>
     pipeLine(
       when(() => renderBlock.isRoot(), initRootBounds(renderBlock), breakPipe),
@@ -71,7 +70,6 @@ function layout(this: RenderBlock) {
 
 // measure box size
 function measureBoxSize(this: RenderBlock) {
-  console.log('measureBoxSize', this)
   const measure = (renderBlock: RenderBlock): Size =>
     pipeLine(
       initSize(renderBlock),

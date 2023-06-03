@@ -1,9 +1,10 @@
-import { CanvasElement, Layout, isCanvasElement } from '../element/element'
+import { CanvasBodyElement, CanvasElement, Layout, isCanvasElement } from '../element/element'
 import { Point, createPoint } from '../geometry/point'
 import { Rect, createRect } from '../geometry/rect'
 import { Size, createSize } from '../geometry/size'
 import { NOOP, breakPipe, isAuto, pipe, pipeLine, when, withConstructor } from '../utils'
 import { LayoutBoxModelObject, createLayoutBoxModelObject } from './layoutBoxModelObject'
+import { LayoutType, isLayoutObject } from './layoutObject'
 
 // LayoutBox implements the full CSS box model.
 //
@@ -99,8 +100,8 @@ import { LayoutBoxModelObject, createLayoutBoxModelObject } from './layoutBoxMod
 // manipulating. Also of critical importance is the coordinate system used (see
 // the COORDINATE SYSTEMS section in LayoutBoxModelObject).
 
-export interface LayoutBox extends LayoutBoxModelObject<LayoutBox> {
-  _isLayoutBox: boolean
+export interface LayoutBox extends LayoutBoxModelObject {
+  element: CanvasElement
   size: Size
   location: Point
   rect: Rect
@@ -116,23 +117,34 @@ export interface LayoutBox extends LayoutBoxModelObject<LayoutBox> {
   updateSize(): void
 }
 
-export const createLayoutBox = function LayoutBox(element: CanvasElement) {
+export function generateBoxModelType() {
+  let type = LayoutType.BOX_MODEL
+  type |= LayoutType.BOX
+  return type
+}
+
+export function isLayoutBox(value: any): value is LayoutBox {
+  if (!isLayoutObject(value)) return false
+  return !!(value.type & LayoutType.BOX)
+}
+
+export const createLayoutBox = function LayoutBox(element?: CanvasElement) {
   return pipe(
     createBaseLayoutBox(),
     withConstructor(LayoutBox)
-  )(createLayoutBoxModelObject<LayoutBox>(element))
+  )(createLayoutBoxModelObject(element))
 }
 
 export const createBaseLayoutBox =
   () =>
-  (o: LayoutBoxModelObject<LayoutBox>): LayoutBox => {
+  (o: LayoutBoxModelObject): LayoutBox => {
     let size = createSize()
     let location = createPoint()
     let rect = createRect(size, location)
 
     let layoutBox: LayoutBox = {
       ...o,
-      _isLayoutBox: true,
+      type: generateBoxModelType(),
       size,
       location,
       rect,
@@ -156,7 +168,7 @@ export const createBaseLayoutBox =
       setX,
       setY,
       updateSize
-    }
+    } as LayoutBox
 
     return layoutBox
   }
@@ -185,12 +197,17 @@ function updateSize(this: LayoutBox) {
   const size = _measureSize(this)
   this.size.setWidth(size.width)
   this.size.setHeight(size.height)
+  console.log('updateSize', this.size)
 }
 
 const _measureSize = (layoutBox: LayoutBox): Size =>
   pipeLine(
     _initSize(layoutBox.element),
-    when(() => layoutBox.element.isBody(), _calcBodySize(layoutBox.element), breakPipe),
+    when(
+      () => layoutBox.element.isBody(),
+      _calcBodySize(layoutBox.element as CanvasBodyElement),
+      breakPipe
+    ),
     when(() => !layoutBox.hasChildNode(), NOOP, breakPipe),
     when(() => isAuto(layoutBox.getStyles().width), _calcWidthByChild(layoutBox)),
     when(() => isAuto(layoutBox.getStyles().height), _calcHeightByChild(layoutBox))
@@ -270,8 +287,8 @@ const _measureSize = (layoutBox: LayoutBox): Size =>
 const _initSize =
   (element: CanvasElement) =>
   (o: Size): Size => {
-    o.setWidth(Number(element.computedStyles.width))
-    o.setHeight(Number(element.computedStyles.height))
+    o.setWidth(Number(element.getComputedStyles().width))
+    o.setHeight(Number(element.getComputedStyles().height))
     return o
   }
 
@@ -286,17 +303,22 @@ const _calcBodySize =
 const _calcWidthByChild =
   (layoutBox: LayoutBox) =>
   (o: Size): Size => {
-    o.width = layoutBox.children.reduce((acc, curr) => {
-      return Number(curr.size.width) > acc ? Number(curr.size.width) : acc
-    }, 0)
+    o.width = layoutBox.children
+      .filter((item): item is LayoutBox => isLayoutBox(item))
+      .reduce((acc, curr) => {
+        return Number(curr.size.width) > acc ? Number(curr.size.width) : acc
+      }, 0)
     return o
   }
 
 const _calcHeightByChild =
   (layoutBox: LayoutBox) =>
   (o: Size): Size => {
-    o.height = layoutBox.children.reduce((acc, curr) => {
-      return acc + Number(curr.size.height)
-    }, 0)
+    o.height = layoutBox.children
+      .filter((item): item is LayoutBox => isLayoutBox(item))
+      .reduce((acc, curr) => {
+        console.log(curr)
+        return acc + Number(curr.size ? curr.size.height : 0)
+      }, 0)
     return o
   }

@@ -83,10 +83,7 @@ function measureBoxSize(this: RenderText) {
   ctx.save()
   ctx.font = `normal ${this.getTextStyles().fontSize}px ${defaultFontFamily}`
 
-  const words = _breakWords(
-    this.element.textContent,
-    this.element.getContainer().getComputedStyles()
-  )
+  const words = _breakWords(this.element.text, this.element.getContainer().getComputedStyles())
 
   const textLines = _wrapText(
     ctx,

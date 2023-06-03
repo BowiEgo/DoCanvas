@@ -1,7 +1,7 @@
-import { CanvasElement } from '../element/element'
+import { CanvasElement, ComputedStyles } from '../element/element'
 import { createTreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
-import { LayoutObject, createBaseLayoutObject } from './layoutObject'
+import { LayoutObject, LayoutType, createBaseLayoutObject, isLayoutObject } from './layoutObject'
 
 // ***** COORDINATE SYSTEMS *****
 //
@@ -54,142 +54,118 @@ import { LayoutObject, createBaseLayoutObject } from './layoutObject'
 // For more information, see the following doc about coordinate spaces:
 // https://chromium.googlesource.com/chromium/src.git/+/main/third_party/blink/renderer/core/layout/README.md#coordinate-spaces
 
-export interface LayoutBoxModelObject<T> extends LayoutObject<T> {}
+export interface LayoutBoxModelObject extends LayoutObject {}
 
-export const createLayoutBoxModelObject = function LayoutBoxModelObject<T>(element: CanvasElement) {
+export const createLayoutBoxModelObject = function LayoutBoxModelObject(element?: CanvasElement) {
   return pipe(
-    createTreeNode<T>(),
-    createBaseLayoutObject<T>(element),
-    createBaseLayoutBoxModelObject<T>(),
+    createTreeNode<LayoutObject>(),
+    createBaseLayoutObject(element),
+    createBaseLayoutBoxModelObject(),
     withConstructor(LayoutBoxModelObject)
   )({})
 }
 
-export const createBaseLayoutBoxModelObject =
-  <T>() =>
-  (o: LayoutObject<T>) => {
-    let layoutBoxModelObject = {
-      ...o,
-      offsetLeft: 0,
-      offsetTop: 0,
-      offsetWidth: 0,
-      offsetHeight: 0,
-      get element() {
-        return o.element
-      },
-      paddingTop() {
-        return o.getStyles().paddingTop || 0
-      },
-      paddingBottom() {
-        return o.getStyles().paddingBottom || 0
-      },
-      paddingLeft() {
-        return o.getStyles().paddingLeft || 0
-      },
-      paddingRight() {
-        return o.getStyles().paddingRight || 0
-      },
-      paddingBefore() {
-        return this.physicalPaddingToLogical().before()
-      },
-      paddingAfter() {
-        return this.physicalPaddingToLogical().after()
-      },
-      paddingEnd() {
-        return this.physicalPaddingToLogical().end()
-      },
-      borderTop() {
-        return o.getStyles().borderTopWidth || 0
-      },
-      borderBottom() {
-        return o.getStyles().borderBottomWidth || 0
-      },
-      borderLeft() {
-        return o.getStyles().borderLeftWidth || 0
-      },
-      borderRight() {
-        return o.getStyles().borderRightWidth || 0
-      },
-      borderBefore() {
-        return this.physicalBorderToLogical().before()
-      },
-      borderAfter() {
-        return this.physicalBorderToLogical().after()
-      },
-      borderStart() {
-        return this.physicalBorderToLogical().start()
-      },
-      borderEnd() {
-        return this.physicalBorderToLogical().end()
-      },
-      borderWidth() {
-        return this.borderLeft + this.borderRight
-      },
-      borderHeight() {
-        return this.borderTop + this.borderBottom
-      },
-      borderBoxOutsets() {
-        const { borderTop, borderRight, borderBottom, borderLeft } = this
-        return { borderTop, borderRight, borderBottom, borderLeft }
-      },
-      paddingOutsets() {
-        const { paddingTop, paddingRight, paddingBottom, paddingLeft } = this
-        return { paddingTop, paddingRight, paddingBottom, paddingLeft }
-      },
-      marginTop() {
-        return o.getStyles().marginTop
-      },
-      marginBottom() {
-        return o.getStyles().marginBottom || 0
-      },
-      marginLeft() {
-        return o.getStyles().marginLeft || 0
-      },
-      marginRight() {
-        return o.getStyles().marginRight || 0
-      },
-      marginBefore() {
-        return this.physicalMarginToLogical().before()
-      },
-      marginAfter() {
-        return this.physicalMarginToLogical().after()
-      },
-      marginStart() {
-        return this.physicalMarginToLogical().start()
-      },
-      marginEnd() {
-        return this.physicalMarginToLogical().end()
-      },
-      marginLineLeft() {
-        return this.physicalMarginToLogical().lineLeft()
-      },
-      marginWidth() {
-        return this.marginLeft + this.marginRight
-      },
-      marginHeight() {
-        return this.marginTop + this.marginBottom
-      },
-      marginLogicalWidth() {
-        return this.marginStart + this.marginEnd
-      },
-      marginLogicalHeight() {
-        return this.marginBefore + this.marginAfter
-      },
-      physicalPaddingToLogical,
-      physicalBorderToLogical,
-      physicalMarginToLogical
-    }
+export function isLayoutBoxModel(value: any): value is LayoutBoxModelObject {
+  if (!isLayoutObject(value)) return false
+  return !!(value.type & LayoutType.BOX_MODEL)
+}
 
-    // for (let key in o) {
-    //   if (typeof o[key] === 'function') {
-    //     layoutBoxModelObject.__proto__[key] = o[key]
-    //   }
-    // }
+export const createBaseLayoutBoxModelObject = () => (o: LayoutObject) => {
+  let layoutBoxModelObject = {
+    ...o,
+    type: LayoutType.BOX_MODEL,
+    offsetLeft: 0,
+    offsetTop: 0,
+    offsetWidth: 0,
+    offsetHeight: 0,
+    get element() {
+      return o.element
+    },
+    getBoxModel() {
+      const {
+        paddingTop,
+        paddingBottom,
+        paddingLeft,
+        paddingRight,
+        borderTopWidth,
+        borderBottomWidth,
+        borderLeftWidth,
+        borderRightWidth,
+        marginTop,
+        marginBottom,
+        marginLeft,
+        marginRight
+      } = o.getStyles()
 
-    // Object.setPrototypeOf(layoutBoxModelObject, o)
+      const paddintBefore = this.physicalPaddingToLogical().before()
+      const paddingAfter = this.physicalPaddingToLogical().after()
+      const paddingEnd = this.physicalPaddingToLogical().end()
+      const paddingOutsets = { paddingTop, paddingRight, paddingBottom, paddingLeft }
 
-    return layoutBoxModelObject
+      const borderTop = borderTopWidth
+      const borderBottom = borderBottomWidth
+      const borderLeft = borderLeftWidth
+      const borderRight = borderRightWidth
+      const borderBefore = this.physicalBorderToLogical().before()
+      const borderAfter = this.physicalBorderToLogical().after()
+      const borderStart = this.physicalBorderToLogical().start()
+      const borderEnd = this.physicalBorderToLogical().end()
+      const borderWidth = borderLeftWidth + borderRightWidth
+      const borderHeight = borderTopWidth + borderBottomWidth
+      const borderBoxOutsets = { borderTop, borderRight, borderBottom, borderLeft }
+
+      const marginBefore = this.physicalMarginToLogical().before()
+      const marginAfter = this.physicalMarginToLogical().after()
+      const marginStart = this.physicalMarginToLogical().start()
+      const marginEnd = this.physicalMarginToLogical().end()
+      const marginLineLeft = this.physicalMarginToLogical().lineLeft()
+      const marginWidth = marginLeft + marginRight
+      const marginHeight = marginTop + marginBottom
+      const marginLogicalWidth = marginStart + marginEnd
+      const marginLogicalHeight = marginBefore + marginAfter
+
+      return {
+        paddingTop,
+        paddingBottom,
+        paddingLeft,
+        paddingRight,
+        paddintBefore,
+        paddingAfter,
+        paddingEnd,
+        paddingOutsets,
+        borderTop,
+        borderBottom,
+        borderLeft,
+        borderRight,
+        borderBefore,
+        borderAfter,
+        borderStart,
+        borderEnd,
+        borderWidth,
+        borderHeight,
+        borderBoxOutsets,
+        marginTop,
+        marginBottom,
+        marginLeft,
+        marginRight,
+        marginBefore,
+        marginAfter,
+        marginStart,
+        marginEnd,
+        marginLineLeft,
+        marginWidth,
+        marginHeight,
+        marginLogicalWidth,
+        marginLogicalHeight
+      }
+    },
+    physicalPaddingToLogical,
+    physicalBorderToLogical,
+    physicalMarginToLogical
   }
+
+  return layoutBoxModelObject
+}
 
 function physicalPaddingToLogical() {
   return {

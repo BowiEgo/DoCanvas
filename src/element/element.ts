@@ -5,7 +5,7 @@ import { RenderObject, createRenderObject } from '../render/renderObject'
 import { Engine } from '../engine'
 import { createCSSDeclaration } from '../css'
 import { BODY_STYLES, EXTEND_STYLE_KEYS } from '../css/constant'
-import { CanvasTextNode, createTextNode } from './textNode'
+import { CanvasTextNode, createTextNode, isCanvasTextNode } from './textNode'
 import { LayoutObject, createLayoutObject } from '../layout/layoutObject'
 import { LayoutBlock } from '../layout/layoutBlock'
 import { LayoutInline } from '../layout/layoutInline'
@@ -166,6 +166,7 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   getLayoutObject(): LayoutObject<LayoutBlock | LayoutInline | LayoutInline | LayoutText> | null
   getComputedStyles(): ComputedStyles
   setComputedStyles(styleName: string, value: any): void
+  isBody(): boolean
   isVisible(): boolean
 }
 
@@ -199,7 +200,9 @@ const createTextNodeIfHasText = () => (o) => {
     let textNode = createTextNode(o.children)
     o.children = [textNode]
     _initRenderObject(o)
+    o.initLayoutObject()
     textNode.setParentNode(o)
+    console.log(o.getLayoutObject())
     textNode.attach(o)
   }
 
@@ -236,6 +239,7 @@ export const createBaseElement =
       getLayoutObject,
       getComputedStyles,
       setComputedStyles,
+      isBody,
       isVisible
     } as CanvasElement
 
@@ -274,12 +278,15 @@ export const createBaseElement =
       o.children = children
     }
 
+    _computedStyles = { ..._createRenderStyles(element) }
+
     if (element.type === 'body') {
       ;(<CanvasBodyElement>element).context = context
+      setComputedStyles('width', context.viewport.width)
+      setComputedStyles('height', context.viewport.width)
+      _layoutObject = createLayoutObject(element)
       _initRenderObject(element)
     }
-
-    _computedStyles = { ..._createRenderStyles(element) }
 
     return element
   }
@@ -291,6 +298,7 @@ function attach(this: CanvasElement, parent: CanvasElement) {
   if (!this.renderObject) {
     _initRenderObject(this)
   }
+  parent.getLayoutObject().appendChild(this.getLayoutObject())
   parent.renderObject.appendChild(this.renderObject)
   if (this.hasChildren()) {
     this.children.forEach((child) => {
@@ -348,6 +356,10 @@ function getContainerStyle(this: CanvasElement, styleName: string): ComputedStyl
 
 function getContainer(this: CanvasElement) {
   return this.parentNode
+}
+
+export function isBody(this: CanvasElement | CanvasTextNode) {
+  return !isCanvasTextNode(this) && this.type === 'body'
 }
 
 function isVisible() {

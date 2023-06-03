@@ -1,7 +1,7 @@
 import { CanvasTextNode } from '../element/textNode'
 import { createTreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
-import { LayoutObject, createBaseLayoutObject, createLayoutObject } from './layoutObject'
+import { LayoutObject, LayoutType, createBaseLayoutObject, isLayoutObject } from './layoutObject'
 
 // LayoutText is the root class for anything that represents
 // a text node (see core/dom/text.h).
@@ -28,9 +28,22 @@ import { LayoutObject, createBaseLayoutObject, createLayoutObject } from './layo
 // The previous comment applies also for painting. See e.g.
 // BlockFlowPainter::paintContents in particular the use of LineBoxListPainter.
 
-export interface LayoutText extends LayoutObject<LayoutText> {
-  _isLayoutText: boolean
+type TextStyles = {
+  color: string
+  fontSize: number
+  fontWeight: string
+  lineHeight: number
+}
+
+export interface LayoutText extends LayoutObject {
+  element: CanvasTextNode
+  getTextStyles(): TextStyles
   updateLayout(): void
+}
+
+export function isLayoutText(value: any): value is LayoutText {
+  if (!isLayoutObject(value)) return false
+  return !!(value.type & LayoutType.TEXT)
 }
 
 export const createLayoutText = function LayoutText(element: CanvasTextNode) {
@@ -44,16 +57,31 @@ export const createLayoutText = function LayoutText(element: CanvasTextNode) {
 
 const createBaseLayoutText =
   () =>
-  (o: LayoutObject<LayoutText>): LayoutText => {
+  (o: LayoutObject): LayoutText => {
+    let element = o.element as CanvasTextNode
     let layoutText = {
       ...o,
-      _isLayoutText: true,
+      element,
+      type: LayoutType.TEXT,
+      getTextStyles,
       updateSize,
       updateLayout
     }
 
     return layoutText
   }
+
+function getTextStyles(this: LayoutText) {
+  const parentStyles = this.element.getContainer().getComputedStyles()
+  const { color, fontSize, fontWeight, lineHeight } = parentStyles
+
+  return {
+    color,
+    fontSize,
+    fontWeight,
+    lineHeight
+  }
+}
 
 function updateSize(this: LayoutText) {}
 function updateLayout(this: LayoutText) {}

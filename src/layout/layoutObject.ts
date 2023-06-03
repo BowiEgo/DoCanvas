@@ -1,9 +1,9 @@
 import { CanvasElement, ComputedStyles, Layout } from '../element/element'
 import { CanvasTextNode, isCanvasTextNode } from '../element/textNode'
 import { TreeNode } from '../tree-node'
-import { createLayoutBlock } from './layoutBlock'
-import { createLayoutInline } from './layoutInline'
-import { createLayoutInlineBlock } from './layoutInlineBlock'
+import { createLayoutBlock, isLayoutBlock } from './layoutBlock'
+import { createLayoutInline, isLayoutInline } from './layoutInline'
+import { createLayoutInlineBlock, isLayoutInlineBlock } from './layoutInlineBlock'
 import { createLayoutText } from './layoutText'
 
 // LayoutObject is the base class for all layout tree objects.
@@ -100,15 +100,39 @@ import { createLayoutText } from './layoutText'
 //
 // See the individual getters below for more details about what each width is.
 
-export interface LayoutObject<T> extends TreeNode<T> {
-  element: CanvasElement | CanvasTextNode
-  getStyles(): ComputedStyles
-  appendChild(layoutObject: LayoutObject<T>): void
+export const enum LayoutFlag {
+  NONE,
+  NEED_ANONYMOUS = 1,
+  IS_ANONYMOUS = 1 << 1
 }
 
-export const createLayoutObject = function LayoutObject(element) {
-  if (element.type === 'body') {
-    return createLayoutBlock(element)
+export const enum LayoutType {
+  NONE,
+  BOX_MODEL = 1,
+  TEXT = 1 << 1,
+  BOX = 1 << 2,
+  BLOCK = 1 << 3,
+  INLINE = 1 << 4,
+  INLINE_BLOCK = 1 << 5
+}
+
+export const enum LayoutType {}
+
+export interface LayoutObject extends TreeNode<LayoutObject> {
+  type: LayoutType
+  element: CanvasElement | CanvasTextNode
+  layoutFlag: LayoutFlag
+  getStyles(): ComputedStyles
+  appendChild(layoutObject: LayoutObject): void
+}
+
+export function isLayoutObject(value: any): value is LayoutObject {
+  return value ? value._isLayoutObject === true : false
+}
+
+export const createLayoutObject = function LayoutObject(element: CanvasElement | CanvasTextNode) {
+  if (element.isBody()) {
+    return createLayoutBlock(element as CanvasElement)
   }
   if (isCanvasTextNode(element)) {
     return createLayoutText(element)
@@ -127,26 +151,55 @@ export const createLayoutObject = function LayoutObject(element) {
 }
 
 export const createBaseLayoutObject =
-  <T>(element) =>
-  (o: TreeNode<T>): LayoutObject<T> => {
+  <T>(element?) =>
+  (o: TreeNode<LayoutObject>): LayoutObject => {
     let layoutObject = {
       ...o,
+      _isLayoutObject: true,
+      type: LayoutType.NONE,
       element,
+      layoutFlag: LayoutFlag.NONE,
       getStyles,
       appendChild
-    }
+    } as LayoutObject
+
+    Object.setPrototypeOf(layoutObject, o)
 
     return layoutObject
   }
 
-function getStyles<T>(this: LayoutObject<T>) {
+function getStyles(this: LayoutObject) {
   return (<CanvasElement>this.element).getComputedStyles()
 }
 
-function appendChild<T>(this: LayoutObject<T>, child) {
+function appendChild(child) {
+  console.log('up-layout-appendChild', this, child)
   this.appendChildNode(child)
+  checkChildIfNeedWrapAnonymous(child)
 }
 
-function _setPreviousSibling<T>(this: LayoutObject<T>, previous: LayoutObject<T>) {}
-function _setNextSibling<T>(this: LayoutObject<T>, next: LayoutObject<T>) {}
-function _setParentSibling<T>(this: LayoutObject<T>, parent: LayoutObject<T>) {}
+function checkChildIfNeedWrapAnonymous(child) {
+  console.log(
+    'checkChildIfNeedWrapAnonymous',
+    isLayoutInline(child) || isLayoutInlineBlock(child),
+    isLayoutBlock(child.previousSibling)
+  )
+  if (isLayoutInline(child) || isLayoutInlineBlock(child)) {
+    if (!child.previousSibling || isLayoutBlock(child.previousSibling)) {
+      console.log('checkChildIfNeedWrapAnonymous', child)
+      patchLayoutFlag(child, LayoutFlag.NEED_ANONYMOUS)
+    }
+  }
+}
+
+export function patchLayoutFlag(layoutObject, layoutFlag) {
+  layoutObject.layoutFlag |= layoutFlag
+}
+
+export function removeLayoutFlag(layoutObject, layoutFlag) {
+  layoutObject.layoutFlag &= ~layoutFlag
+}
+
+function _setPreviousSibling<T>(this: LayoutObject, previous: LayoutObject) {}
+function _setNextSibling(this: LayoutObject, next: LayoutObject) {}
+function _setParentSibling(this: LayoutObject, parent: LayoutObject) {}

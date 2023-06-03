@@ -9,6 +9,13 @@ import { createRenderInline } from './renderInline'
 import { createRenderInlineBlock } from './renderInlineBlock'
 import { createRenderText } from './renderText'
 
+// RenderBlock {HTML} at (0, 0) size 640x480
+// |—— RenderBody {BODY} at (0, 80) size 640x480 [bgcolor=# FFFFFF]
+// | |—— RenderBlock {P} at (0, 0) size 640x80
+// | | |—— RenderText {#text} at (0, 0) size 48x24 "First line."
+// | | |—— RenderBR {BR} at (20, 20) size 0x0
+// | | |—— RenderText {#text} at (0, 24) size 48x24 "Second one."
+
 export type RenderObjectOptions = {}
 
 export type CreateRenderObjectFn = (
@@ -84,8 +91,6 @@ export const createBaseRenderObject =
       isRoot
     }
 
-    console.log(o)
-
     Object.setPrototypeOf(renderObject, o)
 
     return renderObject
@@ -96,7 +101,6 @@ function getContainer(this: RenderObject) {
 }
 
 function appendChild(this: RenderObject, child: RenderObject) {
-  console.log(this)
   this.appendChildNode(child)
 }
 

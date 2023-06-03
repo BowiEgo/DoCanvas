@@ -85,6 +85,15 @@ function initCanvas(fontFamily) {
     STR_CN
   )
 
+  const inlineElm = DoCanvas.createElement('view', {
+    style: {
+      display: 'inline-block',
+      backgroundColor: 'pink',
+      width: 100,
+      height: 30
+    }
+  })
+
   const textElm2 = DoCanvas.createElement(
     'text',
     { style: { fontSize: 16, lineHeight: 23 } },
@@ -92,7 +101,8 @@ function initCanvas(fontFamily) {
   )
 
   childElm1.appendChild(textElm1)
-  // childElm1.appendChild(textElm2)
+  childElm1.appendChild(inlineElm)
+  childElm1.appendChild(textElm2)
   elm.appendChild(childElm1)
   elm.appendChild(childElm2)
   elm.appendChild(childElm3)
@@ -109,8 +119,8 @@ function initCanvas(fontFamily) {
     textElm1.children[0].getContainer() === textElm1
   )
   console.log('2222', textElm1.getRootNode() === DoCanvas.body)
-  childElm1.getComputedStyles().marginTop = 100
-  // childElm1.setComputedStyles('marginTop', 100)
+  // childElm1.getComputedStyles().marginTop = 100
+  childElm1.setComputedStyles('marginTop', 100)
   console.log(
     '3333',
     childElm1,
@@ -120,7 +130,8 @@ function initCanvas(fontFamily) {
 
   console.log(
     '4444',
-    childElm1.getLayoutObject().marginTop(),
+    childElm1.getLayoutObject().getBoxModel(),
+    childElm1.getLayoutObject().getBoxModel().marginTop,
     childElm1.getLayoutObject().element.getComputedStyles().marginTop,
     childElm1.getComputedStyles().marginTop,
     DoCanvas.body.getComputedStyles()

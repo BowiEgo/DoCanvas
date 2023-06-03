@@ -58,7 +58,6 @@ function initLayout(this: RenderInline) {
 }
 
 function layout(this: RenderInline) {
-  console.log('layout-inline', this, this.element.id)
   const prev = this.previousSibling as RenderInline
   if (prev && prev.type.indexOf('inline') > -1) {
     this.lineBox = prev.lineBox
@@ -74,8 +73,6 @@ function layout(this: RenderInline) {
 }
 
 function measureBoxSize(this: RenderInline) {
-  console.log('measureBoxSize-inline', this)
-
   if (this.hasChildNode()) {
     this.element.setComputedStyles(
       'width',

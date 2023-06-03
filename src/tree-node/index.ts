@@ -2,7 +2,6 @@ import { pipe, withConstructor } from '../utils'
 
 export type TreeNodeOptions<T> = {
   children?: TreeNode<T>[]
-  textContent?: string
 }
 
 export interface TreeNode<T> {
@@ -15,7 +14,6 @@ export interface TreeNode<T> {
   previousSibling: T | null
   nextSibling: T | null
   children: T[]
-  textContent: string | null
   setParentNode(node: TreeNode<T>): void
   getRootNode(): T | null
   appendChildNode(child: TreeNode<T>): void
@@ -45,7 +43,6 @@ const createBaseTreeNode =
     const treeNode: TreeNode<T> = {
       ...o,
       __v_isTreeNode: true,
-      textContent: options ? options.textContent : null,
       _parentNode: null,
       _previousSibling: null,
       _nextSibling: null,
@@ -102,16 +99,14 @@ function hasChildNode() {
 
 function appendChildNode<T>(child: T) {
   if (!isTreeNode(child)) throw Error('Unknown treeNode type')
-  const node = this as TreeNode<T>
-
-  const prev = node._children[node._children.length - 1] || null
+  const prev = this._children[this._children.length - 1] || null
   if (prev && isTreeNode(prev)) {
     _setSiblingNode<T>(prev, prev.previousSibling, child)
   }
 
-  Array.isArray(node._children) && node._children.push(child)
+  Array.isArray(this._children) && this._children.push(child)
 
-  child.setParentNode(node)
+  child.setParentNode(this)
   _setSiblingNode(child, prev, null)
 }
 
@@ -119,8 +114,9 @@ function prependChildNode<T>(child: TreeNode<T>) {
   if (!isTreeNode(child)) throw Error('Unknown treeNode type')
 }
 
-function removeChildNode<T>(child: TreeNode<T>) {
+function removeChildNode<T>(this: TreeNode<T>, child: TreeNode<T>) {
   if (!isTreeNode(child)) throw Error('Unknown treeNode type')
+  this._children.splice(this._children.indexOf(child), 1)
 }
 
 function append() {}

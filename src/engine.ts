@@ -46,16 +46,24 @@ export function createEngine(renderer, options): Engine {
 
   function flow(elm) {
     const startTime = Date.now()
+    elm.computeStyles()
+
     console.log(
       'flow',
       elm,
-      BFS(elm.renderObject).map((item) => `${item.type} ${item.element.id}`),
-      PostOrderDFS(elm.renderObject).map((item) => `${item.type} ${item.element.id}`)
+      elm.getLayoutObject(),
+      BFS(elm.getLayoutObject()).map((item) => `${item.element.type} ${item.element.id}`)
     )
-    elm.computeStyles()
+    BFS(elm.getLayoutObject())
+      .reverse()
+      .forEach((item) => item.updateSize())
+
+    BFS(elm.getLayoutObject()).forEach((item) => item.updateLayout())
+
     BFS(elm.renderObject)
       .reverse()
       .forEach((item) => item.measureBoxSize())
+
     elm.renderObject.flow()
     console.log(`渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`)
     elm.getRootElement().type === 'body' && paint(elm)

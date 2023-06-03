@@ -1,10 +1,3 @@
-// RenderBlock {HTML} at (0, 0) size 640x480
-// |—— RenderBody {BODY} at (0, 80) size 640x480 [bgcolor=# FFFFFF]
-// | |—— RenderBlock {P} at (0, 0) size 640x80
-// | | |—— RenderText {#text} at (0, 0) size 48x24 "First line."
-// | | |—— RenderBR {BR} at (20, 20) size 0x0
-// | | |—— RenderText {#text} at (0, 24) size 48x24 "Second one."
-
 import { TreeNode, createTreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
 
