@@ -159,43 +159,41 @@ function paintBlock(this: CanvasRenderer, renderObject) {
 }
 
 function paintInline(this: CanvasRenderer, renderObject) {
-  // _paintBackGroundAndBorder(this.ctx, renderObject)
+  const lineArray = renderObject.element.getLayoutObject().getContainer().lineBox.lineArray
+
+  if (lineArray.isPainted) return
+
   console.log(
     'paintInline',
     renderObject,
     renderObject.element.getLayoutObject().getContainer().lineBox.lineArray,
     renderObject.element.getLayoutObject().getContainer().rect.before
   )
-  const lineArray = renderObject.element.getLayoutObject().getContainer().lineBox.lineArray
+
   lineArray.forEach((line) => {
     line.children.forEach((lineItem) => {
-      console.log('paintInline-lineItem', lineItem)
+      if (lineItem.isPainted) return
       if (isLayoutInlineBlock(lineItem)) {
         _paintBackGroundAndBorder(this.ctx, lineItem.element.renderObject)
       } else {
-        const { ctx } = this
         if (renderObject.children.length === 0) return
-        console.log('paintInline-children', renderObject, renderObject.children[0])
+        const { ctx } = this
         const styles = renderObject.children[0].getTextStyles()
 
         ctx.textBaseline = 'ideographic'
-        console.log('fontFamily', styles.fontFamily, styles.fontSize)
         ctx.font = `normal ${styles.fontSize}px ${styles.fontFamily || this.defaultFontFamily}`
         ctx.fillStyle = styles.color
-        console.log(
-          'paintInline-text',
-          renderObject,
-          renderObject.element.getLayoutObject().getContainer(),
-          lineItem.rect.before + renderObject.element.getLayoutObject().getContainer().rect.before
-        )
+
         ctx.fillText(
           lineItem.text,
           lineItem.rect.start,
           lineItem.rect.before + renderObject.element.getLayoutObject().getContainer().rect.before
         )
       }
+      lineItem.isPainted = true
     })
   })
+  lineArray.isPainted = true
 }
 
 function paintInlineBlock(this: CanvasRenderer, renderObject) {
@@ -207,7 +205,6 @@ function paintText(this: CanvasRenderer, renderObject) {
   const styles = renderObject.getTextStyles()
 
   ctx.textBaseline = 'ideographic'
-  console.log('fontFamily', styles.fontFamily, styles.fontSize)
   ctx.font = `normal ${styles.fontSize}px ${styles.fontFamily || this.defaultFontFamily}`
   ctx.fillStyle = styles.color
   renderObject.textLines.lines.forEach((line) =>
