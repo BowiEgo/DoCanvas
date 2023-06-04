@@ -1,6 +1,7 @@
 import { CanvasElement } from '../element/element'
 import { pipe, withConstructor } from '../utils'
 import { createAnonymousLayoutBlock } from './layoutBlock'
+import { LayoutBox, createBaseLayoutBox, createLayoutBox } from './layoutBox'
 import { LayoutBoxModelObject, createLayoutBoxModelObject } from './layoutBoxModelObject'
 import {
   LayoutFlag,
@@ -9,6 +10,7 @@ import {
   isLayoutObject,
   removeLayoutFlag
 } from './layoutObject'
+import { createLineBox } from './lineBox'
 
 // LayoutInline is the LayoutObject associated with display: inline.
 // This is called an "inline box" in CSS 2.1.
@@ -106,10 +108,7 @@ export interface LayoutInline extends LayoutObject {
 }
 
 export const createLayoutInline = function LayoutInline(element: CanvasElement) {
-  return pipe(
-    createBaseLayoutInline(),
-    withConstructor(LayoutInline)
-  )(createLayoutBoxModelObject(element))
+  return pipe(createBaseLayoutInline(), withConstructor(LayoutInline))(createLayoutBox(element))
 }
 
 export const createBaseLayoutInline =
@@ -137,8 +136,8 @@ function wrapByAnonymousBlock(this: LayoutInline) {
   if (this.layoutFlag & LayoutFlag.NEED_ANONYMOUS) {
     console.log('updateLayout-needWrapByAnonymousBlock', this, this.parentNode)
     let siblingsNeedWrapped = _getSiblingsNeedWrapped(this)
-    const container = this.parentNode
-    const anonymousBlock = createAnonymousLayoutBlock()
+    const container = this.parentNode as LayoutBox
+    const anonymousBlock = createAnonymousLayoutBlock(this.getContainer().element)
 
     siblingsNeedWrapped.forEach((item) => {
       item.parentNode.removeChildNode(item)
@@ -147,7 +146,12 @@ function wrapByAnonymousBlock(this: LayoutInline) {
 
     container.appendChild(anonymousBlock)
     removeLayoutFlag(this, LayoutFlag.NEED_ANONYMOUS)
+    anonymousBlock.lineBox = createLineBox(siblingsNeedWrapped, container.size.width)
+    anonymousBlock.setHeight(anonymousBlock.lineBox.height)
+    container.updateSize()
+
     anonymousBlock.updateLayout()
+    // anonymousBlock.flow()
     console.log('updateLayout-siblingsNeedWrapped', siblingsNeedWrapped)
   }
 }

@@ -1,4 +1,5 @@
 import { CanvasElement } from './element/element'
+import { isLayoutBox } from './layout/layoutBox'
 import { CanvasRenderer } from './render'
 import { RenderObject, createRenderObject } from './render/renderObject'
 import { BFS, PostOrderDFS } from './utils/treeSearch'
@@ -52,19 +53,24 @@ export function createEngine(renderer, options): Engine {
       'flow',
       elm,
       elm.getLayoutObject(),
-      BFS(elm.getLayoutObject()).map((item) => `${item.element.type} ${item.element.id}`)
+      // BFS(elm.getLayoutObject()).map((item) => `${item.element.type} ${item.element.id}`)
+      BFS(elm.getLayoutObject()).map((item) => item.element)
     )
+
     BFS(elm.getLayoutObject())
+      .filter((item) => isLayoutBox(item))
       .reverse()
       .forEach((item) => item.updateSize())
 
     BFS(elm.getLayoutObject()).forEach((item) => item.updateLayout())
 
-    BFS(elm.renderObject)
-      .reverse()
-      .forEach((item) => item.measureBoxSize())
+    elm.getLayoutObject().flow()
 
-    elm.renderObject.flow()
+    // BFS(elm.renderObject)
+    //   .reverse()
+    //   .forEach((item) => item.measureBoxSize())
+
+    elm.renderObject.initCurves()
     console.log(`渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`)
     elm.getRootElement().type === 'body' && paint(elm)
   }

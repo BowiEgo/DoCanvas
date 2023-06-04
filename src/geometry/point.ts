@@ -3,6 +3,8 @@ export interface Point {
   y: number
   setX(x: number): void
   setY(y: number): void
+  moveX(distance: number): void
+  moveY(distance: number): void
 }
 
 export function createPoint(x = 0, y = 0): Point {
@@ -14,6 +16,12 @@ export function createPoint(x = 0, y = 0): Point {
     },
     setY: function (y) {
       this.y = y
+    },
+    moveX: function (distance) {
+      this.x += distance
+    },
+    moveY: function (distance) {
+      this.y += distance
     }
   }
 }

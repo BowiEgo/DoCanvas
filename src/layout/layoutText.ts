@@ -64,7 +64,6 @@ const createBaseLayoutText =
       element,
       type: LayoutType.TEXT,
       getTextStyles,
-      updateSize,
       updateLayout
     }
 
@@ -83,5 +82,4 @@ function getTextStyles(this: LayoutText) {
   }
 }
 
-function updateSize(this: LayoutText) {}
 function updateLayout(this: LayoutText) {}

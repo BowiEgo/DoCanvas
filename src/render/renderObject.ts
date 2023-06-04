@@ -1,9 +1,9 @@
 import { CanvasElement } from '../element/element'
 import { isCanvasTextNode } from '../element/textNode'
-import { LayoutBox } from '../layout/layoutBox-bp'
+import { LayoutBox } from '../layout/layoutBox'
 import { TreeNode } from '../tree-node'
 import { NOOP } from '../utils'
-import { BoundCurves, createBoundCurves } from './canvas/boundCurves'
+import { BoundCurves } from './canvas/boundCurves'
 import { createRenderBlock } from './renderBlock'
 import { createRenderInline } from './renderInline'
 import { createRenderInlineBlock } from './renderInlineBlock'
@@ -16,6 +16,14 @@ import { createRenderText } from './renderText'
 // | | |—— RenderBR {BR} at (20, 20) size 0x0
 // | | |—— RenderText {#text} at (0, 24) size 48x24 "Second one."
 
+export const enum RenderType {
+  NONE,
+  TEXT = 1 << 1,
+  BLOCK = 1 << 2,
+  INLINE = 1 << 3,
+  INLINE_BLOCK = 1 << 4
+}
+
 export type RenderObjectOptions = {}
 
 export type CreateRenderObjectFn = (
@@ -25,8 +33,8 @@ export type CreateRenderObjectFn = (
 
 export interface RenderObject extends TreeNode<RenderObject> {
   // TODO: enum type
-  __v_isRenderObject: boolean
-  type: string
+  _isRenderObject: boolean
+  type: RenderType
   options: RenderObjectOptions
   element: CanvasElement
   viewport: { width: number; height: number } | null
@@ -38,10 +46,11 @@ export interface RenderObject extends TreeNode<RenderObject> {
   getContainer(): RenderObject
   appendChild(chid: RenderObject): void
   measureBoxSize(): void
-  layout(): void
-  flow(): void
-  reflow(): void
   isRoot(): boolean
+}
+
+export function isRenderObject(value: any): value is RenderObject {
+  return value ? value._isRenderObject === true : false
 }
 
 export const createRenderObject = (element, options = {}) => {
@@ -69,8 +78,8 @@ export const createBaseRenderObject =
   (o: TreeNode<RenderObject>): RenderObject => {
     let renderObject = {
       ...o,
-      __v_isRenderObject: true,
-      type: null,
+      _isRenderObject: true,
+      type: RenderType.NONE,
       options,
       element,
       get viewport() {
@@ -86,7 +95,6 @@ export const createBaseRenderObject =
       appendChild,
       measureBoxSize: NOOP,
       layout: NOOP,
-      flow,
       reflow,
       isRoot
     }
@@ -102,12 +110,6 @@ function getContainer(this: RenderObject) {
 
 function appendChild(this: RenderObject, child: RenderObject) {
   this.appendChildNode(child)
-}
-
-function flow(this: RenderObject) {
-  this.layout()
-  this.curves = createBoundCurves(this)
-  this.children.forEach((child) => child.flow())
 }
 
 function reflow() {}

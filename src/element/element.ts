@@ -163,7 +163,7 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   getRootElement(): CanvasElement
   getContainerStyle(styleName: string): ComputedStyles
   getContainer(): CanvasElement | null
-  getLayoutObject(): LayoutObject<LayoutBlock | LayoutInline | LayoutInline | LayoutText> | null
+  getLayoutObject(): LayoutObject | null
   getComputedStyles(): ComputedStyles
   setComputedStyles(styleName: string, value: any): void
   isBody(): boolean

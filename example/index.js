@@ -41,7 +41,7 @@ function initCanvas(fontFamily) {
       backgroundColor: '#00aeec45',
       width: 300,
       height: 'auto',
-      marginTop: 40
+      marginTop: 20
     }
   })
   const childElm2 = DoCanvas.createElement('view', {
@@ -100,7 +100,7 @@ function initCanvas(fontFamily) {
     STR_EN
   )
 
-  childElm1.appendChild(textElm1)
+  // childElm1.appendChild(textElm1)
   childElm1.appendChild(inlineElm)
   childElm1.appendChild(textElm2)
   elm.appendChild(childElm1)
@@ -125,7 +125,8 @@ function initCanvas(fontFamily) {
     '3333',
     childElm1,
     childElm1.getLayoutObject(),
-    childElm1.getLayoutObject().element === childElm1
+    childElm1.getLayoutObject().element === childElm1,
+    childElm1.renderObject
   )
 
   console.log(
@@ -165,7 +166,7 @@ function initHTMLELement() {
     window.innerHeight / 2
   }px; border-bottom: 1px solid #000;box-sizing: border-box`
   childElm1.style =
-    'color: red; rext-align: center; background-color: #00aeec45; width: 300px; height: auto; margin-top: 40px;'
+    'color: red; rext-align: center; background-color: #00aeec45; width: 300px; height: auto; margin-top: 20px;'
   childElm2.style = 'background-color: green; width: 50px; height: 40px'
   childElm3.style =
     'display:inline-block; background-color: lightgreen; width: 150px; height: 30px;'
@@ -179,7 +180,7 @@ function initHTMLELement() {
   document.body.insertBefore(elm, canvas)
   textElm1.appendChild(text1)
   textElm2.appendChild(text2)
-  childElm1.appendChild(textElm1)
+  // childElm1.appendChild(textElm1)
   childElm1.appendChild(inlineElm)
   childElm1.appendChild(textElm2)
   elm.appendChild(childElm1)

@@ -3,6 +3,7 @@ import { Point, createPoint } from '../geometry/point'
 import { Rect, createRect } from '../geometry/rect'
 import { Size, createSize } from '../geometry/size'
 import { NOOP, breakPipe, isAuto, pipe, pipeLine, when, withConstructor } from '../utils'
+import { isAnonymousLayoutBlock } from './layoutBlock'
 import { LayoutBoxModelObject, createLayoutBoxModelObject } from './layoutBoxModelObject'
 import { LayoutType, isLayoutObject } from './layoutObject'
 
@@ -114,7 +115,10 @@ export interface LayoutBox extends LayoutBoxModelObject {
   setHeight(height: number): void
   setX(x: number): void
   setY(y: number): void
+  moveX(distance: number): void
+  moveY(distance: number): void
   updateSize(): void
+  updateLocation(): void
 }
 
 export function generateBoxModelType() {
@@ -140,10 +144,11 @@ export const createBaseLayoutBox =
   (o: LayoutBoxModelObject): LayoutBox => {
     let size = createSize()
     let location = createPoint()
-    let rect = createRect(size, location)
+    let rect = createRect(location, size)
 
     let layoutBox: LayoutBox = {
       ...o,
+      element: o.element as CanvasElement,
       type: generateBoxModelType(),
       size,
       location,
@@ -167,8 +172,11 @@ export const createBaseLayoutBox =
       setHeight,
       setX,
       setY,
-      updateSize
-    } as LayoutBox
+      moveX,
+      moveY,
+      updateSize,
+      updateLocation
+    }
 
     return layoutBox
   }
@@ -184,6 +192,7 @@ function setHeight(this: LayoutBox, height) {
 }
 
 function setX(this: LayoutBox, x) {
+  console.log('setX', this, x, this.location.x)
   if (x === this.location.x) return
   this.location.setX(x)
 }
@@ -193,11 +202,35 @@ function setY(this: LayoutBox, y) {
   this.location.setY(y)
 }
 
+function moveX(this: LayoutBox, distance) {
+  this.location.moveX(distance)
+}
+
+function moveY(this: LayoutBox, distance) {
+  this.location.moveY(distance)
+}
+
 function updateSize(this: LayoutBox) {
   const size = _measureSize(this)
   this.size.setWidth(size.width)
   this.size.setHeight(size.height)
   console.log('updateSize', this.size)
+}
+
+function updateLocation(this: LayoutBox) {
+  console.log('updateLocation', this)
+
+  if (isAnonymousLayoutBlock(this.getContainer())) {
+    const container = this.getContainer() as LayoutBox
+    this.moveX(container.rect.start)
+    this.moveY(container.rect.before)
+    return
+  }
+
+  let location = _calcPos(this)
+
+  this.setX(location.x)
+  this.setY(location.y)
 }
 
 const _measureSize = (layoutBox: LayoutBox): Size =>
@@ -213,14 +246,35 @@ const _measureSize = (layoutBox: LayoutBox): Size =>
     when(() => isAuto(layoutBox.getStyles().height), _calcHeightByChild(layoutBox))
   )(createSize())
 
-// const initRootBounds =
-//   (renderBlock: RenderBlock) =>
-//   (o): Bounds => {
-//     o.width = renderBlock.viewport.width
-//     o.height = renderBlock.viewport.height
+const _calcPos = (layoutBox: LayoutBox): Point =>
+  pipeLine(
+    when(() => layoutBox.element && layoutBox.element.isBody(), NOOP, breakPipe),
+    _calcPosByParentAndPrevSibling(layoutBox)
+  )(createPoint())
 
-//     return o
-//   }
+const _calcPosByParentAndPrevSibling =
+  (layoutBox: LayoutBox) =>
+  (o): Point => {
+    const parentBox = layoutBox.getContainer() as LayoutBox
+    const prevSiblingBox = layoutBox.previousSibling as LayoutBox
+    const parentBoxBefore = parentBox ? parentBox.rect.before : 0
+
+    let x = parentBox ? parentBox.rect.start : 0
+    let y =
+      (prevSiblingBox ? prevSiblingBox.rect.after : parentBoxBefore) +
+      (isAnonymousLayoutBlock(layoutBox) ? 0 : layoutBox.getBoxModel().marginTop)
+    console.log(
+      'updateLocation-2222',
+      layoutBox,
+      isAnonymousLayoutBlock(layoutBox),
+      parentBoxBefore
+    )
+
+    o.setX(x)
+    o.setY(y)
+
+    return o
+  }
 
 // const calcBounds =
 //   (renderBlock: RenderBlock) =>

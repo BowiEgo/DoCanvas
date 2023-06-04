@@ -18,7 +18,7 @@ import {
 } from './canvas/boundCurves'
 import { Path } from './canvas/path'
 import { Vector } from './canvas/vector'
-import { RenderObject } from './renderObject'
+import { RenderObject, RenderType } from './renderObject'
 
 export type RenderConfigurations = RenderOptions & {
   backgroundColor: Color | null
@@ -73,16 +73,16 @@ function render(this: CanvasRenderer, elm) {
 
 function paint(this: CanvasRenderer, renderObject: RenderObject) {
   switch (renderObject.type) {
-    case 'block':
+    case RenderType.BLOCK:
       this.paintBlock(renderObject)
       break
-    case 'inline-block':
-      this.paintInlineBlock(renderObject)
-      break
-    case 'inline':
+    case RenderType.INLINE:
       this.paintInline(renderObject)
       break
-    case 'text':
+    case RenderType.INLINE_BLOCK:
+      this.paintInlineBlock(renderObject)
+      break
+    case RenderType.TEXT:
       // this.paintText(renderObject)
       break
     default:
@@ -135,6 +135,8 @@ function _formatPath(ctx: CanvasRenderingContext2D, paths: Path[]): void {
 
 function _paintBackGroundAndBorder(ctx: CanvasRenderingContext2D, renderObject) {
   const styles = renderObject.element.getComputedStyles()
+  console.log(renderObject.curves)
+  !renderObject.curves && renderObject.initCurves()
   const backgroundPaintingArea = calculateBackgroundCurvedPaintingArea(
     getBackgroundValueForIndex(styles.backgroundClip, 0),
     renderObject.curves
@@ -158,10 +160,16 @@ function paintBlock(this: CanvasRenderer, renderObject) {
 
 function paintInline(this: CanvasRenderer, renderObject) {
   // _paintBackGroundAndBorder(this.ctx, renderObject)
-  console.log('paintInline', renderObject, renderObject.element.getLayoutObject())
-  const lineArray = renderObject.element.getLayoutObject().lineArray
+  console.log(
+    'paintInline',
+    renderObject,
+    renderObject.element.getLayoutObject().getContainer().lineBox.lineArray,
+    renderObject.element.getLayoutObject().getContainer().rect.before
+  )
+  const lineArray = renderObject.element.getLayoutObject().getContainer().lineBox.lineArray
   lineArray.forEach((line) => {
-    line.forEach((lineItem) => {
+    line.children.forEach((lineItem) => {
+      console.log('paintInline-lineItem', lineItem)
       if (isLayoutInlineBlock(lineItem)) {
         _paintBackGroundAndBorder(this.ctx, lineItem.element.renderObject)
       } else {
@@ -175,20 +183,23 @@ function paintInline(this: CanvasRenderer, renderObject) {
         ctx.font = `normal ${styles.fontSize}px ${styles.fontFamily || this.defaultFontFamily}`
         ctx.fillStyle = styles.color
         console.log(
-          'paintInline-block',
-          lineItem,
-          lineItem.text,
-          lineItem.x,
-          lineItem.y + renderObject.layoutBox.top
+          'paintInline-text',
+          renderObject,
+          renderObject.element.getLayoutObject().getContainer(),
+          lineItem.rect.before + renderObject.element.getLayoutObject().getContainer().rect.before
         )
-        ctx.fillText(lineItem.text, lineItem.x, lineItem.y + renderObject.layoutBox.top)
+        ctx.fillText(
+          lineItem.text,
+          lineItem.rect.start,
+          lineItem.rect.before + renderObject.element.getLayoutObject().getContainer().rect.before
+        )
       }
     })
   })
 }
 
 function paintInlineBlock(this: CanvasRenderer, renderObject) {
-  this.paintInline(renderObject)
+  _paintBackGroundAndBorder(this.ctx, renderObject)
 }
 
 function paintText(this: CanvasRenderer, renderObject) {

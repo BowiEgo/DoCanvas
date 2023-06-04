@@ -54,7 +54,14 @@ import { LayoutObject, LayoutType, createBaseLayoutObject, isLayoutObject } from
 // For more information, see the following doc about coordinate spaces:
 // https://chromium.googlesource.com/chromium/src.git/+/main/third_party/blink/renderer/core/layout/README.md#coordinate-spaces
 
-export interface LayoutBoxModelObject extends LayoutObject {}
+export interface LayoutBoxModelObject extends LayoutObject {
+  type: LayoutType
+  offsetLeft: number
+  offsetTop: number
+  offsetWidth: number
+  offsetHeight: number
+  getBoxModel(): any
+}
 
 export const createLayoutBoxModelObject = function LayoutBoxModelObject(element?: CanvasElement) {
   return pipe(

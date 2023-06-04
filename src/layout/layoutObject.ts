@@ -2,9 +2,11 @@ import { CanvasElement, ComputedStyles, Layout } from '../element/element'
 import { CanvasTextNode, isCanvasTextNode } from '../element/textNode'
 import { TreeNode } from '../tree-node'
 import { createLayoutBlock, isLayoutBlock } from './layoutBlock'
+import { isLayoutBox } from './layoutBox'
 import { createLayoutInline, isLayoutInline } from './layoutInline'
 import { createLayoutInlineBlock, isLayoutInlineBlock } from './layoutInlineBlock'
 import { createLayoutText } from './layoutText'
+import { LineBox } from './lineBox'
 
 // LayoutObject is the base class for all layout tree objects.
 //
@@ -120,10 +122,13 @@ export const enum LayoutType {}
 
 export interface LayoutObject extends TreeNode<LayoutObject> {
   type: LayoutType
-  element: CanvasElement | CanvasTextNode
   layoutFlag: LayoutFlag
+  element: CanvasElement | CanvasTextNode
+  lineBox: LineBox
   getStyles(): ComputedStyles
+  getContainer(): LayoutObject
   appendChild(layoutObject: LayoutObject): void
+  flow(): void
 }
 
 export function isLayoutObject(value: any): value is LayoutObject {
@@ -151,16 +156,19 @@ export const createLayoutObject = function LayoutObject(element: CanvasElement |
 }
 
 export const createBaseLayoutObject =
-  <T>(element?) =>
+  (element?) =>
   (o: TreeNode<LayoutObject>): LayoutObject => {
     let layoutObject = {
       ...o,
       _isLayoutObject: true,
       type: LayoutType.NONE,
-      element,
       layoutFlag: LayoutFlag.NONE,
+      element,
+      lineBox: null,
       getStyles,
-      appendChild
+      getContainer,
+      appendChild,
+      flow
     } as LayoutObject
 
     Object.setPrototypeOf(layoutObject, o)
@@ -172,21 +180,34 @@ function getStyles(this: LayoutObject) {
   return (<CanvasElement>this.element).getComputedStyles()
 }
 
-function appendChild(child) {
-  console.log('up-layout-appendChild', this, child)
-  this.appendChildNode(child)
-  checkChildIfNeedWrapAnonymous(child)
+function getContainer(this: LayoutObject) {
+  return this.parentNode
 }
 
-function checkChildIfNeedWrapAnonymous(child) {
+function appendChild(this: LayoutObject, child) {
+  console.log('up-layout-appendChild', this, child)
+  this.appendChildNode(child)
+  _checkChildIfNeedWrapAnonymous(child)
+}
+
+function flow(this: LayoutObject) {
+  console.log('updateLocation-flow', this)
+  if (isLayoutBox(this)) {
+    this.updateLocation()
+  }
+
+  this.children.forEach((child) => child.flow())
+}
+
+function _checkChildIfNeedWrapAnonymous(child) {
   console.log(
-    'checkChildIfNeedWrapAnonymous',
+    '_checkChildIfNeedWrapAnonymous',
     isLayoutInline(child) || isLayoutInlineBlock(child),
     isLayoutBlock(child.previousSibling)
   )
   if (isLayoutInline(child) || isLayoutInlineBlock(child)) {
     if (!child.previousSibling || isLayoutBlock(child.previousSibling)) {
-      console.log('checkChildIfNeedWrapAnonymous', child)
+      console.log('_checkChildIfNeedWrapAnonymous', child)
       patchLayoutFlag(child, LayoutFlag.NEED_ANONYMOUS)
     }
   }
