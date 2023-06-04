@@ -100,7 +100,7 @@ function initCanvas(fontFamily) {
     STR_EN
   )
 
-  // childElm1.appendChild(textElm1)
+  childElm1.appendChild(textElm1)
   childElm1.appendChild(inlineElm)
   childElm1.appendChild(textElm2)
   elm.appendChild(childElm1)
@@ -180,7 +180,7 @@ function initHTMLELement() {
   document.body.insertBefore(elm, canvas)
   textElm1.appendChild(text1)
   textElm2.appendChild(text2)
-  // childElm1.appendChild(textElm1)
+  childElm1.appendChild(textElm1)
   childElm1.appendChild(inlineElm)
   childElm1.appendChild(textElm2)
   elm.appendChild(childElm1)

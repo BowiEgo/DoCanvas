@@ -45,7 +45,7 @@ export function createLineBox(childLayout, maxWidth) {
       return this.lineArray[this.lineArray.length - 1]
     },
     get lastLineBefore() {
-      return this.after - (this.lastLine ? this.lastLine.rect.height : 0)
+      return this.lastLine ? this.after - this.lastLine.rect.height : 0
     }
   }
 
@@ -97,9 +97,14 @@ function createLine(
 }
 
 function createTextLine(text, relativeX, relativeY, width, height) {
+  let location = createPoint(relativeX, relativeY)
+  let size = createSize(width, height)
+
   let textLine = {
     text,
-    rect: createRect(createPoint(relativeX, relativeY), createSize(width, height))
+    location,
+    size,
+    rect: createRect(location, size)
   }
 
   return textLine
@@ -121,19 +126,23 @@ const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
   }
 
   const appendChildToCurrLine = () => (lineBox) => {
+    if (child.size.height > lineBox.currLineHeight) {
+      lineBox.currLine.children.forEach((item) => {
+        item.rect.location.moveY(child.size.height - lineBox.currLineHeight)
+      })
+      lineBox.after += child.size.height - lineBox.currLineHeight
+      lineBox.currLine.rect.size.setHeight(child.size.height)
+      lineBox.currLineHeight = child.size.height
+      console.log('appendChildToCurrLine-0', child, child.size.width, lineBox.currLine)
+    }
     lineBox.currLine.addChild(child)
     lineBox.end += child.size.width
-    lineBox.currLineHeight = Math.max(lineBox.currLineHeight, child.size.height)
     lineBox.currLine.rect.size.setHeight(lineBox.currLineHeight)
 
-    if (index === 0) {
-      lineBox.currLineHeight = child.size.height
-      lineBox.after += lineBox.currLineHeight
-    }
     return lineBox
   }
 
-  const appendChildToNewLine = () => {
+  const appendChildToNewLine = () => (lineBox) => {
     lineBox.currLine.addChild(child)
     lineBox.end = child.size.width
   }
@@ -141,7 +150,7 @@ const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
   const createNewLine = () => (lineBox) => {
     lineBox.lineArray.push(lineBox.currLine)
     lineBox.currLine = createLine(0, lineBox.after, child.size.width, child.size.height)
-    appendChildToNewLine()
+    appendChildToNewLine()(lineBox)
     lineBox.currLineHeight = child.size.height
     lineBox.after += lineBox.currLineHeight
     return lineBox
@@ -160,12 +169,12 @@ const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
   }
 
   const resetChildLocation = () => (lineBox) => {
-    console.log('resetChildLocation-11', childLayout[index + 1])
+    console.log('resetChildLocation-0', childLayout[index + 1])
     if (childLayout[index + 1] && isLayoutText(childLayout[index + 1].children[0])) {
       lineBox.lineArray.push(lineBox.currLine)
     }
     child.setX(lineBox.end - child.size.width)
-    console.log('resetChildLocation', lineBox.lastLineBefore, lineBox.after, lineBox.lastLine)
+    console.log('resetChildLocation-1', lineBox.lastLineBefore, lineBox.after, lineBox.lastLine)
     child.setY(lineBox.lastLineBefore)
     return lineBox
   }
@@ -195,6 +204,8 @@ const _breakTextLines = (layoutText) => (lineBox) => {
   let { fontSize, lineHeight, fontFamily } = layoutText.getTextStyles()
   lineHeight = Number(lineHeight)
 
+  lineBox.currLineHeight = Math.max(lineBox.currLineHeight, lineHeight)
+
   ctx.save()
   ctx.font = `normal ${fontSize}px ${fontFamily || defaultFontFamily}`
 
@@ -203,7 +214,6 @@ const _breakTextLines = (layoutText) => (lineBox) => {
     layoutText.element.getContainer().getComputedStyles()
   )
 
-  let testLineText = ''
   let metrics = null
   let testWidth = lineBox.end
   let currTextLine = createTextLine(
@@ -216,29 +226,32 @@ const _breakTextLines = (layoutText) => (lineBox) => {
   let isOutOfBox = false
 
   const initTest = (word) => (lineBox) => {
-    testLineText += word
     metrics = ctx.measureText(word)
     testWidth += metrics.width
 
     return lineBox
   }
 
-  const addWord = (word) => (lineBox) => {
+  const appendWordToCurrLine = (word, index) => (lineBox) => {
     currTextLine.text += word
     currTextLine.rect.size.addWidth(metrics.width)
     lineBox.currLineHeight = Math.max(lineBox.currLineHeight, lineHeight)
+
+    if (index === 0 && lineBox.end === 0) {
+      lineBox.after += lineBox.currLineHeight
+    }
+
     lineBox.end += metrics.width
     return lineBox
   }
 
-  const createNewLine = (word) => (lineBox) => {
-    lineBox.currLine.addChild(currTextLine)
-    lineBox.lineArray.push(lineBox.currLine)
+  const appendWordToNewLine = (word) => (lineBox) => {
     lineBox.currLine = createLine(0, lineBox.after, metrics.width, lineBox.currLineHeight)
     lineBox.currLineHeight = lineHeight
     lineBox.after += lineBox.currLineHeight
     lineBox.end = metrics.width
 
+    console.log('appendWordToNewLine', word, lineBox.after, lineBox.currLineHeight)
     currTextLine = createTextLine(
       word,
       0,
@@ -246,6 +259,12 @@ const _breakTextLines = (layoutText) => (lineBox) => {
       metrics.width,
       metrics.fontBoundingBoxAscent
     )
+  }
+
+  const createNewLine = (word) => (lineBox) => {
+    lineBox.currLine.addChild(currTextLine)
+    lineBox.lineArray.push(lineBox.currLine)
+    appendWordToNewLine(word.trim())(lineBox)
     testWidth = metrics.width
 
     return lineBox
@@ -253,6 +272,7 @@ const _breakTextLines = (layoutText) => (lineBox) => {
 
   const checkIfOutOfBox = (index) => (lineBox) => {
     isOutOfBox = testWidth >= lineBox.maxWidth && index > 0
+
     return lineBox
   }
 
@@ -260,7 +280,6 @@ const _breakTextLines = (layoutText) => (lineBox) => {
     if (index === words.length - 1) {
       lineBox.currLine.addChild(currTextLine)
       lineBox.lineArray.push(lineBox.currLine)
-      lineBox.end += metrics.width
     }
     return lineBox
   }
@@ -269,7 +288,7 @@ const _breakTextLines = (layoutText) => (lineBox) => {
     pipeLine(
       initTest(word),
       checkIfOutOfBox(index),
-      when(() => !isOutOfBox, addWord(word)),
+      when(() => !isOutOfBox, appendWordToCurrLine(word, index)),
       when(() => isOutOfBox, createNewLine(word)),
       checkIsLastWord(index)
     )(lineBox)
