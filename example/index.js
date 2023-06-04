@@ -1,9 +1,9 @@
 const { createDoCanvas } = XCanvas
 
 const STR_CN =
-  '😱一、选择适合的报纸在进行登报挂失前，您需要选择一家有一定知名度和影响力的报纸进行登报。目前，大多数地区都有本地的日报、晚报、周报等媒体，您可以选择其中的一家来登报。 👌'
+  '大家晚上好呀！盒宝我又来开奖啦🥳恭喜幸运瓜农@不过俗人尔 获得【12个月 PGP 兑换码*1】！请于6月10日前来私信盒宝领取奖品哦！感谢大家的参与，下个幸运儿一定是你！👏🏻'
 const STR_EN =
-  '😱 😱 😱 👌👌👌This webpage transforms plain text into the immaculate emoji language.Want emoji tokens for the VOIP service Discord instead of Unicode characters? Tick that checkbox!'
+  '😱👌This webpage transforms plain text into the immaculate emoji language.Want emoji tokens for the VOIP service Discord instead of Unicode characters? Tick that checkbox!'
 
 function initCanvas(fontFamily) {
   const canvas = document.querySelector('#canvas')
