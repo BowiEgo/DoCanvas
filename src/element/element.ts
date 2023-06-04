@@ -202,7 +202,6 @@ const createTextNodeIfHasText = () => (o) => {
     _initRenderObject(o)
     o.initLayoutObject()
     textNode.setParentNode(o)
-    console.log(o.getLayoutObject())
     textNode.attach(o)
   }
 

@@ -51,8 +51,6 @@ export function createLineBox(childLayout, maxWidth) {
 
   _breakLines(childLayout)(lineBox)
 
-  console.log('createLineBox', lineBox)
-
   return lineBox
 }
 
@@ -116,7 +114,6 @@ const logger = (message) => (lineBox) => {
 }
 
 const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
-  console.log('_breakBlockLines', child, index, childLayout)
   let testWidth = lineBox.end
   let isOutOfBox = false
 
@@ -133,7 +130,6 @@ const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
       lineBox.after += child.size.height - lineBox.currLineHeight
       lineBox.currLine.rect.size.setHeight(child.size.height)
       lineBox.currLineHeight = child.size.height
-      console.log('appendChildToCurrLine-0', child, child.size.width, lineBox.currLine)
     }
     lineBox.currLine.addChild(child)
     lineBox.end += child.size.width
@@ -169,12 +165,10 @@ const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
   }
 
   const resetChildLocation = () => (lineBox) => {
-    console.log('resetChildLocation-0', childLayout[index + 1])
     if (childLayout[index + 1] && isLayoutText(childLayout[index + 1].children[0])) {
       lineBox.lineArray.push(lineBox.currLine)
     }
     child.setX(lineBox.end - child.size.width)
-    console.log('resetChildLocation-1', lineBox.lastLineBefore, lineBox.after, lineBox.lastLine)
     child.setY(lineBox.lastLineBefore)
     return lineBox
   }
@@ -182,14 +176,14 @@ const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
   pipeLine(
     initTest(),
     checkIfOutOfBox(),
-    logger('after-block-checkIfOutOfBox:'),
+    // logger('after-block-checkIfOutOfBox:'),
     when(() => !isOutOfBox, appendChildToCurrLine()),
-    when(() => !isOutOfBox, logger('after-block-addChild:')),
+    // when(() => !isOutOfBox, logger('after-block-addChild:')),
     when(() => isOutOfBox, createNewLine()),
-    when(() => isOutOfBox, logger('after-block-createNewLine:')),
+    // when(() => isOutOfBox, logger('after-block-createNewLine:')),
     checkIsLastChild(),
-    resetChildLocation(),
-    logger('after-block-resetChildLocation:')
+    resetChildLocation()
+    // logger('after-block-resetChildLocation:')
   )(lineBox)
 
   return lineBox
@@ -251,7 +245,6 @@ const _breakTextLines = (layoutText) => (lineBox) => {
     lineBox.after += lineBox.currLineHeight
     lineBox.end = metrics.width
 
-    console.log('appendWordToNewLine', word, lineBox.after, lineBox.currLineHeight)
     currTextLine = createTextLine(
       word,
       0,

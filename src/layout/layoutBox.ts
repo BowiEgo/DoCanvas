@@ -192,7 +192,6 @@ function setHeight(this: LayoutBox, height) {
 }
 
 function setX(this: LayoutBox, x) {
-  console.log('setX', this, x, this.location.x)
   if (x === this.location.x) return
   this.location.setX(x)
 }
@@ -214,12 +213,9 @@ function updateSize(this: LayoutBox) {
   const size = _measureSize(this)
   this.size.setWidth(size.width)
   this.size.setHeight(size.height)
-  console.log('updateSize', this.size)
 }
 
 function updateLocation(this: LayoutBox) {
-  console.log('updateLocation', this)
-
   if (isAnonymousLayoutBlock(this.getContainer())) {
     const container = this.getContainer() as LayoutBox
     this.moveX(container.rect.start)
@@ -263,80 +259,12 @@ const _calcPosByParentAndPrevSibling =
     let y =
       (prevSiblingBox ? prevSiblingBox.rect.after : parentBoxBefore) +
       (isAnonymousLayoutBlock(layoutBox) ? 0 : layoutBox.getBoxModel().marginTop)
-    console.log(
-      'updateLocation-2222',
-      layoutBox,
-      isAnonymousLayoutBlock(layoutBox),
-      parentBoxBefore
-    )
 
     o.setX(x)
     o.setY(y)
 
     return o
   }
-
-// const calcBounds =
-//   (renderBlock: RenderBlock) =>
-//   (o): Bounds => {
-//     const {
-//       borderTopWidth,
-//       borderBottomWidth,
-//       borderLeftWidth,
-//       borderRightWidth,
-//       paddingTop,
-//       paddingBottom,
-//       paddingLeft,
-//       paddingRight,
-//       marginTop,
-//       width,
-//       height
-//     } = renderBlock.element.computedStyles
-
-//     const parentBox = renderBlock.getContainer().layoutBox
-//     const prevSiblingBox = renderBlock.previousSibling
-//       ? renderBlock.previousSibling.layoutBox
-//       : null
-
-//     let _top = (prevSiblingBox ? prevSiblingBox.bottom : parentBox.top) + marginTop
-//     let _left = parentBox.left
-//     let _width =
-//       Number(borderLeftWidth) +
-//       Number(paddingLeft) +
-//       Number(width) +
-//       Number(paddingRight) +
-//       Number(borderRightWidth)
-//     let _height =
-//       Number(borderTopWidth) +
-//       Number(paddingTop) +
-//       Number(height) +
-//       Number(paddingBottom) +
-//       Number(borderBottomWidth)
-
-//     o.parentBox = parentBox
-//     o.top = _top
-//     o.left = _left
-//     o.width = _width
-//     o.height = _height
-//     return o
-//   }
-
-// const initLayout = (renderBlock: RenderBlock, bounds: Bounds): void => {
-//   renderBlock.layoutBox = createLayoutBox(
-//     bounds.parentBox,
-//     bounds.top,
-//     bounds.left,
-//     bounds.width,
-//     bounds.height
-//   )
-// }
-
-// const updateLayout = (renderBlock: RenderBlock, bounds: Bounds): void => {
-//   renderBlock.layoutBox.setTop(bounds.top)
-//   renderBlock.layoutBox.setLeft(bounds.left)
-//   renderBlock.layoutBox.setWidth(bounds.width)
-//   renderBlock.layoutBox.setHeight(bounds.height)
-// }
 
 const _initSize =
   (element: CanvasElement) =>
@@ -371,7 +299,6 @@ const _calcHeightByChild =
     o.height = layoutBox.children
       .filter((item): item is LayoutBox => isLayoutBox(item))
       .reduce((acc, curr) => {
-        console.log(curr)
         return acc + Number(curr.size ? curr.size.height : 0)
       }, 0)
     return o

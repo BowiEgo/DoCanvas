@@ -44,11 +44,8 @@ export interface BoundCurves {
 }
 
 export function createBoundCurves(layoutObject) {
-  console.log('createBoundCurves', layoutObject)
   let styles = layoutObject.getStyles()
   let bounds: Rect = layoutObject.rect
-
-  console.log('createBoundCurves-1', styles, bounds)
 
   if (!styles) return
 

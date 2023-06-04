@@ -134,7 +134,6 @@ export const createBaseLayoutInline =
 
 function wrapByAnonymousBlock(this: LayoutInline) {
   if (this.layoutFlag & LayoutFlag.NEED_ANONYMOUS) {
-    console.log('updateLayout-needWrapByAnonymousBlock', this, this.parentNode)
     let siblingsNeedWrapped = _getSiblingsNeedWrapped(this)
     const container = this.parentNode as LayoutBox
     const anonymousBlock = createAnonymousLayoutBlock(this.getContainer().element)
@@ -152,7 +151,6 @@ function wrapByAnonymousBlock(this: LayoutInline) {
 
     anonymousBlock.updateLayout()
     // anonymousBlock.flow()
-    console.log('updateLayout-siblingsNeedWrapped', siblingsNeedWrapped)
   }
 }
 

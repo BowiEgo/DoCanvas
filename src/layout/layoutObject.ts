@@ -185,13 +185,11 @@ function getContainer(this: LayoutObject) {
 }
 
 function appendChild(this: LayoutObject, child) {
-  console.log('up-layout-appendChild', this, child)
   this.appendChildNode(child)
   _checkChildIfNeedWrapAnonymous(child)
 }
 
 function flow(this: LayoutObject) {
-  console.log('updateLocation-flow', this)
   if (isLayoutBox(this)) {
     this.updateLocation()
   }
@@ -200,14 +198,8 @@ function flow(this: LayoutObject) {
 }
 
 function _checkChildIfNeedWrapAnonymous(child) {
-  console.log(
-    '_checkChildIfNeedWrapAnonymous',
-    isLayoutInline(child) || isLayoutInlineBlock(child),
-    isLayoutBlock(child.previousSibling)
-  )
   if (isLayoutInline(child) || isLayoutInlineBlock(child)) {
     if (!child.previousSibling || isLayoutBlock(child.previousSibling)) {
-      console.log('_checkChildIfNeedWrapAnonymous', child)
       patchLayoutFlag(child, LayoutFlag.NEED_ANONYMOUS)
     }
   }

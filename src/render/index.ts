@@ -135,7 +135,6 @@ function _formatPath(ctx: CanvasRenderingContext2D, paths: Path[]): void {
 
 function _paintBackGroundAndBorder(ctx: CanvasRenderingContext2D, renderObject) {
   const styles = renderObject.element.getComputedStyles()
-  console.log(renderObject.curves)
   !renderObject.curves && renderObject.initCurves()
   const backgroundPaintingArea = calculateBackgroundCurvedPaintingArea(
     getBackgroundValueForIndex(styles.backgroundClip, 0),
@@ -162,13 +161,6 @@ function paintInline(this: CanvasRenderer, renderObject) {
   const lineArray = renderObject.element.getLayoutObject().getContainer().lineBox.lineArray
 
   if (lineArray.isPainted) return
-
-  console.log(
-    'paintInline',
-    renderObject,
-    renderObject.element.getLayoutObject().getContainer().lineBox.lineArray,
-    renderObject.element.getLayoutObject().getContainer().rect.before
-  )
 
   lineArray.forEach((line) => {
     line.children.forEach((lineItem) => {
