@@ -25,7 +25,10 @@ export function isRenderBlock(value: any): value is RenderBlock {
   return !!(value.type & RenderType.BLOCK)
 }
 
-export const createRenderBlock: CreateRenderBlockFn = function RenderBlock(element, options = {}) {
+export const createRenderBlock: CreateRenderBlockFn = function RenderBlock(
+  element,
+  options = {}
+) {
   return pipe(
     createTreeNode<RenderObject>(),
     createBaseRenderObject(element, options),
@@ -49,6 +52,7 @@ export const createBaseRenderBlock =
 export function initCurves(this: RenderBlock | RenderInlineBlock) {
   this.curves = createBoundCurves(this.element.getLayoutObject())
   this.children.forEach(
-    (child) => (isRenderBlock(child) || isRenderInlineBlock(child)) && child.initCurves()
+    (child) =>
+      (isRenderBlock(child) || isRenderInlineBlock(child)) && child.initCurves()
   )
 }

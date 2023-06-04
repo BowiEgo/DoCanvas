@@ -4,7 +4,12 @@ import { LayoutText } from '../layout/layoutText'
 import { RenderObject } from '../render/renderObject'
 import { TreeNode, createTreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
-import { CanvasElement, ComputedStyles, isBody, _initRenderObject } from './element'
+import {
+  CanvasElement,
+  ComputedStyles,
+  isBody,
+  _initRenderObject
+} from './element'
 
 export function isCanvasTextNode(value: any): value is CanvasTextNode {
   return value ? value.__v_isCanvasTextNode === true : false

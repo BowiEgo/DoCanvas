@@ -1,10 +1,13 @@
-import { CanvasElement, ComputedStyles, Layout } from '../element/element'
+import { CanvasElement, ComputedStyles } from '../element/element'
 import { CanvasTextNode, isCanvasTextNode } from '../element/textNode'
 import { TreeNode } from '../tree-node'
 import { createLayoutBlock, isLayoutBlock } from './layoutBlock'
 import { isLayoutBox } from './layoutBox'
 import { createLayoutInline, isLayoutInline } from './layoutInline'
-import { createLayoutInlineBlock, isLayoutInlineBlock } from './layoutInlineBlock'
+import {
+  createLayoutInlineBlock,
+  isLayoutInlineBlock
+} from './layoutInlineBlock'
 import { createLayoutText } from './layoutText'
 import { LineBox } from './lineBox'
 
@@ -135,7 +138,9 @@ export function isLayoutObject(value: any): value is LayoutObject {
   return value ? value._isLayoutObject === true : false
 }
 
-export const createLayoutObject = function LayoutObject(element: CanvasElement | CanvasTextNode) {
+export const createLayoutObject = function LayoutObject(
+  element: CanvasElement | CanvasTextNode
+) {
   if (element.isBody()) {
     return createLayoutBlock(element as CanvasElement)
   }
@@ -213,6 +218,7 @@ export function removeLayoutFlag(layoutObject, layoutFlag) {
   layoutObject.layoutFlag &= ~layoutFlag
 }
 
+// constructing...
 function _setPreviousSibling<T>(this: LayoutObject, previous: LayoutObject) {}
 function _setNextSibling(this: LayoutObject, next: LayoutObject) {}
 function _setParentSibling(this: LayoutObject, parent: LayoutObject) {}

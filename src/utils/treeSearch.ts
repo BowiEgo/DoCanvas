@@ -3,7 +3,7 @@ import { isArray } from './general'
 
 type Queue<T> = T[]
 
-type TreeSearchFn = (node: TreeNode) => any[]
+type TreeSearchFn = (node: TreeNode<any>) => any[]
 
 // https://javascript.plainenglish.io/tree-traversal-in-javascript-9b1e92e15abb
 
@@ -11,7 +11,7 @@ export const BFS: TreeSearchFn = (node) => {
   const traversed = <any>[]
 
   if (node != null) {
-    const queue: Queue<TreeNode> = []
+    const queue: Queue<TreeNode<any>> = []
     let item
     let children
 

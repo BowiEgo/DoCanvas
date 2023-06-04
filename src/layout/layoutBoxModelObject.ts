@@ -1,7 +1,12 @@
-import { CanvasElement, ComputedStyles } from '../element/element'
+import { CanvasElement } from '../element/element'
 import { createTreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
-import { LayoutObject, LayoutType, createBaseLayoutObject, isLayoutObject } from './layoutObject'
+import {
+  LayoutObject,
+  LayoutType,
+  createBaseLayoutObject,
+  isLayoutObject
+} from './layoutObject'
 
 // ***** COORDINATE SYSTEMS *****
 //
@@ -63,7 +68,9 @@ export interface LayoutBoxModelObject extends LayoutObject {
   getBoxModel(): any
 }
 
-export const createLayoutBoxModelObject = function LayoutBoxModelObject(element?: CanvasElement) {
+export const createLayoutBoxModelObject = function LayoutBoxModelObject(
+  element?: CanvasElement
+) {
   return pipe(
     createTreeNode<LayoutObject>(),
     createBaseLayoutObject(element),
@@ -107,7 +114,12 @@ export const createBaseLayoutBoxModelObject = () => (o: LayoutObject) => {
       const paddintBefore = this.physicalPaddingToLogical().before()
       const paddingAfter = this.physicalPaddingToLogical().after()
       const paddingEnd = this.physicalPaddingToLogical().end()
-      const paddingOutsets = { paddingTop, paddingRight, paddingBottom, paddingLeft }
+      const paddingOutsets = {
+        paddingTop,
+        paddingRight,
+        paddingBottom,
+        paddingLeft
+      }
 
       const borderTop = borderTopWidth
       const borderBottom = borderBottomWidth
@@ -119,7 +131,12 @@ export const createBaseLayoutBoxModelObject = () => (o: LayoutObject) => {
       const borderEnd = this.physicalBorderToLogical().end()
       const borderWidth = borderLeftWidth + borderRightWidth
       const borderHeight = borderTopWidth + borderBottomWidth
-      const borderBoxOutsets = { borderTop, borderRight, borderBottom, borderLeft }
+      const borderBoxOutsets = {
+        borderTop,
+        borderRight,
+        borderBottom,
+        borderLeft
+      }
 
       const marginBefore = this.physicalMarginToLogical().before()
       const marginAfter = this.physicalMarginToLogical().after()
@@ -174,6 +191,7 @@ export const createBaseLayoutBoxModelObject = () => (o: LayoutObject) => {
   return layoutBoxModelObject
 }
 
+// constructing...
 function physicalPaddingToLogical() {
   return {
     before: () => 0,

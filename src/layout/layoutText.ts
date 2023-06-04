@@ -1,7 +1,12 @@
 import { CanvasTextNode } from '../element/textNode'
 import { createTreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
-import { LayoutObject, LayoutType, createBaseLayoutObject, isLayoutObject } from './layoutObject'
+import {
+  LayoutObject,
+  LayoutType,
+  createBaseLayoutObject,
+  isLayoutObject
+} from './layoutObject'
 
 // LayoutText is the root class for anything that represents
 // a text node (see core/dom/text.h).

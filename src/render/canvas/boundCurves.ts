@@ -1,4 +1,7 @@
-import { getAbsoluteValue, getAbsoluteValueForTuple } from '../../css/types/length-percentage'
+import {
+  getAbsoluteValue,
+  getAbsoluteValueForTuple
+} from '../../css/types/length-percentage'
 import { Rect } from '../../geometry/rect'
 import { BezierCurve } from './bezierCurve'
 import { Path } from './path'
@@ -49,7 +52,11 @@ export function createBoundCurves(layoutObject) {
 
   if (!styles) return
 
-  let [tlh, tlv] = getAbsoluteValueForTuple(styles.borderTopLeftRadius, bounds.width, bounds.height)
+  let [tlh, tlv] = getAbsoluteValueForTuple(
+    styles.borderTopLeftRadius,
+    bounds.width,
+    bounds.height
+  )
   let [trh, trv] = getAbsoluteValueForTuple(
     styles.borderTopRightRadius,
     bounds.width,
@@ -155,7 +162,10 @@ export function createBoundCurves(layoutObject) {
           tlv - borderTopWidth / 3,
           CORNER.TOP_LEFT
         )
-      : new Vector(bounds.x + borderLeftWidth / 3, bounds.y + borderTopWidth / 3)
+      : new Vector(
+          bounds.x + borderLeftWidth / 3,
+          bounds.y + borderTopWidth / 3
+        )
   boundCurves.topRightBorderDoubleOuterBox =
     tlh > 0 || tlv > 0
       ? getCurvePoints(
@@ -165,7 +175,10 @@ export function createBoundCurves(layoutObject) {
           trv - borderTopWidth / 3,
           CORNER.TOP_RIGHT
         )
-      : new Vector(bounds.x + bounds.width - borderRightWidth / 3, bounds.y + borderTopWidth / 3)
+      : new Vector(
+          bounds.x + bounds.width - borderRightWidth / 3,
+          bounds.y + borderTopWidth / 3
+        )
   boundCurves.bottomRightBorderDoubleOuterBox =
     brh > 0 || brv > 0
       ? getCurvePoints(
@@ -188,7 +201,10 @@ export function createBoundCurves(layoutObject) {
           blv - borderBottomWidth / 3,
           CORNER.BOTTOM_LEFT
         )
-      : new Vector(bounds.x + borderLeftWidth / 3, bounds.y + bounds.height - borderBottomWidth / 3)
+      : new Vector(
+          bounds.x + borderLeftWidth / 3,
+          bounds.y + bounds.height - borderBottomWidth / 3
+        )
   boundCurves.topLeftBorderDoubleInnerBox =
     tlh > 0 || tlv > 0
       ? getCurvePoints(
@@ -198,7 +214,10 @@ export function createBoundCurves(layoutObject) {
           tlv - (borderTopWidth * 2) / 3,
           CORNER.TOP_LEFT
         )
-      : new Vector(bounds.x + (borderLeftWidth * 2) / 3, bounds.y + (borderTopWidth * 2) / 3)
+      : new Vector(
+          bounds.x + (borderLeftWidth * 2) / 3,
+          bounds.y + (borderTopWidth * 2) / 3
+        )
   boundCurves.topRightBorderDoubleInnerBox =
     tlh > 0 || tlv > 0
       ? getCurvePoints(
@@ -247,7 +266,10 @@ export function createBoundCurves(layoutObject) {
           tlv - borderTopWidth / 2,
           CORNER.TOP_LEFT
         )
-      : new Vector(bounds.x + borderLeftWidth / 2, bounds.y + borderTopWidth / 2)
+      : new Vector(
+          bounds.x + borderLeftWidth / 2,
+          bounds.y + borderTopWidth / 2
+        )
   boundCurves.topRightBorderStroke =
     tlh > 0 || tlv > 0
       ? getCurvePoints(
@@ -257,7 +279,10 @@ export function createBoundCurves(layoutObject) {
           trv - borderTopWidth / 2,
           CORNER.TOP_RIGHT
         )
-      : new Vector(bounds.x + bounds.width - borderRightWidth / 2, bounds.y + borderTopWidth / 2)
+      : new Vector(
+          bounds.x + bounds.width - borderRightWidth / 2,
+          bounds.y + borderTopWidth / 2
+        )
   boundCurves.bottomRightBorderStroke =
     brh > 0 || brv > 0
       ? getCurvePoints(
@@ -280,14 +305,23 @@ export function createBoundCurves(layoutObject) {
           blv - borderBottomWidth / 2,
           CORNER.BOTTOM_LEFT
         )
-      : new Vector(bounds.x + borderLeftWidth / 2, bounds.y + bounds.height - borderBottomWidth / 2)
+      : new Vector(
+          bounds.x + borderLeftWidth / 2,
+          bounds.y + bounds.height - borderBottomWidth / 2
+        )
   boundCurves.topLeftBorderBox =
     tlh > 0 || tlv > 0
       ? getCurvePoints(bounds.x, bounds.y, tlh, tlv, CORNER.TOP_LEFT)
       : new Vector(bounds.x, bounds.y)
   boundCurves.topRightBorderBox =
     trh > 0 || trv > 0
-      ? getCurvePoints(bounds.x + topWidth, bounds.y, trh, trv, CORNER.TOP_RIGHT)
+      ? getCurvePoints(
+          bounds.x + topWidth,
+          bounds.y,
+          trh,
+          trv,
+          CORNER.TOP_RIGHT
+        )
       : new Vector(bounds.x + bounds.width, bounds.y)
   boundCurves.bottomRightBorderBox =
     brh > 0 || brv > 0
@@ -301,7 +335,13 @@ export function createBoundCurves(layoutObject) {
       : new Vector(bounds.x + bounds.width, bounds.y + bounds.height)
   boundCurves.bottomLeftBorderBox =
     blh > 0 || blv > 0
-      ? getCurvePoints(bounds.x, bounds.y + leftHeight, blh, blv, CORNER.BOTTOM_LEFT)
+      ? getCurvePoints(
+          bounds.x,
+          bounds.y + leftHeight,
+          blh,
+          blv,
+          CORNER.BOTTOM_LEFT
+        )
       : new Vector(bounds.x, bounds.y + bounds.height)
   boundCurves.topLeftPaddingBox =
     tlh > 0 || tlv > 0
@@ -318,11 +358,16 @@ export function createBoundCurves(layoutObject) {
       ? getCurvePoints(
           bounds.x + Math.min(topWidth, bounds.width - borderRightWidth),
           bounds.y + borderTopWidth,
-          topWidth > bounds.width + borderRightWidth ? 0 : Math.max(0, trh - borderRightWidth),
+          topWidth > bounds.width + borderRightWidth
+            ? 0
+            : Math.max(0, trh - borderRightWidth),
           Math.max(0, trv - borderTopWidth),
           CORNER.TOP_RIGHT
         )
-      : new Vector(bounds.x + bounds.width - borderRightWidth, bounds.y + borderTopWidth)
+      : new Vector(
+          bounds.x + bounds.width - borderRightWidth,
+          bounds.y + borderTopWidth
+        )
   boundCurves.bottomRightPaddingBox =
     brh > 0 || brv > 0
       ? getCurvePoints(
@@ -345,7 +390,10 @@ export function createBoundCurves(layoutObject) {
           Math.max(0, blv - borderBottomWidth),
           CORNER.BOTTOM_LEFT
         )
-      : new Vector(bounds.x + borderLeftWidth, bounds.y + bounds.height - borderBottomWidth)
+      : new Vector(
+          bounds.x + borderLeftWidth,
+          bounds.y + bounds.height - borderBottomWidth
+        )
   boundCurves.topLeftContentBox =
     tlh > 0 || tlv > 0
       ? getCurvePoints(
@@ -355,11 +403,15 @@ export function createBoundCurves(layoutObject) {
           Math.max(0, tlv - (borderTopWidth + paddingTop)),
           CORNER.TOP_LEFT
         )
-      : new Vector(bounds.x + borderLeftWidth + paddingLeft, bounds.y + borderTopWidth + paddingTop)
+      : new Vector(
+          bounds.x + borderLeftWidth + paddingLeft,
+          bounds.y + borderTopWidth + paddingTop
+        )
   boundCurves.topRightContentBox =
     trh > 0 || trv > 0
       ? getCurvePoints(
-          bounds.x + Math.min(topWidth, bounds.width + borderLeftWidth + paddingLeft),
+          bounds.x +
+            Math.min(topWidth, bounds.width + borderLeftWidth + paddingLeft),
           bounds.y + borderTopWidth + paddingTop,
           topWidth > bounds.width + borderLeftWidth + paddingLeft
             ? 0
@@ -374,8 +426,13 @@ export function createBoundCurves(layoutObject) {
   boundCurves.bottomRightContentBox =
     brh > 0 || brv > 0
       ? getCurvePoints(
-          bounds.x + Math.min(bottomWidth, bounds.width - (borderLeftWidth + paddingLeft)),
-          bounds.y + Math.min(rightHeight, bounds.height + borderTopWidth + paddingTop),
+          bounds.x +
+            Math.min(
+              bottomWidth,
+              bounds.width - (borderLeftWidth + paddingLeft)
+            ),
+          bounds.y +
+            Math.min(rightHeight, bounds.height + borderTopWidth + paddingTop),
           Math.max(0, brh - (borderRightWidth + paddingRight)),
           brv - (borderBottomWidth + paddingBottom),
           CORNER.BOTTOM_RIGHT

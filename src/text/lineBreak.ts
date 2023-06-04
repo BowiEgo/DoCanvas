@@ -246,10 +246,7 @@ const isAdjacentWithSpaceIgnored = (
   return false
 }
 
-const previousNonSpaceClassType = (
-  currentIndex: number,
-  classTypes: number[]
-): number => {
+const previousNonSpaceClassType = (currentIndex: number, classTypes: number[]): number => {
   let i = currentIndex
   while (i >= 0) {
     let type = classTypes[i]
@@ -279,10 +276,7 @@ const _lineBreakAtIndex = (
   }
 
   let currentIndex = index - 1
-  if (
-    Array.isArray(forbiddenBreaks) &&
-    forbiddenBreaks[currentIndex] === true
-  ) {
+  if (Array.isArray(forbiddenBreaks) && forbiddenBreaks[currentIndex] === true) {
     return BREAK_NOT_ALLOWED
   }
 
@@ -324,10 +318,7 @@ const _lineBreakAtIndex = (
   }
 
   // zwj emojis
-  if (
-    (current === EB || current === EM) &&
-    UnicodeTrie.get(codePoints[afterIndex]) === ZWJ
-  ) {
+  if ((current === EB || current === EM) && UnicodeTrie.get(codePoints[afterIndex]) === ZWJ) {
     return BREAK_NOT_ALLOWED
   }
 
@@ -424,8 +415,7 @@ const _lineBreakAtIndex = (
 
   // LB24 Do not break between numeric prefix/postfix and letters, or between letters and prefix/postfix.
   if (
-    (ALPHABETICS.indexOf(current) !== -1 &&
-      PREFIX_POSTFIX.indexOf(next) !== -1) ||
+    (ALPHABETICS.indexOf(current) !== -1 && PREFIX_POSTFIX.indexOf(next) !== -1) ||
     (PREFIX_POSTFIX.indexOf(current) !== -1 && ALPHABETICS.indexOf(next) !== -1)
   ) {
     return BREAK_NOT_ALLOWED
@@ -435,9 +425,7 @@ const _lineBreakAtIndex = (
   if (
     // (PR | PO) × ( OP | HY )? NU
     ([PR, PO].indexOf(current) !== -1 &&
-      (next === NU ||
-        ([OP, HY].indexOf(next) !== -1 &&
-          classTypes[afterIndex + 1] === NU))) ||
+      (next === NU || ([OP, HY].indexOf(next) !== -1 && classTypes[afterIndex + 1] === NU))) ||
     // ( OP | HY ) × NU
     ([OP, HY].indexOf(current) !== -1 && next === NU) ||
     // NU ×	(NU | SY | IS)
@@ -463,8 +451,7 @@ const _lineBreakAtIndex = (
 
   // NU (NU | SY | IS)* (CL | CP)? × (PO | PR))
   if ([PR, PO].indexOf(next) !== -1) {
-    let prevIndex =
-      [CL, CP].indexOf(current) !== -1 ? beforeIndex : currentIndex
+    let prevIndex = [CL, CP].indexOf(current) !== -1 ? beforeIndex : currentIndex
     while (prevIndex >= 0) {
       let type = classTypes[prevIndex]
       if (type === NU) {
@@ -488,8 +475,7 @@ const _lineBreakAtIndex = (
 
   // LB27 Treat a Korean Syllable Block the same as ID.
   if (
-    (KOREAN_SYLLABLE_BLOCK.indexOf(current) !== -1 &&
-      [IN, PO].indexOf(next) !== -1) ||
+    (KOREAN_SYLLABLE_BLOCK.indexOf(current) !== -1 && [IN, PO].indexOf(next) !== -1) ||
     (KOREAN_SYLLABLE_BLOCK.indexOf(next) !== -1 && current === PR)
   ) {
     return BREAK_NOT_ALLOWED
@@ -541,10 +527,7 @@ const _lineBreakAtIndex = (
   return BREAK_ALLOWED
 }
 
-export const lineBreakAtIndex = (
-  codePoints: number[],
-  index: number
-): BREAK_OPPORTUNITIES => {
+export const lineBreakAtIndex = (codePoints: number[], index: number): BREAK_OPPORTUNITIES => {
   // LB2 Never break at the start of text.
   if (index === 0) {
     return BREAK_NOT_ALLOWED
@@ -581,46 +564,30 @@ const cssFormattedClasses = (
   )
 
   if (options.wordBreak === 'break-all' || options.wordBreak === 'break-word') {
-    classTypes = classTypes.map((type) =>
-      [NU, AL, SA].indexOf(type) !== -1 ? ID : type
-    )
+    classTypes = classTypes.map((type) => ([NU, AL, SA].indexOf(type) !== -1 ? ID : type))
   }
 
   const forbiddenBreakpoints =
     options.wordBreak === 'keep-all'
       ? isLetterNumber.map((letterNumber, i) => {
-          return (
-            letterNumber && codePoints[i] >= 0x4e00 && codePoints[i] <= 0x9fff
-          )
+          return letterNumber && codePoints[i] >= 0x4e00 && codePoints[i] <= 0x9fff
         })
       : undefined
 
   return [indicies, classTypes, forbiddenBreakpoints]
 }
 
-export const inlineBreakOpportunities = (
-  str: string,
-  options?: IOptions
-): string => {
+export const inlineBreakOpportunities = (str: string, options?: IOptions): string => {
   const codePoints = toCodePoints(str)
   let output = BREAK_NOT_ALLOWED
-  const [indicies, classTypes, forbiddenBreakpoints] = cssFormattedClasses(
-    codePoints,
-    options
-  )
+  const [indicies, classTypes, forbiddenBreakpoints] = cssFormattedClasses(codePoints, options)
 
   codePoints.forEach((codePoint, i) => {
     output +=
       fromCodePoint(codePoint) +
       (i >= codePoints.length - 1
         ? BREAK_MANDATORY
-        : _lineBreakAtIndex(
-            codePoints,
-            classTypes,
-            indicies,
-            i + 1,
-            forbiddenBreakpoints
-          ))
+        : _lineBreakAtIndex(codePoints, classTypes, indicies, i + 1, forbiddenBreakpoints))
   })
 
   return output
@@ -632,12 +599,7 @@ class Break {
   readonly start: number
   readonly end: number
 
-  constructor(
-    codePoints: number[],
-    lineBreak: string,
-    start: number,
-    end: number
-  ) {
+  constructor(codePoints: number[], lineBreak: string, start: number, end: number) {
     this.codePoints = codePoints
     this.required = lineBreak === BREAK_MANDATORY
     this.start = start
@@ -663,15 +625,9 @@ interface ILineBreakIterator {
   next: () => LineBreak
 }
 
-export const LineBreaker = (
-  str: string,
-  options?: IOptions
-): ILineBreakIterator => {
+export const LineBreaker = (str: string, options?: IOptions): ILineBreakIterator => {
   const codePoints = toCodePoints(str)
-  const [indicies, classTypes, forbiddenBreakpoints] = cssFormattedClasses(
-    codePoints,
-    options
-  )
+  const [indicies, classTypes, forbiddenBreakpoints] = cssFormattedClasses(codePoints, options)
   const length = codePoints.length
   let lastEnd = 0
   let nextIndex = 0

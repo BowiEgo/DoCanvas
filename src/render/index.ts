@@ -133,7 +133,10 @@ function _formatPath(ctx: CanvasRenderingContext2D, paths: Path[]): void {
   })
 }
 
-function _paintBackGroundAndBorder(ctx: CanvasRenderingContext2D, renderObject) {
+function _paintBackGroundAndBorder(
+  ctx: CanvasRenderingContext2D,
+  renderObject
+) {
   const styles = renderObject.element.getComputedStyles()
   !renderObject.curves && renderObject.initCurves()
   const backgroundPaintingArea = calculateBackgroundCurvedPaintingArea(
@@ -158,7 +161,8 @@ function paintBlock(this: CanvasRenderer, renderObject) {
 }
 
 function paintInline(this: CanvasRenderer, renderObject) {
-  const lineArray = renderObject.element.getLayoutObject().getContainer().lineBox.lineArray
+  const lineArray = renderObject.element.getLayoutObject().getContainer()
+    .lineBox.lineArray
 
   if (lineArray.isPainted) return
 
@@ -173,13 +177,16 @@ function paintInline(this: CanvasRenderer, renderObject) {
         const styles = renderObject.children[0].getTextStyles()
 
         ctx.textBaseline = 'ideographic'
-        ctx.font = `normal ${styles.fontSize}px ${styles.fontFamily || this.defaultFontFamily}`
+        ctx.font = `normal ${styles.fontSize}px ${
+          styles.fontFamily || this.defaultFontFamily
+        }`
         ctx.fillStyle = styles.color
 
         ctx.fillText(
           lineItem.text,
           lineItem.rect.start,
-          lineItem.rect.before + renderObject.element.getLayoutObject().getContainer().rect.before
+          lineItem.rect.before +
+            renderObject.element.getLayoutObject().getContainer().rect.before
         )
       }
       lineItem.isPainted = true
@@ -197,7 +204,9 @@ function paintText(this: CanvasRenderer, renderObject) {
   const styles = renderObject.getTextStyles()
 
   ctx.textBaseline = 'ideographic'
-  ctx.font = `normal ${styles.fontSize}px ${styles.fontFamily || this.defaultFontFamily}`
+  ctx.font = `normal ${styles.fontSize}px ${
+    styles.fontFamily || this.defaultFontFamily
+  }`
   ctx.fillStyle = styles.color
   renderObject.textLines.lines.forEach((line) =>
     ctx.fillText(line[0], line[1], line[2] + renderObject.layoutBox.top)
