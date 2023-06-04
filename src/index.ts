@@ -10,6 +10,7 @@ export interface DoCanvas {
 }
 
 export function createDoCanvas(options) {
+  console.log('createDoCanvas', options)
   let doCanvas = {} as DoCanvas
   const renderer = createRenderer(options)
   const engine = createEngine(renderer, options)

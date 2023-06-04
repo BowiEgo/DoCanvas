@@ -1,18 +1,19 @@
 const { createDoCanvas } = XCanvas
 
 const STR_CN =
-  '😱一、选择适合的报纸在进行登报挂失前，您需要选择一家有一定知名度和影响力的报纸进行登报。目前，大多数地区都有本地的日报、晚报、周报等媒体，您可以选择其中的一家来登报。二、撰写登报文章登报文章的撰写需要遵守一定的规定和格式。一般来说，登报文章应该包含以下几个方面的内容： 👌'
+  '😱一、选择适合的报纸在进行登报挂失前，您需要选择一家有一定知名度和影响力的报纸进行登报。目前，大多数地区都有本地的日报、晚报、周报等媒体，您可以选择其中的一家来登报。 👌'
 const STR_EN =
   '😱 😱 😱 👌👌👌This webpage transforms plain text into the immaculate emoji language.Want emoji tokens for the VOIP service Discord instead of Unicode characters? Tick that checkbox!'
 
-function initCanvas() {
+function initCanvas(fontFamily) {
   const canvas = document.querySelector('#canvas')
   canvas.style.display = 'block'
 
   const _ctx = canvas.getContext('2d')
   const dpr = window.devicePixelRatio
-  const _w = window.innerWidth
-  const _h = window.innerHeight / 2
+  const rect = canvas.getBoundingClientRect()
+  const _w = rect.width
+  const _h = rect.height
   canvas.width = _w * dpr
   canvas.height = _h * dpr
 
@@ -27,6 +28,7 @@ function initCanvas() {
     width: _w,
     height: _h,
     backgroundColor: '#fff',
+    fontFamily,
     debug: false
   })
 
@@ -39,7 +41,7 @@ function initCanvas() {
       backgroundColor: '#00aeec45',
       width: 300,
       height: 'auto',
-      marginTop: 40
+      marginTop: 20
     }
   })
   const childElm2 = DoCanvas.createElement('view', {
@@ -79,18 +81,28 @@ function initCanvas() {
   })
   const textElm1 = DoCanvas.createElement(
     'text',
-    { style: { fontSize: 16 } },
+    { style: { fontSize: 16, lineHeight: 23 } },
     STR_CN
   )
 
+  const inlineElm = DoCanvas.createElement('view', {
+    style: {
+      display: 'inline-block',
+      backgroundColor: 'pink',
+      width: 50,
+      height: 30
+    }
+  })
+
   const textElm2 = DoCanvas.createElement(
     'text',
-    { style: { fontSize: 16 } },
+    { style: { fontSize: 16, lineHeight: 23 } },
     STR_EN
   )
 
   childElm1.appendChild(textElm1)
-  // childElm1.appendChild(textElm2)
+  childElm1.appendChild(inlineElm)
+  childElm1.appendChild(textElm2)
   elm.appendChild(childElm1)
   elm.appendChild(childElm2)
   elm.appendChild(childElm3)
@@ -98,14 +110,7 @@ function initCanvas() {
   elm.appendChild(childElm5)
   DoCanvas.body.appendChild(elm)
 
-  console.log(
-    '11111',
-    elm.constructor.name,
-    elm,
-    elm.container,
-    elm.parent,
-    elm.getContainer()
-  )
+  console.log('0000', elm.constructor.name, elm, elm.container, elm.parentNode, elm.getContainer())
 
   // console.log(elm.node.instance, elm)
   console.log(
@@ -114,6 +119,24 @@ function initCanvas() {
     textElm1.children[0].getContainer() === textElm1
   )
   console.log('2222', textElm1.getRootNode() === DoCanvas.body)
+  // childElm1.getComputedStyles().marginTop = 100
+  childElm1.setComputedStyles('marginTop', 100)
+  console.log(
+    '3333',
+    childElm1,
+    childElm1.getLayoutObject(),
+    childElm1.getLayoutObject().element === childElm1,
+    childElm1.renderObject
+  )
+
+  console.log(
+    '4444',
+    childElm1.getLayoutObject().getBoxModel(),
+    childElm1.getLayoutObject().getBoxModel().marginTop,
+    childElm1.getLayoutObject().element.getComputedStyles().marginTop,
+    childElm1.getComputedStyles().marginTop,
+    DoCanvas.body.getComputedStyles()
+  )
 }
 
 function initHTMLELement() {
@@ -128,6 +151,7 @@ function initHTMLELement() {
   const textElm2 = document.createElement('span')
   const text1 = document.createTextNode(STR_CN)
   const text2 = document.createTextNode(STR_EN)
+  const inlineElm = document.createElement('div')
 
   const childElm6 = document.createElement('span')
   const childElm66 = document.createElement('span')
@@ -135,29 +159,29 @@ function initHTMLELement() {
   const childElm7 = document.createElement('div')
   const childElm8 = document.createElement('div')
 
+  textElm1.style = 'font-size: 16px; line-height: 23px'
+  inlineElm.style = 'display: inline-block; background-color: pink;width: 50px;height: 30px'
+
   elm.style = `height: ${
     window.innerHeight / 2
   }px; border-bottom: 1px solid #000;box-sizing: border-box`
   childElm1.style =
-    'color: red; rext-align: center; background-color: #00aeec45; width: 300px; height: auto; margin-top: 40px;'
+    'color: red; rext-align: center; background-color: #00aeec45; width: 300px; height: auto; margin-top: 20px;'
   childElm2.style = 'background-color: green; width: 50px; height: 40px'
   childElm3.style =
     'display:inline-block; background-color: lightgreen; width: 150px; height: 30px;'
-  childElm4.style =
-    'display:inline-block; background-color: darkorange; width: 150px; height: 30px'
-  childElm5.style =
-    'display:inline-block; background-color: pink; width: 150px; height: 30px'
+  childElm4.style = 'display:inline-block; background-color: darkorange; width: 150px; height: 30px'
+  childElm5.style = 'display:inline-block; background-color: pink; width: 150px; height: 30px'
 
   childElm6.style = 'background-color: lightgreen; width: 50px; height: 30px'
-  childElm7.style =
-    'display:block; background-color: darkorange; width: 50px; height: 30px'
-  childElm8.style =
-    'display:block; background-color: pink; width: 50px; height: 30px'
+  childElm7.style = 'display:block; background-color: darkorange; width: 50px; height: 30px'
+  childElm8.style = 'display:block; background-color: pink; width: 50px; height: 30px'
 
   document.body.insertBefore(elm, canvas)
   textElm1.appendChild(text1)
   textElm2.appendChild(text2)
   childElm1.appendChild(textElm1)
+  childElm1.appendChild(inlineElm)
   childElm1.appendChild(textElm2)
   elm.appendChild(childElm1)
   elm.appendChild(childElm2)
@@ -173,6 +197,7 @@ function initHTMLELement() {
 }
 
 // let f = new FontFace('PingFang SC', 'url(./)');
+var defaultFont = window.getComputedStyle(document.documentElement).fontFamily
 
-initCanvas()
+initCanvas(defaultFont)
 initHTMLELement()

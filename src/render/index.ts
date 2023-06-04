@@ -5,9 +5,9 @@
 // | |—— RenderText {#text} at (0, 24) size 48x24 "Second one."
 
 import { BACKGROUND_CLIP } from '../css/property-descriptors/background-clip'
-import { Color, isTransparent } from '../css/types/color'
+import { Color } from '../css/types/color'
 import { CanvasElement } from '../element/element'
-import { Engine } from '../engine'
+import { isLayoutInlineBlock } from '../layout/layoutInlineBlock'
 import { getBackgroundValueForIndex } from './canvas/background'
 import { isBezierCurve } from './canvas/bezierCurve'
 import {
@@ -18,7 +18,7 @@ import {
 } from './canvas/boundCurves'
 import { Path } from './canvas/path'
 import { Vector } from './canvas/vector'
-import { RenderObject } from './renderObject'
+import { RenderObject, RenderType } from './renderObject'
 
 export type RenderConfigurations = RenderOptions & {
   backgroundColor: Color | null
@@ -28,6 +28,7 @@ export interface RenderOptions {
   canvas?: HTMLCanvasElement
   ctx: CanvasRenderingContext2D
   dpr?: number
+  defaultFontFamily: string
   width: number
   height: number
 }
@@ -36,12 +37,15 @@ export interface CanvasRenderer {
   canvas: HTMLCanvasElement
   ctx: CanvasRenderingContext2D
   dpr?: number
+  defaultFontFamily: string
   root: RenderObject
-  paint(renderObject: RenderObject): void
   render(elm?: CanvasElement): void
+  paint(renderObject: RenderObject): void
+  paintBlock(renderObject: RenderObject): void
+  paintInline(renderObject: RenderObject): void
+  paintInlineBlock(renderObject: RenderObject): void
+  paintText(renderObject: RenderObject): void
   mask(paths: Path[]): void
-  path(paths: Path[]): void
-  formatPath(paths: Path[]): void
 }
 
 export function createRenderer(options: RenderConfigurations): CanvasRenderer {
@@ -49,121 +53,155 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
     canvas: options.canvas,
     ctx: options.ctx,
     dpr: options.dpr || 1,
+    defaultFontFamily: options.defaultFontFamily,
     root: null,
-    paint,
     render,
-    mask,
-    path,
-    formatPath
-  }
-
-  function render(elm) {
-    renderer.paint(elm.renderObject)
-  }
-
-  function paint(renderObject) {
-    switch (renderObject.type) {
-      case 'block':
-        renderBlock(renderObject)
-        break
-      case 'inline-block':
-        renderInline(renderObject)
-        break
-      case 'inline':
-        renderInline(renderObject)
-        break
-      case 'text':
-        renderText(renderObject)
-        break
-      default:
-        break
-    }
-
-    if (renderObject.hasChildNode()) {
-      renderObject.children.forEach((child) => paint(child))
-    }
-  }
-
-  function mask(paths: Path[]): void {
-    renderer.ctx.beginPath()
-    renderer.ctx.moveTo(0, 0)
-    renderer.ctx.lineTo(renderer.canvas.width, 0)
-    renderer.ctx.lineTo(renderer.canvas.width, renderer.canvas.height)
-    renderer.ctx.lineTo(0, renderer.canvas.height)
-    renderer.ctx.lineTo(0, 0)
-    renderer.formatPath(paths.slice(0).reverse())
-    renderer.ctx.closePath()
-  }
-
-  function path(paths: Path[]): void {
-    renderer.ctx.beginPath()
-    renderer.formatPath(paths)
-    renderer.ctx.closePath()
-  }
-
-  function formatPath(paths: Path[]): void {
-    paths.forEach((point, index) => {
-      const start: Vector = isBezierCurve(point) ? point.start : point
-      if (index === 0) {
-        renderer.ctx.moveTo(start.x, start.y)
-      } else {
-        renderer.ctx.lineTo(start.x, start.y)
-      }
-
-      if (isBezierCurve(point)) {
-        renderer.ctx.bezierCurveTo(
-          point.startControl.x,
-          point.startControl.y,
-          point.endControl.x,
-          point.endControl.y,
-          point.end.x,
-          point.end.y
-        )
-      }
-    })
-  }
-
-  function paintBackGroundAndBorder(renderObject) {
-    const { ctx } = renderer
-    const styles = renderObject.element.computedStyles
-    const backgroundPaintingArea = calculateBackgroundCurvedPaintingArea(
-      getBackgroundValueForIndex(styles.backgroundClip, 0),
-      renderObject.curves
-    )
-    ctx.save()
-    path(backgroundPaintingArea)
-    ctx.clip()
-
-    // if (!isTransparent(styles.backgroundColor)) {
-    if (styles.backgroundColor && styles.backgroundColor !== 'transparent') {
-      ctx.fillStyle = styles.backgroundColor
-      ctx.fill()
-    }
-
-    ctx.restore()
-  }
-
-  function renderBlock(renderObject) {
-    paintBackGroundAndBorder(renderObject)
-  }
-
-  function renderInline(renderObject) {
-    paintBackGroundAndBorder(renderObject)
-  }
-
-  function renderText(renderObject) {
-    const { ctx } = renderer
-    const styles = renderObject.getTextStyles()
-
-    ctx.textBaseline = 'ideographic'
-    ctx.font = `normal ${styles.fontSize}px PingFang SC`
-    ctx.fillStyle = styles.color
-    renderObject.textLines.lines.forEach((line) =>
-      ctx.fillText(line[0], line[1], line[2] + renderObject.layoutBox.top)
-    )
+    paint,
+    paintBlock,
+    paintInline,
+    paintInlineBlock,
+    paintText,
+    mask
   }
 
   return renderer
+}
+
+function render(this: CanvasRenderer, elm) {
+  this.paint(elm.renderObject)
+}
+
+function paint(this: CanvasRenderer, renderObject: RenderObject) {
+  switch (renderObject.type) {
+    case RenderType.BLOCK:
+      this.paintBlock(renderObject)
+      break
+    case RenderType.INLINE:
+      this.paintInline(renderObject)
+      break
+    case RenderType.INLINE_BLOCK:
+      this.paintInlineBlock(renderObject)
+      break
+    case RenderType.TEXT:
+      // this.paintText(renderObject)
+      break
+    default:
+      break
+  }
+
+  if (renderObject.hasChildNode()) {
+    renderObject.children.forEach((child) => this.paint(child))
+  }
+}
+
+function mask(paths: Path[]): void {
+  this.ctx.beginPath()
+  this.ctx.moveTo(0, 0)
+  this.ctx.lineTo(this.canvas.width, 0)
+  this.ctx.lineTo(this.canvas.width, this.canvas.height)
+  this.ctx.lineTo(0, this.canvas.height)
+  this.ctx.lineTo(0, 0)
+  this.formatPath(paths.slice(0).reverse())
+  this.ctx.closePath()
+}
+
+function _path(ctx: CanvasRenderingContext2D, paths: Path[]): void {
+  ctx.beginPath()
+  _formatPath(ctx, paths)
+  ctx.closePath()
+}
+
+function _formatPath(ctx: CanvasRenderingContext2D, paths: Path[]): void {
+  paths.forEach((point, index) => {
+    const start: Vector = isBezierCurve(point) ? point.start : point
+    if (index === 0) {
+      ctx.moveTo(start.x, start.y)
+    } else {
+      ctx.lineTo(start.x, start.y)
+    }
+
+    if (isBezierCurve(point)) {
+      ctx.bezierCurveTo(
+        point.startControl.x,
+        point.startControl.y,
+        point.endControl.x,
+        point.endControl.y,
+        point.end.x,
+        point.end.y
+      )
+    }
+  })
+}
+
+function _paintBackGroundAndBorder(ctx: CanvasRenderingContext2D, renderObject) {
+  const styles = renderObject.element.getComputedStyles()
+  !renderObject.curves && renderObject.initCurves()
+  const backgroundPaintingArea = calculateBackgroundCurvedPaintingArea(
+    getBackgroundValueForIndex(styles.backgroundClip, 0),
+    renderObject.curves
+  )
+  ctx.save()
+  _path(ctx, backgroundPaintingArea)
+  ctx.clip()
+
+  // if (!isTransparent(styles.backgroundColor)) {
+  if (styles.backgroundColor && styles.backgroundColor !== 'transparent') {
+    ctx.fillStyle = styles.backgroundColor
+    ctx.fill()
+  }
+
+  ctx.restore()
+}
+
+function paintBlock(this: CanvasRenderer, renderObject) {
+  _paintBackGroundAndBorder(this.ctx, renderObject)
+}
+
+function paintInline(this: CanvasRenderer, renderObject) {
+  const lineArray = renderObject.element.getLayoutObject().getContainer().lineBox.lineArray
+
+  if (lineArray.isPainted) return
+
+  lineArray.forEach((line) => {
+    line.children.forEach((lineItem) => {
+      if (lineItem.isPainted) return
+      if (isLayoutInlineBlock(lineItem)) {
+        _paintBackGroundAndBorder(this.ctx, lineItem.element.renderObject)
+      } else {
+        if (renderObject.children.length === 0) return
+        const { ctx } = this
+        const styles = renderObject.children[0].getTextStyles()
+
+        ctx.textBaseline = 'ideographic'
+        ctx.font = `normal ${styles.fontSize}px ${styles.fontFamily || this.defaultFontFamily}`
+        ctx.fillStyle = styles.color
+
+        ctx.fillText(
+          lineItem.text,
+          lineItem.rect.start,
+          lineItem.rect.before + renderObject.element.getLayoutObject().getContainer().rect.before
+        )
+      }
+      lineItem.isPainted = true
+    })
+  })
+  lineArray.isPainted = true
+}
+
+function paintInlineBlock(this: CanvasRenderer, renderObject) {
+  _paintBackGroundAndBorder(this.ctx, renderObject)
+}
+
+function paintText(this: CanvasRenderer, renderObject) {
+  const { ctx } = this
+  const styles = renderObject.getTextStyles()
+
+  ctx.textBaseline = 'ideographic'
+  ctx.font = `normal ${styles.fontSize}px ${styles.fontFamily || this.defaultFontFamily}`
+  ctx.fillStyle = styles.color
+  renderObject.textLines.lines.forEach((line) =>
+    ctx.fillText(line[0], line[1], line[2] + renderObject.layoutBox.top)
+  )
 }
 
 const calculateBackgroundCurvedPaintingArea = (

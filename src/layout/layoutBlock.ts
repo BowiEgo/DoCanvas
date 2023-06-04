@@ -1,6 +1,16 @@
-import { pipe } from '../utils'
-import { LayoutBox, createBaseLayoutBox, createLayoutBox } from './layoutBox'
-import { createLayoutBoxModelObject } from './layoutBoxModelObject'
+import { CanvasBodyElement, CanvasElement } from '../element/element'
+import { createPoint } from '../geometry/point'
+import { createRect } from '../geometry/rect'
+import { createSize } from '../geometry/size'
+import { createLineBox } from './lineBox'
+import { fromCodePoint, toCodePoints } from '../text/Util'
+import { LineBreaker } from '../text/lineBreak'
+import { NOOP, breakPipe, pipe, pipeLine, when, withConstructor } from '../utils'
+import { LayoutBox, createLayoutBox } from './layoutBox'
+import { isLayoutInlineBlock } from './layoutInlineBlock'
+import { LayoutFlag, LayoutType, isLayoutObject } from './layoutObject'
+import { LayoutText, isLayoutText } from './layoutText'
+import {} from './lineBox'
 
 // LayoutBlock is the class that is used by any LayoutObject
 // that is a containing block.
@@ -60,19 +70,58 @@ import { createLayoutBoxModelObject } from './layoutBoxModelObject'
 //     ...
 // }
 
-export interface LayoutBlock extends LayoutBox {}
+export interface LayoutBlock extends LayoutBox {
+  updateLayout(): void
+}
 
-export const createLayoutblock = function LayoutBlock() {
-  return pipe(createBaseLayoutBlock())(createLayoutBox())
+export interface AnonymousLayoutBlock extends LayoutBlock {
+  element: null
+  layoutFlag: LayoutFlag.IS_ANONYMOUS
+}
+
+export function generateBlockType() {
+  let type = LayoutType.BOX_MODEL
+  type |= LayoutType.BOX
+  type |= LayoutType.BLOCK
+  return type
+}
+
+export function isLayoutBlock(value: any): value is LayoutBlock {
+  if (!isLayoutObject(value)) return false
+  return !!(value.type & LayoutType.BLOCK)
+}
+
+export function isAnonymousLayoutBlock(value: any): value is AnonymousLayoutBlock {
+  if (!isLayoutBlock(value)) return false
+  return !!(value.layoutFlag & LayoutFlag.IS_ANONYMOUS)
+}
+
+export const createLayoutBlock = function LayoutBlock(element: CanvasElement): LayoutBlock {
+  return pipe(createBaseLayoutBlock(), withConstructor(LayoutBlock))(createLayoutBox(element))
+}
+
+export const createAnonymousLayoutBlock = function AnonymousLayoutBlock(
+  element
+): AnonymousLayoutBlock {
+  return pipe(
+    createBaseLayoutBlock(true),
+    withConstructor(AnonymousLayoutBlock)
+  )(createLayoutBox(element))
 }
 
 const createBaseLayoutBlock =
-  () =>
+  (isAnonymous?) =>
   (o): LayoutBlock => {
     let layoutBlock = {
       ...o,
-      _isLayoutBlock: true
+      type: generateBlockType(),
+      updateLayout
     }
 
+    if (isAnonymous) {
+      layoutBlock.layoutFlag |= LayoutFlag.IS_ANONYMOUS
+    }
     return layoutBlock
   }
+
+function updateLayout(this: LayoutBlock) {}

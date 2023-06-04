@@ -1,3 +1,17 @@
+import { CanvasElement } from '../element/element'
+import { pipe, withConstructor } from '../utils'
+import { createAnonymousLayoutBlock } from './layoutBlock'
+import { LayoutBox, createBaseLayoutBox, createLayoutBox } from './layoutBox'
+import { LayoutBoxModelObject, createLayoutBoxModelObject } from './layoutBoxModelObject'
+import {
+  LayoutFlag,
+  LayoutObject,
+  LayoutType,
+  isLayoutObject,
+  removeLayoutFlag
+} from './layoutObject'
+import { createLineBox } from './lineBox'
+
 // LayoutInline is the LayoutObject associated with display: inline.
 // This is called an "inline box" in CSS 2.1.
 // http://www.w3.org/TR/CSS2/visuren.html#inline-boxes
@@ -74,3 +88,93 @@
 //
 // This section was inspired by an older article by Dave Hyatt:
 // https://www.webkit.org/blog/115/webcore-rendering-ii-blocks-and-inlines/
+
+export function isLayoutInline(value: any): value is LayoutInline {
+  if (!isLayoutObject(value)) return false
+  return !!(value.type & LayoutType.INLINE)
+}
+
+export function generateInlineType() {
+  let type = LayoutType.BOX_MODEL
+  type |= LayoutType.INLINE
+  return type
+}
+
+export interface LayoutInline extends LayoutObject {
+  updateSize(): void
+  updateLayout(): void
+  wrapByAnonymousBlock(): void
+  generateLineBoxRects(): void
+}
+
+export const createLayoutInline = function LayoutInline(element: CanvasElement) {
+  return pipe(createBaseLayoutInline(), withConstructor(LayoutInline))(createLayoutBox(element))
+}
+
+export const createBaseLayoutInline =
+  () =>
+  (o: LayoutBoxModelObject): LayoutInline => {
+    let layoutInline = {
+      ...o,
+      type: generateInlineType(),
+      updateSize,
+      updateLayout,
+      generateLineBoxRects,
+      wrapByAnonymousBlock
+    } as LayoutInline
+
+    return layoutInline
+  }
+
+// function checkIfNeedWrapped() {
+//   if (this.parentNode.isAnonymous()) return false
+
+//   isLayoutInline(this.previousSibling)
+// }
+
+function wrapByAnonymousBlock(this: LayoutInline) {
+  if (this.layoutFlag & LayoutFlag.NEED_ANONYMOUS) {
+    let siblingsNeedWrapped = _getSiblingsNeedWrapped(this)
+    const container = this.parentNode as LayoutBox
+    const anonymousBlock = createAnonymousLayoutBlock(this.getContainer().element)
+
+    siblingsNeedWrapped.forEach((item) => {
+      item.parentNode.removeChildNode(item)
+      anonymousBlock.appendChild(item)
+    })
+
+    container.appendChild(anonymousBlock)
+    removeLayoutFlag(this, LayoutFlag.NEED_ANONYMOUS)
+    anonymousBlock.lineBox = createLineBox(siblingsNeedWrapped, container.size.width)
+    anonymousBlock.setHeight(anonymousBlock.lineBox.height)
+    container.updateSize()
+
+    anonymousBlock.updateLayout()
+    // anonymousBlock.flow()
+  }
+}
+
+function updateSize(this: LayoutInline) {}
+
+function updateLayout(this: LayoutInline) {
+  // console.log('updateLayout-inline', this.element.type, this.element.id)
+  this.wrapByAnonymousBlock()
+}
+
+function generateLineBoxRects() {}
+
+function _getSiblingsNeedWrapped(layoutInline: LayoutInline): LayoutInline[] {
+  let arr = [layoutInline]
+
+  function walkSibling(curr) {
+    if (!curr.nextSibling) return
+    if (isLayoutInline(curr.nextSibling)) {
+      arr.push(curr.nextSibling)
+    }
+    walkSibling(curr.nextSibling)
+  }
+
+  walkSibling(layoutInline)
+
+  return arr
+}
