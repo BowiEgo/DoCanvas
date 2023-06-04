@@ -1,10 +1,21 @@
-import { CanvasBodyElement, CanvasElement, Layout, isCanvasElement } from '../element/element'
+import { CanvasBodyElement, CanvasElement } from '../element/element'
 import { Point, createPoint } from '../geometry/point'
 import { Rect, createRect } from '../geometry/rect'
 import { Size, createSize } from '../geometry/size'
-import { NOOP, breakPipe, isAuto, pipe, pipeLine, when, withConstructor } from '../utils'
+import {
+  NOOP,
+  breakPipe,
+  isAuto,
+  pipe,
+  pipeLine,
+  when,
+  withConstructor
+} from '../utils'
 import { isAnonymousLayoutBlock } from './layoutBlock'
-import { LayoutBoxModelObject, createLayoutBoxModelObject } from './layoutBoxModelObject'
+import {
+  LayoutBoxModelObject,
+  createLayoutBoxModelObject
+} from './layoutBoxModelObject'
 import { LayoutType, isLayoutObject } from './layoutObject'
 
 // LayoutBox implements the full CSS box model.
@@ -238,13 +249,23 @@ const _measureSize = (layoutBox: LayoutBox): Size =>
       breakPipe
     ),
     when(() => !layoutBox.hasChildNode(), NOOP, breakPipe),
-    when(() => isAuto(layoutBox.getStyles().width), _calcWidthByChild(layoutBox)),
-    when(() => isAuto(layoutBox.getStyles().height), _calcHeightByChild(layoutBox))
+    when(
+      () => isAuto(layoutBox.getStyles().width),
+      _calcWidthByChild(layoutBox)
+    ),
+    when(
+      () => isAuto(layoutBox.getStyles().height),
+      _calcHeightByChild(layoutBox)
+    )
   )(createSize())
 
 const _calcPos = (layoutBox: LayoutBox): Point =>
   pipeLine(
-    when(() => layoutBox.element && layoutBox.element.isBody(), NOOP, breakPipe),
+    when(
+      () => layoutBox.element && layoutBox.element.isBody(),
+      NOOP,
+      breakPipe
+    ),
     _calcPosByParentAndPrevSibling(layoutBox)
   )(createPoint())
 
@@ -258,7 +279,9 @@ const _calcPosByParentAndPrevSibling =
     let x = parentBox ? parentBox.rect.start : 0
     let y =
       (prevSiblingBox ? prevSiblingBox.rect.after : parentBoxBefore) +
-      (isAnonymousLayoutBlock(layoutBox) ? 0 : layoutBox.getBoxModel().marginTop)
+      (isAnonymousLayoutBlock(layoutBox)
+        ? 0
+        : layoutBox.getBoxModel().marginTop)
 
     o.setX(x)
     o.setY(y)

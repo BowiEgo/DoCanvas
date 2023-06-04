@@ -1,7 +1,7 @@
 import { CanvasElement } from './element/element'
 import { isLayoutBox } from './layout/layoutBox'
 import { CanvasRenderer } from './render'
-import { RenderObject, createRenderObject } from './render/renderObject'
+import { RenderObject } from './render/renderObject'
 import { BFS, PostOrderDFS } from './utils/treeSearch'
 
 export interface Engine {
@@ -71,7 +71,9 @@ export function createEngine(renderer, options): Engine {
     //   .forEach((item) => item.measureBoxSize())
 
     elm.renderObject.initCurves()
-    console.log(`渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`)
+    console.log(
+      `渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`
+    )
     elm.getRootElement().type === 'body' && paint(elm)
   }
 

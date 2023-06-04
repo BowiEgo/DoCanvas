@@ -1,6 +1,10 @@
 import { Engine, createEngine } from './engine'
 import { CanvasRenderer, createRenderer } from './render'
-import { CanvasElement, CreateElementFn, createElementAPI } from './element/element'
+import {
+  CanvasElement,
+  CreateElementFn,
+  createElementAPI
+} from './element/element'
 
 export interface DoCanvas {
   body: CanvasElement

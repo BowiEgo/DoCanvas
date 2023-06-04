@@ -1,6 +1,7 @@
 import { CanvasElement } from '../element/element'
 import { BFS, PostOrderDFS } from '../utils/treeSearch'
 
+// constructing...
 interface StackingContext {
   element: CanvasElement // 层叠上下文顶端节点
   negativeZIndex: StackingContext[] // z-index为负的次级上下文
@@ -13,7 +14,9 @@ interface StackingContext {
   nonInlineLevel: CanvasElement[] // 块级子元素 非上下文
 }
 
-export function createStackingContext(container: CanvasElement): StackingContext {
+export function createStackingContext(
+  container: CanvasElement
+): StackingContext {
   let stackingContext = {
     element: container,
     negativeZIndex: [],
@@ -27,8 +30,6 @@ export function createStackingContext(container: CanvasElement): StackingContext
 
   let breathArr = BFS(container)
   let postOrderDeepArr = PostOrderDFS(container)
-  console.log('breathArr', breathArr)
-  console.log('postOrderDeepArr', postOrderDeepArr)
 
   return stackingContext
 }

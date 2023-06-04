@@ -1,16 +1,7 @@
-import { CanvasBodyElement, CanvasElement } from '../element/element'
-import { createPoint } from '../geometry/point'
-import { createRect } from '../geometry/rect'
-import { createSize } from '../geometry/size'
-import { createLineBox } from './lineBox'
-import { fromCodePoint, toCodePoints } from '../text/Util'
-import { LineBreaker } from '../text/lineBreak'
-import { NOOP, breakPipe, pipe, pipeLine, when, withConstructor } from '../utils'
+import { CanvasElement } from '../element/element'
+import { pipe, withConstructor } from '../utils'
 import { LayoutBox, createLayoutBox } from './layoutBox'
-import { isLayoutInlineBlock } from './layoutInlineBlock'
 import { LayoutFlag, LayoutType, isLayoutObject } from './layoutObject'
-import { LayoutText, isLayoutText } from './layoutText'
-import {} from './lineBox'
 
 // LayoutBlock is the class that is used by any LayoutObject
 // that is a containing block.
@@ -91,13 +82,20 @@ export function isLayoutBlock(value: any): value is LayoutBlock {
   return !!(value.type & LayoutType.BLOCK)
 }
 
-export function isAnonymousLayoutBlock(value: any): value is AnonymousLayoutBlock {
+export function isAnonymousLayoutBlock(
+  value: any
+): value is AnonymousLayoutBlock {
   if (!isLayoutBlock(value)) return false
   return !!(value.layoutFlag & LayoutFlag.IS_ANONYMOUS)
 }
 
-export const createLayoutBlock = function LayoutBlock(element: CanvasElement): LayoutBlock {
-  return pipe(createBaseLayoutBlock(), withConstructor(LayoutBlock))(createLayoutBox(element))
+export const createLayoutBlock = function LayoutBlock(
+  element: CanvasElement
+): LayoutBlock {
+  return pipe(
+    createBaseLayoutBlock(),
+    withConstructor(LayoutBlock)
+  )(createLayoutBox(element))
 }
 
 export const createAnonymousLayoutBlock = function AnonymousLayoutBlock(

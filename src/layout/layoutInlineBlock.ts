@@ -5,7 +5,6 @@ import { createLayoutInline } from './layoutInline'
 import { LayoutType, isLayoutObject } from './layoutObject'
 
 export interface LayoutInlineBlock extends LayoutBox {
-  _isLayoutInlineBlock: boolean
   // updateLayout(): void
 }
 
@@ -22,7 +21,9 @@ export function isLayoutInlineBlock(value: any): value is LayoutInlineBlock {
   return !!(value.type & LayoutType.INLINE_BLOCK)
 }
 
-export const createLayoutInlineBlock = function LayoutInlineBlock(element: CanvasElement) {
+export const createLayoutInlineBlock = function LayoutInlineBlock(
+  element: CanvasElement
+) {
   return pipe(
     createBaseLayoutBox(),
     createBaseLayoutInlineBlock(),
@@ -35,15 +36,8 @@ const createBaseLayoutInlineBlock =
   (o: LayoutBox): LayoutInlineBlock => {
     let layoutInlineBlock = {
       ...o,
-      type: generateInlineBlockType(),
-      _isLayoutInlineBlock: true
-      // updateSize,
-      // updateLayout
+      type: generateInlineBlockType()
     }
 
     return layoutInlineBlock
   }
-
-function updateSize(this: LayoutInlineBlock) {}
-
-function updateLayout(this: LayoutInlineBlock) {}

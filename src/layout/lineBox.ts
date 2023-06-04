@@ -3,6 +3,7 @@ import { createPoint } from '../geometry/point'
 import { Rect, createRect } from '../geometry/rect'
 import { createSize } from '../geometry/size'
 import { fromCodePoint, toCodePoints } from '../text/Util'
+// import { splitGraphemes } from '../text/graphemeBreak'
 import { LineBreaker } from '../text/lineBreak'
 import { pipeLine, when } from '../utils'
 import { LayoutInlineBlock } from './layoutInlineBlock'
@@ -60,10 +61,14 @@ const _breakLines = (childLayout) => (lineBox) => {
       const grandChild = child.children[0]
 
       pipeLine(
-        when(() => !isLayoutText(grandChild), _breakBlockLines(child, index, childLayout)),
+        when(
+          () => !isLayoutText(grandChild),
+          _breakBlockLines(child, index, childLayout)
+        ),
         when(() => isLayoutText(grandChild), _breakTextLines(grandChild)),
         when(
-          () => !isLayoutText(grandChild) && isLayoutText(childLayout[index + 1]),
+          () =>
+            !isLayoutText(grandChild) && isLayoutText(childLayout[index + 1]),
           () => {
             lineBox.lineArray.push(lineBox.currLine)
           }
@@ -83,7 +88,10 @@ function createLine(
 ) {
   let line = {
     children: [],
-    rect: createRect(createPoint(relativeX, relativeY), createSize(width, height)),
+    rect: createRect(
+      createPoint(relativeX, relativeY),
+      createSize(width, height)
+    ),
     addChild(child) {
       this.children.push(child)
     }
@@ -145,7 +153,12 @@ const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
 
   const createNewLine = () => (lineBox) => {
     lineBox.lineArray.push(lineBox.currLine)
-    lineBox.currLine = createLine(0, lineBox.after, child.size.width, child.size.height)
+    lineBox.currLine = createLine(
+      0,
+      lineBox.after,
+      child.size.width,
+      child.size.height
+    )
     appendChildToNewLine()(lineBox)
     lineBox.currLineHeight = child.size.height
     lineBox.after += lineBox.currLineHeight
@@ -165,7 +178,10 @@ const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
   }
 
   const resetChildLocation = () => (lineBox) => {
-    if (childLayout[index + 1] && isLayoutText(childLayout[index + 1].children[0])) {
+    if (
+      childLayout[index + 1] &&
+      isLayoutText(childLayout[index + 1].children[0])
+    ) {
       lineBox.lineArray.push(lineBox.currLine)
     }
     child.setX(lineBox.end - child.size.width)
@@ -192,7 +208,9 @@ const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
 // TODO: 用二分法进行优化，减少ctx.measureText()调用次数
 const _breakTextLines = (layoutText) => (lineBox) => {
   // TODO: cache context
-  const body = layoutText.element.getContainer().getRootNode() as CanvasBodyElement
+  const body = layoutText.element
+    .getContainer()
+    .getRootNode() as CanvasBodyElement
   const ctx = body.context.renderer.ctx
   const defaultFontFamily = body.context.renderer.defaultFontFamily
   let { fontSize, lineHeight, fontFamily } = layoutText.getTextStyles()
@@ -240,7 +258,12 @@ const _breakTextLines = (layoutText) => (lineBox) => {
   }
 
   const appendWordToNewLine = (word) => (lineBox) => {
-    lineBox.currLine = createLine(0, lineBox.after, metrics.width, lineBox.currLineHeight)
+    lineBox.currLine = createLine(
+      0,
+      lineBox.after,
+      metrics.width,
+      lineBox.currLineHeight
+    )
     lineBox.currLineHeight = lineHeight
     lineBox.after += lineBox.currLineHeight
     lineBox.end = metrics.width
@@ -291,7 +314,9 @@ const _breakTextLines = (layoutText) => (lineBox) => {
 }
 
 // https://drafts.csswg.org/css-text/#word-separator
-const wordSeparators = [0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091]
+const wordSeparators = [
+  0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091
+]
 
 const _breakWords = (str: string, styles): string[] => {
   const breaker = LineBreaker(str, {

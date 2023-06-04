@@ -342,7 +342,10 @@ function getRootElement(this: CanvasElement) {
   return this.getRootNode()
 }
 
-function getContainerStyle(this: CanvasElement, styleName: string): ComputedStyles {
+function getContainerStyle(
+  this: CanvasElement,
+  styleName: string
+): ComputedStyles {
   const container = this.getContainer()
 
   if (!container) return

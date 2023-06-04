@@ -84,7 +84,9 @@ export const createBaseRenderObject =
       element,
       get viewport() {
         let rootElm = element.getRootNode()
-        return rootElm && rootElm.type === 'body' ? rootElm.context.viewport : null
+        return rootElm && rootElm.type === 'body'
+          ? rootElm.context.viewport
+          : null
       },
       layoutBox: null,
       curves: null,

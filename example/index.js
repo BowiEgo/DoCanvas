@@ -110,7 +110,14 @@ function initCanvas(fontFamily) {
   elm.appendChild(childElm5)
   DoCanvas.body.appendChild(elm)
 
-  console.log('0000', elm.constructor.name, elm, elm.container, elm.parentNode, elm.getContainer())
+  console.log(
+    '0000',
+    elm.constructor.name,
+    elm,
+    elm.container,
+    elm.parentNode,
+    elm.getContainer()
+  )
 
   // console.log(elm.node.instance, elm)
   console.log(
@@ -160,7 +167,8 @@ function initHTMLELement() {
   const childElm8 = document.createElement('div')
 
   textElm1.style = 'font-size: 16px; line-height: 23px'
-  inlineElm.style = 'display: inline-block; background-color: pink;width: 50px;height: 30px'
+  inlineElm.style =
+    'display: inline-block; background-color: pink;width: 50px;height: 30px'
 
   elm.style = `height: ${
     window.innerHeight / 2
@@ -170,12 +178,16 @@ function initHTMLELement() {
   childElm2.style = 'background-color: green; width: 50px; height: 40px'
   childElm3.style =
     'display:inline-block; background-color: lightgreen; width: 150px; height: 30px;'
-  childElm4.style = 'display:inline-block; background-color: darkorange; width: 150px; height: 30px'
-  childElm5.style = 'display:inline-block; background-color: pink; width: 150px; height: 30px'
+  childElm4.style =
+    'display:inline-block; background-color: darkorange; width: 150px; height: 30px'
+  childElm5.style =
+    'display:inline-block; background-color: pink; width: 150px; height: 30px'
 
   childElm6.style = 'background-color: lightgreen; width: 50px; height: 30px'
-  childElm7.style = 'display:block; background-color: darkorange; width: 50px; height: 30px'
-  childElm8.style = 'display:block; background-color: pink; width: 50px; height: 30px'
+  childElm7.style =
+    'display:block; background-color: darkorange; width: 50px; height: 30px'
+  childElm8.style =
+    'display:block; background-color: pink; width: 50px; height: 30px'
 
   document.body.insertBefore(elm, canvas)
   textElm1.appendChild(text1)
