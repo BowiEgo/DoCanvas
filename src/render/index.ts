@@ -19,6 +19,7 @@ import {
 import { Path } from './canvas/path'
 import { Vector } from './canvas/vector'
 import { RenderObject, RenderType } from './renderObject'
+import { isRenderText } from './renderText'
 
 export type RenderConfigurations = RenderOptions & {
   backgroundColor: Color | null
@@ -72,6 +73,7 @@ function render(this: CanvasRenderer, elm) {
 }
 
 function paint(this: CanvasRenderer, renderObject: RenderObject) {
+  console.log('paint', renderObject)
   switch (renderObject.type) {
     case RenderType.BLOCK:
       this.paintBlock(renderObject)
@@ -174,6 +176,10 @@ function paintInline(this: CanvasRenderer, renderObject) {
       } else {
         if (renderObject.children.length === 0) return
         const { ctx } = this
+        // console.log(renderObject, renderObject.children[0])
+        if (!isRenderText(renderObject.children[0])) {
+          return
+        }
         const styles = renderObject.children[0].getTextStyles()
 
         ctx.textBaseline = 'ideographic'

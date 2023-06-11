@@ -10,6 +10,7 @@ import {
   isLayoutObject,
   removeLayoutFlag
 } from './layoutObject'
+import { isLayoutText } from './layoutText'
 import { createLineBox } from './lineBox'
 
 // LayoutInline is the LayoutObject associated with display: inline.
@@ -128,6 +129,7 @@ export const createBaseLayoutInline =
   }
 
 function wrapByAnonymousBlock(this: LayoutInline) {
+  console.log('wrapByAnonymousBlock', this)
   if (this.layoutFlag & LayoutFlag.NEED_ANONYMOUS) {
     let siblingsNeedWrapped = _getSiblingsNeedWrapped(this)
     const container = this.parentNode as LayoutBox
@@ -141,6 +143,7 @@ function wrapByAnonymousBlock(this: LayoutInline) {
     })
 
     container.appendChild(anonymousBlock)
+    console.log('wrapByAnonymousBlock-0', siblingsNeedWrapped)
     removeLayoutFlag(this, LayoutFlag.NEED_ANONYMOUS)
     anonymousBlock.lineBox = createLineBox(
       siblingsNeedWrapped,
@@ -164,7 +167,7 @@ function _getSiblingsNeedWrapped(layoutInline: LayoutInline): LayoutInline[] {
 
   function walkSibling(curr) {
     if (!curr.nextSibling) return
-    if (isLayoutInline(curr.nextSibling)) {
+    if (isLayoutInline(curr.nextSibling) || isLayoutText(curr.nextSibling)) {
       arr.push(curr.nextSibling)
     }
     walkSibling(curr.nextSibling)

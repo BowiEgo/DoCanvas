@@ -5,12 +5,14 @@ import {
   CreateElementFn,
   createElementAPI
 } from './element/element'
+import { CreateTextNodeFn, createTextNodeAPI } from './element/textNode'
 
 export interface DoCanvas {
   body: CanvasElement
   engine: Engine
   renderer: CanvasRenderer
   createElement: CreateElementFn
+  createTextNode: CreateTextNodeFn
 }
 
 export function createDoCanvas(options) {
@@ -19,12 +21,14 @@ export function createDoCanvas(options) {
   const renderer = createRenderer(options)
   const engine = createEngine(renderer, options)
   const createElement = createElementAPI(engine)
+  const createTextNode = createTextNodeAPI()
 
   doCanvas = {
     body: null,
     engine,
     renderer,
-    createElement
+    createElement,
+    createTextNode
   }
 
   doCanvas.body = createElement('body')

@@ -10,6 +10,7 @@ const STR_EN =
   '😱 😱 😱 👌👌👌This webpage transforms plain text into the immaculate emoji language.Want emoji tokens for the VOIP service Discord instead of Unicode characters? Tick that checkbox!'
 
 onMounted(() => {
+  return
   const _ctx = canvas.value.getContext('2d') as CanvasRenderingContext2D
   const dpr = window.devicePixelRatio || 1
   const rect = canvas.value.getBoundingClientRect()

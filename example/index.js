@@ -100,6 +100,23 @@ function initCanvas(fontFamily) {
     STR_EN
   )
 
+  const paraElm1 = DoCanvas.createElement('p', {})
+  const spanElm1 = DoCanvas.createElement('span', {
+    style: { color: 'rgb(0, 112, 192)' }
+  })
+  const strongElm1 = DoCanvas.createElement(
+    'strong',
+    {},
+    '4月18日，韦尔股份发布了2023年第一季度业绩。'
+  )
+  const textNode1 = DoCanvas.createTextNode(
+    '2023年一季度，公司实现营收43.35亿元，同比下降21.72%，环比下滑7.67%；净利润1.99亿元，同比下降77.81%。'
+  )
+
+  spanElm1.appendChild(strongElm1)
+  paraElm1.appendChild(spanElm1)
+  paraElm1.appendChild(textNode1)
+
   childElm1.appendChild(textElm1)
   childElm1.appendChild(inlineElm)
   childElm1.appendChild(textElm2)
@@ -108,24 +125,25 @@ function initCanvas(fontFamily) {
   elm.appendChild(childElm3)
   elm.appendChild(childElm4)
   elm.appendChild(childElm5)
+  // DoCanvas.body.appendChild(paraElm1)
   DoCanvas.body.appendChild(elm)
 
-  console.log(
-    '0000',
-    elm.constructor.name,
-    elm,
-    elm.container,
-    elm.parentNode,
-    elm.getContainer()
-  )
+  // console.log(
+  //   '0000',
+  //   elm.constructor.name,
+  //   elm,
+  //   elm.container,
+  //   elm.parentNode,
+  //   elm.getContainer()
+  // )
 
   // console.log(elm.node.instance, elm)
-  console.log(
-    '1111',
-    textElm1.children[0].parentNode === textElm1,
-    textElm1.children[0].getContainer() === textElm1
-  )
-  console.log('2222', textElm1.getRootNode() === DoCanvas.body)
+  // console.log(
+  //   '1111',
+  //   textElm1.children[0].parentNode === textElm1,
+  //   textElm1.children[0].getContainer() === textElm1
+  // )
+  // console.log('2222', textElm1.getRootNode() === DoCanvas.body)
   // childElm1.getComputedStyles().marginTop = 100
   // childElm1.setComputedStyles('marginTop', 100)
   // console.log(

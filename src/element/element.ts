@@ -278,7 +278,6 @@ export const createBaseElement =
     }
 
     _computedStyles = { ..._createRenderStyles(element) }
-
     if (element.type === 'body') {
       ;(<CanvasBodyElement>element).context = context
       setComputedStyles('width', context.viewport.width)
@@ -329,7 +328,8 @@ function computeStyles(this: CanvasElement) {
 
   if (this.hasChildren()) {
     this.children.forEach((child) => {
-      child.computeStyles()
+      console.log(child)
+      !isCanvasTextNode(child) && child.computeStyles()
     })
   }
 }

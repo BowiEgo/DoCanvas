@@ -49,6 +49,7 @@ export const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
   let isOutOfBox = false
 
   const initTest = () => (lineBox) => {
+    console.log('initTest', child)
     testWidth += child.size.width
     return lineBox
   }

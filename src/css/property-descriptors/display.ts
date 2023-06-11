@@ -44,6 +44,10 @@ export const display: IPropertyListDescriptor<Display> = {
     switch (type) {
       case 'text':
         return 'inline'
+      case 'span':
+        return 'inline'
+      case 'strong':
+        return 'inline'
       default:
         return 'block'
     }

@@ -11,10 +11,6 @@ import {
   _initRenderObject
 } from './element'
 
-export function isCanvasTextNode(value: any): value is CanvasTextNode {
-  return value ? value.__v_isCanvasTextNode === true : false
-}
-
 export interface CanvasTextNode extends TreeNode<CanvasElement> {
   __v_isCanvasTextNode: boolean
   text: string
@@ -28,9 +24,11 @@ export interface CanvasTextNode extends TreeNode<CanvasElement> {
   isBody(): boolean
 }
 
-export type CreateTextNodeAPI = (context: Engine) => CreateTextNodeFn
-
 export type CreateTextNodeFn = (text: string) => CanvasTextNode
+
+export const createTextNodeAPI = (): CreateTextNodeFn => {
+  return createTextNode
+}
 
 export const createTextNode = function CanvasTextNode(text: string) {
   return pipe(
@@ -38,6 +36,10 @@ export const createTextNode = function CanvasTextNode(text: string) {
     createBaseTextNode(text),
     withConstructor(CanvasTextNode)
   )({} as CanvasTextNode)
+}
+
+export function isCanvasTextNode(value: any): value is CanvasTextNode {
+  return value ? value.__v_isCanvasTextNode === true : false
 }
 
 export const createBaseTextNode =

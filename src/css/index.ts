@@ -1,5 +1,10 @@
 import { CSSPropertyDescriptor } from './IPropertyDescriptor'
-import { DEFAULT_TEXT_STYLES, DEFAULT_VIEW_STYLES } from './constant'
+import {
+  DEFAULT_PARA_STYLES,
+  DEFAULT_STRONG_STYLES,
+  DEFAULT_TEXT_STYLES,
+  DEFAULT_VIEW_STYLES
+} from './constant'
 import { backgroundClip } from './property-descriptors/background-clip'
 import { backgroundColor } from './property-descriptors/background-color'
 import {
@@ -168,6 +173,12 @@ function getDefaultStyle(type) {
   switch (type) {
     case 'text':
       return DEFAULT_TEXT_STYLES
+    case 'span':
+      return DEFAULT_TEXT_STYLES
+    case 'p':
+      return DEFAULT_PARA_STYLES
+    case 'strong':
+      return DEFAULT_STRONG_STYLES
     default:
       return DEFAULT_VIEW_STYLES
   }

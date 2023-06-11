@@ -7,6 +7,9 @@ import { pipeLine, when } from '../utils'
 import { LayoutInlineBlock, _breakBlockLines } from './layoutInlineBlock'
 import { _breakTextLines, isLayoutText } from './layoutText'
 
+// https://www.w3.org/TR/CSS21/visuren.html#inline-formatting
+// https://www.w3.org/TR/2002/WD-css3-linebox-20020515/
+// https://www.w3.org/TR/css-inline-3/#line-box
 export type Line = {
   children: Array<LayoutInlineBlock | TextLine>
   rect: Rect
@@ -30,6 +33,7 @@ export interface LineBox {
 }
 
 export function createLineBox(childLayout, maxWidth) {
+  console.log('createLineBox', childLayout, maxWidth)
   let lineBox = {
     lineArray: [],
     end: 0,
@@ -54,6 +58,7 @@ export function createLineBox(childLayout, maxWidth) {
 }
 
 const _breakLines = (childLayout) => (lineBox) => {
+  console.log('_breakLines', childLayout)
   const walk = (lineBox) =>
     childLayout.forEach((child, index) => {
       const grandChild = child.children[0]
