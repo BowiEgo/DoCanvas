@@ -1,10 +1,10 @@
 import { CanvasElement } from '../element/element'
-import { pipe, pipeLine, when, withConstructor } from '../utils'
+import { createPipeLine, pipe, when, withConstructor } from '../utils'
 import { LayoutBox, createBaseLayoutBox } from './layoutBox'
 import { createLayoutInline } from './layoutInline'
 import { LayoutType, isLayoutObject } from './layoutObject'
 import { isLayoutText } from './layoutText'
-import { createLine, lineBoxLogger } from './lineBox'
+import { createLineBox, lineBoxLogger } from './lineBox'
 
 export interface LayoutInlineBlock extends LayoutBox {
   // updateLayout(): void
@@ -77,7 +77,7 @@ export const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
 
   const createNewLine = () => (lineBox) => {
     lineBox.lineArray.push(lineBox.currLine)
-    lineBox.currLine = createLine(
+    lineBox.currLine = createLineBox(
       0,
       lineBox.after,
       child.size.width,
@@ -112,6 +112,8 @@ export const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
     child.setY(lineBox.lastLineBefore)
     return lineBox
   }
+
+  const { pipeLine, breakPipe } = createPipeLine()
 
   pipeLine(
     initTest(),

@@ -2,15 +2,13 @@ import { CanvasElement } from './element/element'
 import { isLayoutBox } from './layout/layoutBox'
 import { CanvasRenderer } from './render'
 import { RenderObject } from './render/renderObject'
-import { BFS, PostOrderDFS } from './utils/treeSearch'
+import { BFS, PostOrderDFS, PreOrderDFS } from './utils/treeSearch'
 
 export interface Engine {
   renderer: CanvasRenderer
   viewport: { width: number; height: number }
   rootRenderObject: RenderObject
   DFSRenderArray: RenderObject[]
-  updateDFSRenderArray(renderObject: RenderObject): void
-  measureBoxSize(elm: CanvasElement): void
   flow(elm: CanvasElement): void
   reflow(elm: CanvasElement): void
   paint(elm: CanvasElement): void
@@ -26,23 +24,10 @@ export function createEngine(renderer, options): Engine {
     },
     rootRenderObject: null,
     DFSRenderArray: [],
-    updateDFSRenderArray,
-    measureBoxSize,
     flow,
     reflow,
     paint,
     repaint
-  }
-
-  function updateDFSRenderArray(renderObject) {
-    engine.DFSRenderArray = PostOrderDFS(renderObject)
-  }
-
-  function measureBoxSize(elm) {
-    engine.updateDFSRenderArray(elm.renderObject)
-    engine.DFSRenderArray.forEach((item) => {
-      item.measureBoxSize()
-    })
   }
 
   function flow(elm) {
@@ -60,9 +45,10 @@ export function createEngine(renderer, options): Engine {
     BFS(elm.getLayoutObject())
       .filter((item) => isLayoutBox(item))
       .reverse()
-      .forEach((item) => item.updateSize())
+      .forEach((item) => item.updateWidthSize())
 
-    BFS(elm.getLayoutObject()).forEach((item) => item.updateLayout())
+    // BFS(elm.getLayoutObject()).forEach((item) => item.updateLayout())
+    // PreOrderDFS(elm.getLayoutObject())
 
     elm.getLayoutObject().flow()
 

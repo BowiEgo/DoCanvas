@@ -32,73 +32,73 @@ function initCanvas(fontFamily) {
     debug: false
   })
 
-  const elm = DoCanvas.createElement('view', { id: 'container' })
-  const childElm1 = DoCanvas.createElement('view', {
-    id: 'childElm1:text-container',
-    style: {
-      color: 'red',
-      textAlign: 'center',
-      backgroundColor: '#00aeec45',
-      width: 300,
-      height: 'auto',
-      marginTop: 20
-    }
-  })
-  const childElm2 = DoCanvas.createElement('view', {
-    id: 'childElm2:green',
-    style: {
-      backgroundColor: 'green',
-      width: 50,
-      height: 40
-    }
-  })
-  const childElm3 = DoCanvas.createElement('view', {
-    id: 'childElm3:lightgreen',
-    style: {
-      display: 'inline-block',
-      backgroundColor: 'lightgreen',
-      width: 150,
-      height: 30
-    }
-  })
-  const childElm4 = DoCanvas.createElement('view', {
-    id: 'childElm4:darkorange',
-    style: {
-      display: 'inline-block',
-      backgroundColor: 'darkorange',
-      width: 150,
-      height: 30
-    }
-  })
-  const childElm5 = DoCanvas.createElement('view', {
-    id: 'childElm5:pink',
-    style: {
-      display: 'inline-block',
-      backgroundColor: 'pink',
-      width: 150,
-      height: 30
-    }
-  })
-  const textElm1 = DoCanvas.createElement(
-    'text',
-    { style: { fontSize: 16, lineHeight: 23 } },
-    STR_CN
-  )
+  // const elm = DoCanvas.createElement('view', { id: 'container' })
+  // const childElm1 = DoCanvas.createElement('view', {
+  //   id: 'childElm1:text-container',
+  //   style: {
+  //     color: 'red',
+  //     textAlign: 'center',
+  //     backgroundColor: '#00aeec45',
+  //     width: 300,
+  //     height: 'auto',
+  //     marginTop: 20
+  //   }
+  // })
+  // const childElm2 = DoCanvas.createElement('view', {
+  //   id: 'childElm2:green',
+  //   style: {
+  //     backgroundColor: 'green',
+  //     width: 50,
+  //     height: 40
+  //   }
+  // })
+  // const childElm3 = DoCanvas.createElement('view', {
+  //   id: 'childElm3:lightgreen',
+  //   style: {
+  //     display: 'inline-block',
+  //     backgroundColor: 'lightgreen',
+  //     width: 150,
+  //     height: 30
+  //   }
+  // })
+  // const childElm4 = DoCanvas.createElement('view', {
+  //   id: 'childElm4:darkorange',
+  //   style: {
+  //     display: 'inline-block',
+  //     backgroundColor: 'darkorange',
+  //     width: 150,
+  //     height: 30
+  //   }
+  // })
+  // const childElm5 = DoCanvas.createElement('view', {
+  //   id: 'childElm5:pink',
+  //   style: {
+  //     display: 'inline-block',
+  //     backgroundColor: 'pink',
+  //     width: 150,
+  //     height: 30
+  //   }
+  // })
+  // const textElm1 = DoCanvas.createElement(
+  //   'text',
+  //   { style: { fontSize: 16, lineHeight: 23 } },
+  //   STR_CN
+  // )
 
-  const inlineElm = DoCanvas.createElement('view', {
-    style: {
-      display: 'inline-block',
-      backgroundColor: 'pink',
-      width: 50,
-      height: 30
-    }
-  })
+  // const inlineElm = DoCanvas.createElement('view', {
+  //   style: {
+  //     display: 'inline-block',
+  //     backgroundColor: 'pink',
+  //     width: 50,
+  //     height: 30
+  //   }
+  // })
 
-  const textElm2 = DoCanvas.createElement(
-    'text',
-    { style: { fontSize: 16, lineHeight: 23 } },
-    STR_EN
-  )
+  // const textElm2 = DoCanvas.createElement(
+  //   'text',
+  //   { style: { fontSize: 16, lineHeight: 23 } },
+  //   STR_EN
+  // )
 
   const paraElm1 = DoCanvas.createElement('p', {})
   const spanElm1 = DoCanvas.createElement('span', {
@@ -117,16 +117,19 @@ function initCanvas(fontFamily) {
   paraElm1.appendChild(spanElm1)
   paraElm1.appendChild(textNode1)
 
-  childElm1.appendChild(textElm1)
-  childElm1.appendChild(inlineElm)
-  childElm1.appendChild(textElm2)
-  elm.appendChild(childElm1)
-  elm.appendChild(childElm2)
-  elm.appendChild(childElm3)
-  elm.appendChild(childElm4)
-  elm.appendChild(childElm5)
-  // DoCanvas.body.appendChild(paraElm1)
-  DoCanvas.body.appendChild(elm)
+  console.log('1111111', textNode1.getPreviousNode())
+  console.log('1111111', spanElm1.getNextNode())
+
+  // childElm1.appendChild(textElm1)
+  // childElm1.appendChild(inlineElm)
+  // childElm1.appendChild(textElm2)
+  // elm.appendChild(childElm1)
+  // elm.appendChild(childElm2)
+  // elm.appendChild(childElm3)
+  // elm.appendChild(childElm4)
+  // elm.appendChild(childElm5)
+  DoCanvas.body.appendChild(paraElm1)
+  // DoCanvas.body.appendChild(elm)
 
   // console.log(
   //   '0000',

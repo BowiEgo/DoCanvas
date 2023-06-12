@@ -3,14 +3,19 @@ import { Rect, createRect } from '../geometry/rect'
 import { createSize } from '../geometry/size'
 import { fromCodePoint, toCodePoints } from '../text/Util'
 // import { splitGraphemes } from '../text/graphemeBreak'
-import { pipeLine, when } from '../utils'
-import { LayoutInlineBlock, _breakBlockLines } from './layoutInlineBlock'
+import { createPipeLine, when } from '../utils'
+import {
+  LayoutInlineBlock,
+  _breakBlockLines,
+  isLayoutInlineBlock
+} from './layoutInlineBlock'
+import { LayoutObject, LayoutType } from './layoutObject'
 import { _breakTextLines, isLayoutText } from './layoutText'
 
 // https://www.w3.org/TR/CSS21/visuren.html#inline-formatting
 // https://www.w3.org/TR/2002/WD-css3-linebox-20020515/
 // https://www.w3.org/TR/css-inline-3/#line-box
-export type Line = {
+export type LineBox = {
   children: Array<LayoutInlineBlock | TextLine>
   rect: Rect
 }
@@ -20,26 +25,35 @@ export type TextLine = {
   rect: Rect
 }
 
-export interface LineBox {
-  lineArray: []
+export interface LineBoxs {
+  type: LayoutType
+  layouts: LayoutObject[]
+  lineArray: any[]
   end: number
   after: number
   maxWidth: number
   height: number
   currLineHeight: number
   lastLineBefore: number
-  currLine: Line
-  lastLine: Line
+  currLine: LineBox
+  lastLine: LineBox
+  breakLines(): void
+  addLayout(layout: LayoutObject): void
 }
 
-export function createLineBox(childLayout, maxWidth) {
-  console.log('createLineBox', childLayout, maxWidth)
-  let lineBox = {
+export function isLineBoxs(value: any): value is LineBoxs {
+  return value && !!(value.type & LayoutType.LINE_BOXS)
+}
+
+export function createLineBoxs(maxWidth): LineBoxs {
+  let lineBoxs = {
+    type: LayoutType.LINE_BOXS,
+    layouts: [],
     lineArray: [],
     end: 0,
     after: 0,
     maxWidth,
-    currLine: createLine(),
+    currLine: createLineBox(),
     currLineHeight: 0,
     get height() {
       return this.after
@@ -49,47 +63,47 @@ export function createLineBox(childLayout, maxWidth) {
     },
     get lastLineBefore() {
       return this.lastLine ? this.after - this.lastLine.rect.height : 0
+    },
+    breakLines() {
+      console.log('_breakLines', this)
+      const lineBoxs = this
+
+      const { pipeLine, breakPipe } = createPipeLine()
+
+      lineBoxs.layouts.forEach((layout, index) => {
+        pipeLine(
+          when(
+            () => !isLayoutText(layout),
+            _breakBlockLines(layout, index, lineBoxs.layouts)
+          ),
+          when(() => isLayoutText(layout), _breakTextLines(layout)),
+          when(
+            () =>
+              !isLayoutText(layout) &&
+              isLayoutText(lineBoxs.layouts[index + 1]),
+            () => {
+              lineBoxs.lineArray.push(lineBoxs.currLine)
+            }
+          )
+        )(lineBoxs)
+      })
+    },
+    addLayout(layout) {
+      this.layouts.push(layout)
     }
   }
 
-  _breakLines(childLayout)(lineBox)
-
-  return lineBox
+  return lineBoxs
 }
 
-const _breakLines = (childLayout) => (lineBox) => {
-  console.log('_breakLines', childLayout)
-  const walk = (lineBox) =>
-    childLayout.forEach((child, index) => {
-      const grandChild = child.children[0]
-
-      pipeLine(
-        when(
-          () => !isLayoutText(grandChild),
-          _breakBlockLines(child, index, childLayout)
-        ),
-        when(() => isLayoutText(grandChild), _breakTextLines(grandChild)),
-        when(
-          () =>
-            !isLayoutText(grandChild) && isLayoutText(childLayout[index + 1]),
-          () => {
-            lineBox.lineArray.push(lineBox.currLine)
-          }
-        )
-      )(lineBox)
-    })
-
-  walk(lineBox)
-}
-
-export function createLine(
+export function createLineBox(
   relativeX: number = 0,
   relativeY: number = 0,
   width: number = 0,
   height: number = 0,
   child?
 ) {
-  let line = {
+  let lineBox = {
     children: [],
     rect: createRect(
       createPoint(relativeX, relativeY),
@@ -100,9 +114,9 @@ export function createLine(
     }
   }
 
-  child && line.addChild(child)
+  child && lineBox.addChild(child)
 
-  return line
+  return lineBox
 }
 
 export function createTextLine(text, relativeX, relativeY, width, height) {

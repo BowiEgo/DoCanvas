@@ -457,7 +457,9 @@ export const DEFAULT_TEXT_STYLES = {
 
 export const DEFAULT_PARA_STYLES = {
   display: 'block',
-  marginBottom: 20
+  marginBottom: 20,
+  fontSize: 16,
+  lineHeight: 23
 }
 
 export const DEFAULT_STRONG_STYLES = {

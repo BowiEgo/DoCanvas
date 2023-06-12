@@ -6,6 +6,7 @@ import {
   createElementAPI
 } from './element/element'
 import { CreateTextNodeFn, createTextNodeAPI } from './element/textNode'
+import { LayoutBox } from './layout/layoutBox'
 
 export interface DoCanvas {
   body: CanvasElement
@@ -32,6 +33,8 @@ export function createDoCanvas(options) {
   }
 
   doCanvas.body = createElement('body')
+  let bodyLayout = doCanvas.body.getLayoutObject() as LayoutBox
+  bodyLayout.updateSize()
 
   return doCanvas
 }

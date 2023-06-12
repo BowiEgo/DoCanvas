@@ -10,6 +10,7 @@ import { LayoutObject, createLayoutObject } from '../layout/layoutObject'
 import { LayoutBlock } from '../layout/layoutBlock'
 import { LayoutInline } from '../layout/layoutInline'
 import { LayoutText } from '../layout/layoutText'
+import { computeLineHeight } from '../css/property-descriptors/line-height'
 
 export const DEFAULT_CONTAINER = {
   styles: {},
@@ -290,6 +291,7 @@ export const createBaseElement =
   }
 
 function attach(this: CanvasElement, parent: CanvasElement) {
+  console.log('attach', this, parent)
   if (!this.getLayoutObject()) {
     this.initLayoutObject()
   }
@@ -320,11 +322,14 @@ function computeStyles(this: CanvasElement) {
   if (this.getContainer()) {
     EXTEND_STYLE_KEYS.forEach((key) => {
       const value = this.getContainerStyle(key)
-      if (value) this.getComputedStyles()[key] = value
+      if (value) this.setComputedStyles(key, value)
     })
-
-    Object.freeze(this.getComputedStyles())
   }
+
+  this.setComputedStyles(
+    'lineHeight',
+    computeLineHeight(this.getComputedStyles().fontSize)
+  )
 
   if (this.hasChildren()) {
     this.children.forEach((child) => {

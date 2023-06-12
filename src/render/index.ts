@@ -29,7 +29,7 @@ export interface RenderOptions {
   canvas?: HTMLCanvasElement
   ctx: CanvasRenderingContext2D
   dpr?: number
-  defaultFontFamily: string
+  fontFamily: string
   width: number
   height: number
 }
@@ -54,7 +54,7 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
     canvas: options.canvas,
     ctx: options.ctx,
     dpr: options.dpr || 1,
-    defaultFontFamily: options.defaultFontFamily,
+    defaultFontFamily: options.fontFamily,
     root: null,
     render,
     paint,
@@ -163,21 +163,38 @@ function paintBlock(this: CanvasRenderer, renderObject) {
 }
 
 function paintInline(this: CanvasRenderer, renderObject) {
-  const lineArray = renderObject.element.getLayoutObject().getContainer()
-    .lineBox.lineArray
+  const anonymousBlock = renderObject.element
+    .getLayoutObject()
+    .getAnonymousBlock()
 
-  if (lineArray.isPainted) return
+  const lineBoxs = anonymousBlock.lineBoxs
 
-  lineArray.forEach((line) => {
+  if (lineBoxs.isPainted) return
+
+  console.log(
+    'paintInline',
+    renderObject.element.getLayoutObject(),
+    anonymousBlock
+  )
+
+  lineBoxs.lineArray.forEach((line) => {
     line.children.forEach((lineItem) => {
-      if (lineItem.isPainted) return
+      // if (lineItem.isPainted) return
       if (isLayoutInlineBlock(lineItem)) {
         _paintBackGroundAndBorder(this.ctx, lineItem.element.renderObject)
       } else {
-        if (renderObject.children.length === 0) return
+        // if (renderObject.children.length === 0) return
+        console.log(
+          'aaa',
+          renderObject.children[0],
+          lineItem.text,
+          lineItem.rect.start,
+          lineItem.rect.before +
+            renderObject.element.getLayoutObject().getContainer().rect.before
+        )
         const { ctx } = this
         // console.log(renderObject, renderObject.children[0])
-        if (!isRenderText(renderObject.children[0])) {
+        if (!renderObject.children[0]) {
           return
         }
         const styles = renderObject.children[0].getTextStyles()
@@ -194,11 +211,13 @@ function paintInline(this: CanvasRenderer, renderObject) {
           lineItem.rect.before +
             renderObject.element.getLayoutObject().getContainer().rect.before
         )
+
+        ctx.fillText(lineItem.text, 40, 50)
       }
       lineItem.isPainted = true
     })
   })
-  lineArray.isPainted = true
+  lineBoxs.isPainted = true
 }
 
 function paintInlineBlock(this: CanvasRenderer, renderObject) {
