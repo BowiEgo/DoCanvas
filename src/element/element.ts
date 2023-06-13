@@ -147,11 +147,12 @@ export interface CanvasBodyElement extends CanvasElement {
   context: Engine
 }
 
-export interface CanvasElement extends TreeNode<CanvasElement> {
+export interface CanvasElement
+  extends TreeNode<CanvasElement | CanvasTextNode> {
   __v_isCanvasElement: boolean
   type: string
   id: string | null
-  options: ElementOptions
+  _options: ElementOptions
   styles: ElementStyles
   // children: Array<CanvasElement | CanvasTextNode>
   renderObject: RenderObject
@@ -167,7 +168,6 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   getLayoutObject(): LayoutObject | null
   getComputedStyles(): ComputedStyles
   setComputedStyles(styleName: string, value: any): void
-  isBody(): boolean
   isVisible(): boolean
 }
 
@@ -213,6 +213,10 @@ export function isCanvasElement(value: any): value is CanvasElement {
   return value ? value.__v_isCanvasElement === true : false
 }
 
+export function isCanvasBodyElement(value: any): value is CanvasBodyElement {
+  return isCanvasElement(value) && value.type === 'body'
+}
+
 export const createBaseElement =
   (context: Engine, type: string, options: ElementOptions = {}, children?) =>
   (o: TreeNode<CanvasElement>): CanvasElement => {
@@ -221,7 +225,7 @@ export const createBaseElement =
       __v_isCanvasElement: true,
       type,
       id: options.id || null,
-      options,
+      _options: options,
       styles: null,
       renderObject: null,
       debugColor: null,
@@ -239,7 +243,6 @@ export const createBaseElement =
       getLayoutObject,
       getComputedStyles,
       setComputedStyles,
-      isBody,
       isVisible
     } as CanvasElement
 
@@ -291,7 +294,6 @@ export const createBaseElement =
   }
 
 function attach(this: CanvasElement, parent: CanvasElement) {
-  console.log('attach', this, parent)
   if (!this.getLayoutObject()) {
     this.initLayoutObject()
   }
@@ -333,7 +335,6 @@ function computeStyles(this: CanvasElement) {
 
   if (this.hasChildren()) {
     this.children.forEach((child) => {
-      console.log(child)
       !isCanvasTextNode(child) && child.computeStyles()
     })
   }
@@ -363,10 +364,6 @@ function getContainerStyle(
 
 function getContainer(this: CanvasElement) {
   return this.parentNode
-}
-
-export function isBody(this: CanvasElement | CanvasTextNode) {
-  return !isCanvasTextNode(this) && this.type === 'body'
 }
 
 function isVisible() {

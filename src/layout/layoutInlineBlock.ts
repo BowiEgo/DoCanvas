@@ -44,73 +44,76 @@ const createBaseLayoutInlineBlock =
     return layoutInlineBlock
   }
 
-export const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
-  let testWidth = lineBox.end
+export const _breakBlockLines = (child) => (lineBoxs) => {
+  let testWidth = lineBoxs.end
   let isOutOfBox = false
 
-  const initTest = () => (lineBox) => {
-    console.log('initTest', child)
+  const initTest = () => (lineBoxs) => {
     testWidth += child.size.width
-    return lineBox
+    return lineBoxs
   }
 
-  const appendChildToCurrLine = () => (lineBox) => {
-    if (child.size.height > lineBox.currLineHeight) {
-      lineBox.currLine.children.forEach((item) => {
-        item.rect.location.moveY(child.size.height - lineBox.currLineHeight)
+  const appendChildToCurrLine = () => (lineBoxs) => {
+    if (child.size.height > lineBoxs.currLineHeight) {
+      lineBoxs.currLine.children.forEach((item) => {
+        item.rect.location.moveY(child.size.height - lineBoxs.currLineHeight)
       })
-      lineBox.after += child.size.height - lineBox.currLineHeight
-      lineBox.currLine.rect.size.setHeight(child.size.height)
-      lineBox.currLineHeight = child.size.height
+      lineBoxs.after += child.size.height - lineBoxs.currLineHeight
+      lineBoxs.currLine.rect.size.setHeight(child.size.height)
+      lineBoxs.currLineHeight = child.size.height
     }
-    lineBox.currLine.addChild(child)
-    lineBox.end += child.size.width
-    lineBox.currLine.rect.size.setHeight(lineBox.currLineHeight)
+    lineBoxs.currLine.addChild(child)
+    lineBoxs.end += child.size.width
+    lineBoxs.currLine.rect.size.setHeight(lineBoxs.currLineHeight)
 
-    return lineBox
+    return lineBoxs
   }
 
-  const appendChildToNewLine = () => (lineBox) => {
-    lineBox.currLine.addChild(child)
-    lineBox.end = child.size.width
+  const appendChildToNewLine = () => (lineBoxs) => {
+    lineBoxs.currLine.addChild(child)
+    lineBoxs.end = child.size.width
   }
 
-  const createNewLine = () => (lineBox) => {
-    lineBox.lineArray.push(lineBox.currLine)
-    lineBox.currLine = createLineBox(
+  const createNewLine = () => (lineBoxs) => {
+    lineBoxs.lineArray.push(lineBoxs.currLine)
+    lineBoxs.currLine = createLineBox(
       0,
-      lineBox.after,
+      lineBoxs.after,
       child.size.width,
       child.size.height
     )
-    appendChildToNewLine()(lineBox)
-    lineBox.currLineHeight = child.size.height
-    lineBox.after += lineBox.currLineHeight
-    return lineBox
+    appendChildToNewLine()(lineBoxs)
+    lineBoxs.currLineHeight = child.size.height
+    lineBoxs.after += lineBoxs.currLineHeight
+    return lineBoxs
   }
 
-  const checkIfOutOfBox = () => (lineBox) => {
-    isOutOfBox = testWidth > lineBox.maxWidth && index > 0
-    return lineBox
+  const checkIfOutOfBox = () => (lineBoxs) => {
+    const index = lineBoxs.layouts.indexOf(child)
+    isOutOfBox = testWidth > lineBoxs.maxWidth && index > 0
+    return lineBoxs
   }
 
-  const checkIsLastChild = () => (lineBox) => {
-    if (index === childLayout.length - 1) {
-      lineBox.lineArray.push(lineBox.currLine)
+  const checkIsLastChild = () => (lineBoxs) => {
+    const index = lineBoxs.layouts.indexOf(child)
+    if (index === lineBoxs.layouts.length - 1) {
+      lineBoxs.lineArray.push(lineBoxs.currLine)
     }
-    return lineBox
+    return lineBoxs
   }
 
-  const resetChildLocation = () => (lineBox) => {
-    if (
-      childLayout[index + 1] &&
-      isLayoutText(childLayout[index + 1].children[0])
-    ) {
-      lineBox.lineArray.push(lineBox.currLine)
-    }
-    child.setX(lineBox.end - child.size.width)
-    child.setY(lineBox.lastLineBefore)
-    return lineBox
+  const resetChildLocation = () => (lineBoxs) => {
+    // const index = lineBoxs.layouts.indexOf(child)
+    // if (
+    //   lineBoxs.layouts[index + 1] &&
+    //   isLayoutText(lineBoxs.layouts[index + 1])
+    // ) {
+    //   console.log('_breakBlockLines-resetChildLocation', child, lineBoxs)
+    //   lineBoxs.lineArray.push(lineBoxs.currLine)
+    // }
+    child.setX(lineBoxs.end - child.size.width)
+    child.setY(lineBoxs.after - child.size.height)
+    return lineBoxs
   }
 
   const { pipeLine, breakPipe } = createPipeLine()
@@ -126,7 +129,7 @@ export const _breakBlockLines = (child, index, childLayout) => (lineBox) => {
     checkIsLastChild(),
     resetChildLocation()
     // lineBoxLogger('after-block-resetChildLocation:')
-  )(lineBox)
+  )(lineBoxs)
 
-  return lineBox
+  return lineBoxs
 }

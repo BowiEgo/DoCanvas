@@ -8,6 +8,7 @@ import { BACKGROUND_CLIP } from '../css/property-descriptors/background-clip'
 import { Color } from '../css/types/color'
 import { CanvasElement } from '../element/element'
 import { isLayoutInlineBlock } from '../layout/layoutInlineBlock'
+import { isLayoutText } from '../layout/layoutText'
 import { getBackgroundValueForIndex } from './canvas/background'
 import { isBezierCurve } from './canvas/bezierCurve'
 import {
@@ -73,7 +74,6 @@ function render(this: CanvasRenderer, elm) {
 }
 
 function paint(this: CanvasRenderer, renderObject: RenderObject) {
-  console.log('paint', renderObject)
   switch (renderObject.type) {
     case RenderType.BLOCK:
       this.paintBlock(renderObject)
@@ -167,37 +167,17 @@ function paintInline(this: CanvasRenderer, renderObject) {
     .getLayoutObject()
     .getAnonymousBlock()
 
+  if (!anonymousBlock) return
+
   const lineBoxs = anonymousBlock.lineBoxs
 
   if (lineBoxs.isPainted) return
 
-  console.log(
-    'paintInline',
-    renderObject.element.getLayoutObject(),
-    anonymousBlock
-  )
-
   lineBoxs.lineArray.forEach((line) => {
     line.children.forEach((lineItem) => {
-      // if (lineItem.isPainted) return
-      if (isLayoutInlineBlock(lineItem)) {
-        _paintBackGroundAndBorder(this.ctx, lineItem.element.renderObject)
-      } else {
-        // if (renderObject.children.length === 0) return
-        console.log(
-          'aaa',
-          renderObject.children[0],
-          lineItem.text,
-          lineItem.rect.start,
-          lineItem.rect.before +
-            renderObject.element.getLayoutObject().getContainer().rect.before
-        )
+      if (!isLayoutInlineBlock(lineItem)) {
         const { ctx } = this
-        // console.log(renderObject, renderObject.children[0])
-        if (!renderObject.children[0]) {
-          return
-        }
-        const styles = renderObject.children[0].getTextStyles()
+        const styles = lineItem.layoutText.getTextStyles()
 
         ctx.textBaseline = 'ideographic'
         ctx.font = `normal ${styles.fontSize}px ${
@@ -212,7 +192,18 @@ function paintInline(this: CanvasRenderer, renderObject) {
             renderObject.element.getLayoutObject().getContainer().rect.before
         )
 
-        ctx.fillText(lineItem.text, 40, 50)
+        // console.log(
+        //   'paintText',
+        //   line.rect.before,
+        //   line,
+        //   lineItem,
+        //   lineItem.layoutText,
+        //   styles.color,
+        //   lineItem.text,
+        //   lineItem.rect.start,
+        //   lineItem.rect.before,
+        //   renderObject.element.getLayoutObject().getContainer().rect.before
+        // )
       }
       lineItem.isPainted = true
     })

@@ -16,13 +16,13 @@ export interface TreeNode<T> {
   parentNode: TreeNode<T> | null
   previousSibling: TreeNode<T> | null
   nextSibling: TreeNode<T> | null
-  children: TreeNode<T>[]
+  children: T[]
   options: TreeNodeOptions<T>
   setParentNode(node: TreeNode<T>): void
   getRootNode(): TreeNode<T> | null
   getPreviousNode(): TreeNode<T> | null
   getNextNode(): TreeNode<T> | null
-  appendChildNode(child: TreeNode<T>): void
+  appendChildNode(child: T): void
   prependChildNode(child: TreeNode<T>): void
   removeChildNode(child: TreeNode<T>): void
   replaceChildNode(child: TreeNode<T>, newChild: TreeNode<T>): void

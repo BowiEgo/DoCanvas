@@ -38,8 +38,7 @@ export function createEngine(renderer, options): Engine {
       'flow',
       elm,
       elm.getLayoutObject(),
-      // BFS(elm.getLayoutObject()).map((item) => `${item.element.type} ${item.element.id}`)
-      BFS(elm.getLayoutObject()).map((item) => item.element)
+      BFS(elm.getLayoutObject()).map((item) => item)
     )
 
     BFS(elm.getLayoutObject())
@@ -47,20 +46,14 @@ export function createEngine(renderer, options): Engine {
       .reverse()
       .forEach((item) => item.updateWidthSize())
 
-    // BFS(elm.getLayoutObject()).forEach((item) => item.updateLayout())
-    // PreOrderDFS(elm.getLayoutObject())
-
     elm.getLayoutObject().flow()
 
-    // BFS(elm.renderObject)
-    //   .reverse()
-    //   .forEach((item) => item.measureBoxSize())
-
     elm.renderObject.initCurves()
+    elm.getRootElement().type === 'body' && paint(elm)
+
     console.log(
       `渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`
     )
-    elm.getRootElement().type === 'body' && paint(elm)
   }
 
   function reflow(elm) {

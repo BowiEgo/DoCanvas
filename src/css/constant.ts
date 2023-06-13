@@ -115,7 +115,7 @@ export const BODY_STYLES = {
   clip: 'auto',
   clipPath: 'none',
   clipRule: 'nonzero',
-  color: 'rgb(255, 255, 255)',
+  color: 'rgb(0, 0, 0)',
   colorInterpolation: 'srgb',
   colorInterpolationFilters: 'linearrgb',
   colorRendering: 'auto',

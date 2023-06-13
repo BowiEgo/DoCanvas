@@ -1,4 +1,8 @@
-import { CanvasElement, ComputedStyles } from '../element/element'
+import {
+  CanvasElement,
+  ComputedStyles,
+  isCanvasBodyElement
+} from '../element/element'
 import { CanvasTextNode, isCanvasTextNode } from '../element/textNode'
 import { TreeNode } from '../tree-node'
 import { PostOrderDFS } from '../utils/treeSearch'
@@ -140,6 +144,7 @@ export interface LayoutObject extends TreeNode<LayoutObject> {
   layoutFlag: LayoutFlag
   element: CanvasElement | CanvasTextNode
   lineBox: LineBox
+  children: LayoutObject[]
   getStyles(): ComputedStyles
   getContainer(): LayoutObject
   appendChild(layoutObject: LayoutObject): void
@@ -153,7 +158,7 @@ export function isLayoutObject(value: any): value is LayoutObject {
 export const createLayoutObject = function LayoutObject(
   element: CanvasElement | CanvasTextNode
 ) {
-  if (element.isBody()) {
+  if (isCanvasBodyElement(element)) {
     return createLayoutBlock(element as CanvasElement)
   }
   if (isCanvasTextNode(element)) {
@@ -202,7 +207,6 @@ function getContainer(this: LayoutObject) {
 }
 
 function appendChild(this: LayoutObject, child) {
-  console.log('appendChild-layout', this.element, child.constructor.name)
   this.appendChildNode(child)
   // let lineBoxs = child.previousSibling ? child.previousSibling.lineBoxs : null
   // _createLineBoxsIfNeeded(this as LayoutBox | LayoutInline, lineBoxs)
@@ -215,12 +219,8 @@ function flow(this: LayoutObject) {
 }
 
 function _walkFlow(layout: LayoutObject) {
-  // if (isLayoutBox(layout)) {
-  //   layout.updateLocation()
-  // }
-
-  if (isLayoutBlock(layout)) {
-    console.log('_walkFlow', layout)
+  if (isLayoutBox(layout)) {
+    layout.updateLocation()
   }
 
   layout.children.forEach((child) => _walkFlow(child))
@@ -256,11 +256,11 @@ function _createFlowContext(layout: LayoutObject) {
       context.anonymousBlock.appendChildNode(layout)
 
       // lineBoxs
-      if (isLineBoxs(layout.getPreviousNode().lineBoxs)) {
-        context.lineBoxs = layout.getPreviousNode().lineBoxs
-      } else {
-        context.lineBoxs = null
-      }
+      // if (isLineBoxs(layout.getPreviousNode().lineBoxs)) {
+      //   context.lineBoxs = layout.getPreviousNode().lineBoxs
+      // } else {
+      //   context.lineBoxs = null
+      // }
     }
   }
 
@@ -268,8 +268,7 @@ function _createFlowContext(layout: LayoutObject) {
 }
 
 function _walkToCreateLineBoxsIfNeeded(context) {
-  context.currLayout.children.forEach((child) => {
-    console.log('lineBoxs-0', child)
+  context.currLayout.children.slice(0).forEach((child) => {
     context.currLayout = child
     if (isLayoutBlock(child)) {
       context.anonymousBlock = null
@@ -285,20 +284,22 @@ function _walkToCreateLineBoxsIfNeeded(context) {
         child.getContainer().removeChildNode(child)
         context.anonymousBlock.appendChildNode(child)
       }
-
       // create lineBoxs
       if (isLayoutInlineBlock(child) || isLayoutText(child)) {
         if (!context.lineBoxs || isLayoutBlock(child.getPreviousNode())) {
-          const container = child.getContainer() as LayoutBox | LayoutInline
+          let container = child.getContainer() as LayoutBox | LayoutInline
+          if (isAnonymousLayoutBlock(container)) {
+            container = container.getContainer() as LayoutBox | LayoutInline
+          }
           const maxWidth = isLayoutBox(container)
             ? container.size.width
             : container.getContainerSize().width
 
-          child.lineBoxs = createLineBoxs(maxWidth)
-          context.lineBoxs = child.lineBoxs
+          // child.lineBoxs = createLineBoxs(maxWidth)
+          context.lineBoxs = createLineBoxs(maxWidth)
           context.anonymousBlock.lineBoxs = context.lineBoxs
         } else {
-          child.lineBoxs = context.lineBoxs
+          // child.lineBoxs = context.lineBoxs
         }
         context.lineBoxs.addLayout(child)
       }
@@ -306,45 +307,7 @@ function _walkToCreateLineBoxsIfNeeded(context) {
     _walkToCreateLineBoxsIfNeeded(context)
   })
 
-  console.log(
-    'lineBoxs-2',
-    context.currLayout.constructor.name,
-    context.currLayout,
-    context.lineBoxs,
-    context
-  )
-
   return context
-}
-
-function _wrapByAnonymousIfNeeded(
-  layout: LayoutObject,
-  container: LayoutObject
-) {
-  if (
-    isLayoutInline(layout) ||
-    isLayoutInlineBlock(layout) ||
-    isLayoutText(layout)
-  ) {
-    if (!layout.getPreviousNode() || isLayoutBlock(layout.getPreviousNode())) {
-      let anonymousBlock = createAnonymousLayoutBlock(container.element)
-      container.removeChildNode(layout)
-      anonymousBlock.appendChild(layout)
-      container.appendChild(anonymousBlock)
-      if (isLayoutInlineBlock(layout) || isLayoutText(layout)) {
-        lineBoxsContext = createLineBoxs(lineBoxsContext, layout)
-      }
-    }
-
-    if (layout.getPreviousNode().layoutFlag & LayoutFlag.NEED_ANONYMOUS) {
-      layout.getContainer().appendChild(layout)
-    }
-    patchLayoutFlag(layout, LayoutFlag.NEED_ANONYMOUS)
-  }
-
-  // layout.children.forEach((child) => {
-  //   _checkIfNeedWrapAnonymous(child)
-  // })
 }
 
 export function patchLayoutFlag(layoutObject, layoutFlag) {

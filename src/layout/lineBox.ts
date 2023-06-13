@@ -64,27 +64,22 @@ export function createLineBoxs(maxWidth): LineBoxs {
     get lastLineBefore() {
       return this.lastLine ? this.after - this.lastLine.rect.height : 0
     },
+    init() {
+      this.lineArray = []
+      this.end = 0
+      this.after = 0
+      this.currLine = createLineBox()
+      this.currLineHeight = 0
+    },
     breakLines() {
-      console.log('_breakLines', this)
+      this.init()
       const lineBoxs = this
-
       const { pipeLine, breakPipe } = createPipeLine()
 
       lineBoxs.layouts.forEach((layout, index) => {
         pipeLine(
-          when(
-            () => !isLayoutText(layout),
-            _breakBlockLines(layout, index, lineBoxs.layouts)
-          ),
-          when(() => isLayoutText(layout), _breakTextLines(layout)),
-          when(
-            () =>
-              !isLayoutText(layout) &&
-              isLayoutText(lineBoxs.layouts[index + 1]),
-            () => {
-              lineBoxs.lineArray.push(lineBoxs.currLine)
-            }
-          )
+          when(() => !isLayoutText(layout), _breakBlockLines(layout)),
+          when(() => isLayoutText(layout), _breakTextLines(layout))
         )(lineBoxs)
       })
     },
@@ -117,20 +112,6 @@ export function createLineBox(
   child && lineBox.addChild(child)
 
   return lineBox
-}
-
-export function createTextLine(text, relativeX, relativeY, width, height) {
-  let location = createPoint(relativeX, relativeY)
-  let size = createSize(width, height)
-
-  let textLine = {
-    text,
-    location,
-    size,
-    rect: createRect(location, size)
-  }
-
-  return textLine
 }
 
 export const lineBoxLogger = (message) => (lineBox) => {

@@ -1,5 +1,8 @@
 import { CanvasBodyElement } from '../element/element'
 import { CanvasTextNode } from '../element/textNode'
+import { createPoint } from '../geometry/point'
+import { createRect } from '../geometry/rect'
+import { createSize } from '../geometry/size'
 import { fromCodePoint, toCodePoints } from '../text/Util'
 import { LineBreaker } from '../text/lineBreak'
 import { createTreeNode } from '../tree-node'
@@ -10,7 +13,7 @@ import {
   createBaseLayoutObject,
   isLayoutObject
 } from './layoutObject'
-import { createLineBox, createTextLine, lineBoxLogger } from './lineBox'
+import { createLineBox, lineBoxLogger } from './lineBox'
 
 // LayoutText is the root class for anything that represents
 // a text node (see core/dom/text.h).
@@ -82,7 +85,6 @@ const createBaseLayoutText =
 function getTextStyles(this: LayoutText) {
   const parentStyles = this.element.getContainer().getComputedStyles()
   const { color, fontSize, fontWeight, lineHeight } = parentStyles
-  console.log('getTextStyles', this.element.getContainer())
 
   return {
     color,
@@ -94,9 +96,30 @@ function getTextStyles(this: LayoutText) {
 
 function updateLayout(this: LayoutText) {}
 
+export function createTextLine(
+  text,
+  layoutText,
+  relativeX,
+  relativeY,
+  width,
+  height
+) {
+  let location = createPoint(relativeX, relativeY)
+  let size = createSize(width, height)
+
+  let textLine = {
+    text,
+    layoutText,
+    location,
+    size,
+    rect: createRect(location, size)
+  }
+
+  return textLine
+}
+
 // TODO: 用二分法进行优化，减少ctx.measureText()调用次数
 export const _breakTextLines = (layoutText) => (lineBoxs) => {
-  console.log('_breakTextLines', layoutText, lineBoxs)
   // TODO: cache context
   const body = layoutText.element
     .getContainer()
@@ -111,8 +134,6 @@ export const _breakTextLines = (layoutText) => (lineBoxs) => {
   ctx.save()
   ctx.font = `normal ${fontSize}px ${fontFamily || defaultFontFamily}`
 
-  console.log(fontSize, lineHeight, body, ctx)
-
   const words = _breakWords(
     layoutText.element.text,
     layoutText.element.getContainer().getComputedStyles()
@@ -122,6 +143,7 @@ export const _breakTextLines = (layoutText) => (lineBoxs) => {
   let testWidth = lineBoxs.end
   let currTextLine = createTextLine(
     '',
+    layoutText,
     lineBoxs.end,
     lineBoxs.lastLineBefore + lineBoxs.currLineHeight,
     0,
@@ -162,6 +184,7 @@ export const _breakTextLines = (layoutText) => (lineBoxs) => {
 
     currTextLine = createTextLine(
       word,
+      layoutText,
       0,
       lineBoxs.after,
       metrics.width,
@@ -187,7 +210,13 @@ export const _breakTextLines = (layoutText) => (lineBoxs) => {
   const checkIsLastWord = (index) => (lineBoxs) => {
     if (index === words.length - 1) {
       lineBoxs.currLine.addChild(currTextLine)
-      lineBoxs.lineArray.push(lineBoxs.currLine)
+      // if current layout is the last of lineBoxs, push currLine to lineArray
+      if (
+        lineBoxs.layouts.indexOf(layoutText) ===
+        lineBoxs.layouts.length - 1
+      ) {
+        lineBoxs.lineArray.push(lineBoxs.currLine)
+      }
     }
     return lineBoxs
   }

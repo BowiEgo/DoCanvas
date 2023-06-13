@@ -1,4 +1,9 @@
-import { CanvasBodyElement, CanvasElement, Layout } from '../element/element'
+import {
+  CanvasBodyElement,
+  CanvasElement,
+  Layout,
+  isCanvasBodyElement
+} from '../element/element'
 import { Point, createPoint } from '../geometry/point'
 import { Rect, createRect } from '../geometry/rect'
 import { Size, createSize } from '../geometry/size'
@@ -15,6 +20,7 @@ import {
   LayoutBoxModelObject,
   createLayoutBoxModelObject
 } from './layoutBoxModelObject'
+import { LayoutInlineBlock, isLayoutInlineBlock } from './layoutInlineBlock'
 import { LayoutObject, LayoutType, isLayoutObject } from './layoutObject'
 
 // LayoutBox implements the full CSS box model.
@@ -233,20 +239,18 @@ function updateWidthSize(this: LayoutBox) {
 }
 
 function updateHeightSize(this: LayoutBox) {
-  console.log('updateHeightSize', this)
   this.size.setHeight(_measureHeight(this))
 }
 
 function updateLocation(this: LayoutBox) {
-  return
-  if (isAnonymousLayoutBlock(this.getContainer())) {
-    const container = this.getContainer() as LayoutBox
-    this.moveX(container.rect.start)
-    this.moveY(container.rect.before)
-    return
-  }
+  // if (isAnonymousLayoutBlock(this.getContainer())) {
+  //   const container = this.getContainer() as LayoutBox
+  //   this.moveX(container.rect.start)
+  //   this.moveY(container.rect.before)
+  //   return
+  // }
 
-  let location = _calcPos(this)
+  let location = _calcLocation(this)
 
   this.setX(location.x)
   this.setY(location.y)
@@ -257,13 +261,20 @@ const _measureWidth = (layoutBox: LayoutBox): number => {
 
   return pipeLine(
     when(
-      () => layoutBox.element.isBody(),
-      () => layoutBox.element.context.viewport.width,
+      () => isCanvasBodyElement(layoutBox.element),
+      () => {
+        let body = layoutBox.element as CanvasBodyElement
+        return body.context.viewport.width
+      },
       breakPipe
     ),
     when(
       () => isAuto(layoutBox.getStyles().width),
       _calcWidthByAncestor(layoutBox)
+    ),
+    when(
+      () => !isAuto(layoutBox.getStyles().width),
+      _calcWidthByStyles(layoutBox)
     ),
     _calcWidthByChild(layoutBox)
   )(0)
@@ -279,7 +290,7 @@ const _measureHeight = (layoutBox: LayoutBox): number => {
       breakPipe
     ),
     when(
-      () => layoutBox.element.isBody(),
+      () => isCanvasBodyElement(layoutBox.element),
       _calcBodyHeight(layoutBox.element as CanvasBodyElement),
       breakPipe
     ),
@@ -287,24 +298,49 @@ const _measureHeight = (layoutBox: LayoutBox): number => {
       () => isAuto(layoutBox.getStyles().height),
       () => 0
     ),
+    when(
+      () => !isAuto(layoutBox.getStyles().height),
+      _calcHeightByStyles(layoutBox),
+      breakPipe
+    ),
     _calcHeightByChild(layoutBox)
   )(0)
 }
 
-const _calcPos = (layoutBox: LayoutBox): Point => {
+const _calcLocation = (layoutBox: LayoutBox): Point => {
   const { pipeLine, breakPipe } = createPipeLine()
 
   return pipeLine(
     when(
-      () => layoutBox.element && layoutBox.element.isBody(),
-      NOOP,
+      () => isCanvasBodyElement(layoutBox.element),
+      (o) => o,
       breakPipe
     ),
-    _calcPosByParentAndPrevSibling(layoutBox)
+    when(
+      () => isLayoutInlineBlock(layoutBox),
+      _calcInlineBlockLocation(layoutBox),
+      breakPipe
+    ),
+    _calcLocationByParentAndPrevSibling(layoutBox)
   )(createPoint())
 }
 
-const _calcPosByParentAndPrevSibling =
+const _calcInlineBlockLocation =
+  (inlineBlock: LayoutInlineBlock) =>
+  (o): Point => {
+    const parentBox = inlineBlock.getContainer() as LayoutBox
+    const parentBoxBefore = parentBox ? parentBox.rect.before : 0
+
+    let x = inlineBlock.rect.start
+    let y = inlineBlock.rect.before + parentBoxBefore
+
+    o.setX(x)
+    o.setY(y)
+
+    return o
+  }
+
+const _calcLocationByParentAndPrevSibling =
   (layoutBox: LayoutBox) =>
   (o): Point => {
     const parentBox = layoutBox.getContainer() as LayoutBox
@@ -327,7 +363,6 @@ const _calcPosByParentAndPrevSibling =
 const _calcBodyHeight =
   (element: CanvasBodyElement) =>
   (o: number): number => {
-    console.log('upd-_calcBodyHeight', element)
     o = element.context.viewport.height
     return o
   }
@@ -336,13 +371,11 @@ const _calcWidthByAncestor =
   (layoutBox: LayoutObject) =>
   (o: number): number => {
     let container = layoutBox.getContainer()
-    console.log('_calcWidthByAncestor', layoutBox, container.getStyles())
     // TODO: calc perntage value like '100%' | '70%'
     if (isLayoutBox(container)) {
       let containerStyle = container.getStyles()
       if (!isAuto(containerStyle.width)) {
         o = Number(containerStyle.width)
-        console.log('_calcWidthByAncestor-1', containerStyle.width)
         return o
       }
     }
@@ -363,10 +396,15 @@ const _calcWidthByChild =
     return o
   }
 
+const _calcWidthByStyles =
+  (layoutBox: LayoutBox) =>
+  (o: number): number => {
+    return Number(layoutBox.getStyles().width)
+  }
+
 const _calcHeightByChild =
   (layoutBox: LayoutBox) =>
   (o: number): number => {
-    console.log('upd-_calcHeightByChild', layoutBox)
     o = layoutBox.children
       .filter((item): item is LayoutBox => isLayoutBox(item))
       .reduce((acc, curr) => {
@@ -375,12 +413,15 @@ const _calcHeightByChild =
     return o
   }
 
+const _calcHeightByStyles =
+  (layoutBox: LayoutBox) =>
+  (o: number): number => {
+    return Number(layoutBox.getStyles().height)
+  }
+
 const _calcAnonymousBlockHeight =
   (anonymous: AnonymousLayoutBlock) =>
   (o: number): number => {
-    console.log('upd-_calcAnonymousBlockHeight-0', anonymous)
-
     anonymous.lineBoxs.breakLines()
-    console.log('upd-_calcAnonymousBlockHeight-1', anonymous.lineBoxs)
-    return o
+    return anonymous.lineBoxs.height
   }

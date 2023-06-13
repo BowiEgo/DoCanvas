@@ -111,8 +111,6 @@ export interface LayoutInline extends LayoutObject {
   size: Size
   lineBoxs: LineBoxs | null
   getContainerSize(): Size
-  updateSize(): void
-  wrapByAnonymousBlock(): void
   getAnonymousBlock(): AnonymousLayoutBlock | null
 }
 
@@ -133,95 +131,15 @@ export const createBaseLayoutInline =
       type: generateInlineType(),
       size: null,
       lineBoxs: null,
-      // get size() {
-      //   return _getSize(o)
-      // },
       getContainerSize,
-      updateSize,
-      wrapByAnonymousBlock,
       getAnonymousBlock
     } as LayoutInline
-
-    // Object.defineProperty(layoutInline, 'size', {
-    //   get() {
-    //     return _getSize(o)
-    //   },
-    //   set() {
-    //     throw Error('inline size is not writable')
-    //   }
-    // })
 
     return layoutInline
   }
 
 function getContainerSize(this: LayoutInline): Size {
-  console.log('getContainerSize', this)
-
   return _getSize(this)
-}
-
-function updateSize(this: LayoutInline) {
-  console.log('updateSize-inline', this.element.type, this.element.id)
-  // this.wrapByAnonymousBlock()
-}
-
-function wrapByAnonymousBlock(this: LayoutInline) {
-  console.log('wrapByAnonymousBlock', this)
-  if (this.layoutFlag & LayoutFlag.NEED_ANONYMOUS) {
-    const container = this.parentNode as LayoutBox
-    const anonymousBlock = createAnonymousLayoutBlock(
-      this.getContainer().element
-    )
-    let siblingsNeedWrapped = _getSiblingsNeedWrapped(container)
-    let childrenNeedWrapped = _getChildrenNeedWrapped(siblingsNeedWrapped)
-    let layoutNeedNeedWrapped = []
-    let layoutNeedLineBoxs = []
-
-    // layoutNeedNeedWrapped = siblingsNeedWrapped.concat(childrenNeedWrapped).filter(item => )
-
-    layoutNeedNeedWrapped.forEach((item) => {
-      item.parentNode.removeChildNode(item)
-      anonymousBlock.appendChild(item)
-      removeLayoutFlag(item, LayoutFlag.NEED_ANONYMOUS)
-    })
-
-    container.appendChild(anonymousBlock)
-
-    siblingsNeedWrapped.forEach((sibling) => {
-      if (isLayoutInlineBlock(sibling) || isLayoutText(sibling)) {
-        layoutNeedLineBoxs.push(sibling)
-      }
-      layoutNeedLineBoxs = layoutNeedLineBoxs.concat(
-        _getChildrenNeedLineBoxs(sibling)
-      )
-    })
-
-    layoutNeedLineBoxs = layoutNeedLineBoxs.filter(
-      (item) => !isLayoutInline(item)
-    )
-
-    console.log('ooo-siblingsNeedWrapped', siblingsNeedWrapped)
-    console.log('ooo-childrenNeedWrapped', childrenNeedWrapped)
-    console.log('ooo-layoutNeedNeedWrapped', layoutNeedNeedWrapped)
-    console.log('ooo-layoutNeedLineBoxs', layoutNeedLineBoxs)
-
-    anonymousBlock.lineBoxs = createLineBoxs(
-      layoutNeedLineBoxs,
-      container.size.width
-    )
-    anonymousBlock.setHeight(anonymousBlock.lineBoxs.height)
-    container.updateSize()
-
-    siblingsNeedWrapped.forEach((sibling) =>
-      removeLayoutFlag(sibling, LayoutFlag.NEED_ANONYMOUS)
-    )
-    layoutNeedLineBoxs.forEach((sibling) =>
-      removeLayoutFlag(sibling, LayoutFlag.NEED_ANONYMOUS)
-    )
-    anonymousBlock.updateLayout()
-
-    // anonymousBlock.flow()
-  }
 }
 
 function getAnonymousBlock(this: LayoutInline) {
@@ -239,7 +157,6 @@ function getAnonymousBlock(this: LayoutInline) {
 
 function _getSize(layout: LayoutObject): Size {
   const container = layout.getContainer()
-  console.log('_getSize', container)
 
   if (!container) {
     return createSize()
@@ -248,71 +165,4 @@ function _getSize(layout: LayoutObject): Size {
   } else {
     return _getSize(container)
   }
-}
-
-function _getSiblingsNeedWrapped(container: LayoutObject): LayoutObject[] {
-  return container.children.filter(
-    (child) => child.layoutFlag & LayoutFlag.NEED_ANONYMOUS
-  )
-
-  // let arr = [layoutInline]
-
-  // function walkSibling(curr) {
-  //   if (!curr.nextSibling) return
-  //   if (isLayoutInline(curr.nextSibling) || isLayoutText(curr.nextSibling)) {
-  //     arr.push(curr.nextSibling)
-  //   }
-  //   walkSibling(curr.nextSibling)
-  // }
-
-  // walkSibling(layoutInline)
-
-  // return arr
-}
-
-function _getChildrenNeedWrapped(layoutArray: LayoutObject[]): LayoutObject[] {
-  let array = []
-
-  layoutArray.forEach((sibling) => {
-    if (
-      sibling.children[0] &&
-      sibling.children[0].layoutFlag & LayoutFlag.NEED_ANONYMOUS
-    ) {
-      array = _getSiblingsNeedWrapped(sibling)
-      if (array.length > 0) {
-        array = array.concat(_getChildrenNeedWrapped(array))
-      }
-    }
-  })
-
-  return array
-}
-
-function _getChildrenNeedLineBoxs(container: LayoutObject): LayoutObject[] {
-  console.log('_getChildrenNeedLineBoxs', container)
-  let array = []
-  if (
-    container.children[0] &&
-    container.children[0].layoutFlag & LayoutFlag.NEED_ANONYMOUS
-  ) {
-    array = _getSiblingsNeedWrapped(container)
-    console.log('_getChildrenNeedLineBoxs-2', array)
-    if (array.length > 0) {
-      array.forEach((child) => {
-        console.log(
-          '_getChildrenNeedLineBoxs-1',
-          child,
-          _getChildrenNeedLineBoxs(child)
-        )
-
-        array = array.concat(_getChildrenNeedLineBoxs(child))
-      })
-    }
-
-    console.log('_getChildrenNeedLineBoxs-3', array)
-
-    return array
-  }
-
-  return []
 }

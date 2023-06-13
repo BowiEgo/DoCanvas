@@ -1,7 +1,7 @@
 import { connectChildren, createTreeNode } from '../../tree-node'
 
 describe('tree-node', () => {
-  const tree = createTreeNode({
+  const tree = createTreeNode<any>({
     textContent: 'A',
     children: [
       createTreeNode({
