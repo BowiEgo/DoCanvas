@@ -4,16 +4,7 @@ import { LayoutText } from '../layout/layoutText'
 import { RenderObject } from '../render/renderObject'
 import { TreeNode, createTreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
-import {
-  CanvasElement,
-  ComputedStyles,
-  isBody,
-  _initRenderObject
-} from './element'
-
-export function isCanvasTextNode(value: any): value is CanvasTextNode {
-  return value ? value.__v_isCanvasTextNode === true : false
-}
+import { CanvasElement, ComputedStyles, _initRenderObject } from './element'
 
 export interface CanvasTextNode extends TreeNode<CanvasElement> {
   __v_isCanvasTextNode: boolean
@@ -25,12 +16,13 @@ export interface CanvasTextNode extends TreeNode<CanvasElement> {
   getLayoutObject(): LayoutText
   initLayoutObject(): void
   attach(parent: CanvasElement): void
-  isBody(): boolean
 }
 
-export type CreateTextNodeAPI = (context: Engine) => CreateTextNodeFn
-
 export type CreateTextNodeFn = (text: string) => CanvasTextNode
+
+export const createTextNodeAPI = (): CreateTextNodeFn => {
+  return createTextNode
+}
 
 export const createTextNode = function CanvasTextNode(text: string) {
   return pipe(
@@ -38,6 +30,10 @@ export const createTextNode = function CanvasTextNode(text: string) {
     createBaseTextNode(text),
     withConstructor(CanvasTextNode)
   )({} as CanvasTextNode)
+}
+
+export function isCanvasTextNode(value: any): value is CanvasTextNode {
+  return value ? value.__v_isCanvasTextNode === true : false
 }
 
 export const createBaseTextNode =
@@ -55,8 +51,7 @@ export const createBaseTextNode =
       getComputedStyles,
       getLayoutObject,
       initLayoutObject,
-      attach,
-      isBody
+      attach
     }
 
     function getComputedStyles() {
@@ -75,7 +70,7 @@ export const createBaseTextNode =
   }
 
 function getContainer(this: CanvasTextNode) {
-  return this.parentNode
+  return this.parentNode as CanvasElement
 }
 
 function attach(this: CanvasTextNode, parent: CanvasElement) {

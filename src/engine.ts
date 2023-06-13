@@ -2,15 +2,13 @@ import { CanvasElement } from './element/element'
 import { isLayoutBox } from './layout/layoutBox'
 import { CanvasRenderer } from './render'
 import { RenderObject } from './render/renderObject'
-import { BFS, PostOrderDFS } from './utils/treeSearch'
+import { BFS, PostOrderDFS, PreOrderDFS } from './utils/treeSearch'
 
 export interface Engine {
   renderer: CanvasRenderer
   viewport: { width: number; height: number }
   rootRenderObject: RenderObject
   DFSRenderArray: RenderObject[]
-  updateDFSRenderArray(renderObject: RenderObject): void
-  measureBoxSize(elm: CanvasElement): void
   flow(elm: CanvasElement): void
   reflow(elm: CanvasElement): void
   paint(elm: CanvasElement): void
@@ -26,23 +24,10 @@ export function createEngine(renderer, options): Engine {
     },
     rootRenderObject: null,
     DFSRenderArray: [],
-    updateDFSRenderArray,
-    measureBoxSize,
     flow,
     reflow,
     paint,
     repaint
-  }
-
-  function updateDFSRenderArray(renderObject) {
-    engine.DFSRenderArray = PostOrderDFS(renderObject)
-  }
-
-  function measureBoxSize(elm) {
-    engine.updateDFSRenderArray(elm.renderObject)
-    engine.DFSRenderArray.forEach((item) => {
-      item.measureBoxSize()
-    })
   }
 
   function flow(elm) {
@@ -53,28 +38,22 @@ export function createEngine(renderer, options): Engine {
       'flow',
       elm,
       elm.getLayoutObject(),
-      // BFS(elm.getLayoutObject()).map((item) => `${item.element.type} ${item.element.id}`)
-      BFS(elm.getLayoutObject()).map((item) => item.element)
+      BFS(elm.getLayoutObject()).map((item) => item)
     )
 
     BFS(elm.getLayoutObject())
       .filter((item) => isLayoutBox(item))
       .reverse()
-      .forEach((item) => item.updateSize())
-
-    BFS(elm.getLayoutObject()).forEach((item) => item.updateLayout())
+      .forEach((item) => item.updateWidthSize())
 
     elm.getLayoutObject().flow()
 
-    // BFS(elm.renderObject)
-    //   .reverse()
-    //   .forEach((item) => item.measureBoxSize())
-
     elm.renderObject.initCurves()
+    elm.getRootElement().type === 'body' && paint(elm)
+
     console.log(
       `渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`
     )
-    elm.getRootElement().type === 'body' && paint(elm)
   }
 
   function reflow(elm) {

@@ -46,3 +46,20 @@ export const PostOrderDFS: TreeSearchFn = (node) => {
 
   return traversed
 }
+
+export const PreOrderDFS: TreeSearchFn = (node) => {
+  let traversed = <any>[]
+
+  function traverse(curr) {
+    traversed.push(curr)
+    if (curr.children.length !== 0) {
+      curr.children.forEach((child) => {
+        traverse(child)
+      })
+    }
+  }
+  // invoke the helper function with the root
+  traverse(node)
+  // return final result
+  return traversed
+}

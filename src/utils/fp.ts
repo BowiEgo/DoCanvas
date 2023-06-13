@@ -23,21 +23,29 @@ export const pipe =
 
 export const compose = (args) => pipe(args.reverse())
 
-let breakFlag = false
+export const createPipeLine = () => {
+  let breakFlag = false
 
-export const pipeLine =
-  <T>(...fns: Array<(arg: T) => T>) =>
-  (x: T) => {
-    return fns.reduce((y, f) => (breakFlag ? resetPipeLine(x) : f(y)), x)
+  const resetPipeLine = (x: any, fns: Array<Function>, f: Function): any => {
+    if (fns.indexOf(f) === fns.length - 1) {
+      breakFlag = false
+    }
+    return x
   }
 
-export const breakPipe = (): void => {
-  breakFlag = true
-}
-
-const resetPipeLine = (x: any): any => {
-  breakFlag = false
-  return x
+  return {
+    pipeLine:
+      <T>(...fns: Array<(arg: T) => T>) =>
+      (x: T) => {
+        return fns.reduce(
+          (y, f) => (breakFlag ? resetPipeLine(y, fns, f) : f(y)),
+          x
+        )
+      },
+    breakPipe: (): void => {
+      breakFlag = true
+    }
+  }
 }
 
 export const when =

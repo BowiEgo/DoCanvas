@@ -16,9 +16,10 @@ export const lineHeight: IPropertyTokenValueDescriptor = {
 }
 
 export const computeLineHeight = (
-  token: CSSValue,
+  // token: CSSValue,
   fontSize: number
 ): number => {
+  return 1.45 * fontSize
   if (isIdentToken(token) && token.value === 'normal') {
     return 1.2 * fontSize
   } else if (token.type === TokenType.NUMBER_TOKEN) {

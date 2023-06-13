@@ -10,6 +10,7 @@ import { LayoutObject, createLayoutObject } from '../layout/layoutObject'
 import { LayoutBlock } from '../layout/layoutBlock'
 import { LayoutInline } from '../layout/layoutInline'
 import { LayoutText } from '../layout/layoutText'
+import { computeLineHeight } from '../css/property-descriptors/line-height'
 
 export const DEFAULT_CONTAINER = {
   styles: {},
@@ -146,11 +147,12 @@ export interface CanvasBodyElement extends CanvasElement {
   context: Engine
 }
 
-export interface CanvasElement extends TreeNode<CanvasElement> {
+export interface CanvasElement
+  extends TreeNode<CanvasElement | CanvasTextNode> {
   __v_isCanvasElement: boolean
   type: string
   id: string | null
-  options: ElementOptions
+  _options: ElementOptions
   styles: ElementStyles
   // children: Array<CanvasElement | CanvasTextNode>
   renderObject: RenderObject
@@ -166,7 +168,6 @@ export interface CanvasElement extends TreeNode<CanvasElement> {
   getLayoutObject(): LayoutObject | null
   getComputedStyles(): ComputedStyles
   setComputedStyles(styleName: string, value: any): void
-  isBody(): boolean
   isVisible(): boolean
 }
 
@@ -212,6 +213,10 @@ export function isCanvasElement(value: any): value is CanvasElement {
   return value ? value.__v_isCanvasElement === true : false
 }
 
+export function isCanvasBodyElement(value: any): value is CanvasBodyElement {
+  return isCanvasElement(value) && value.type === 'body'
+}
+
 export const createBaseElement =
   (context: Engine, type: string, options: ElementOptions = {}, children?) =>
   (o: TreeNode<CanvasElement>): CanvasElement => {
@@ -220,7 +225,7 @@ export const createBaseElement =
       __v_isCanvasElement: true,
       type,
       id: options.id || null,
-      options,
+      _options: options,
       styles: null,
       renderObject: null,
       debugColor: null,
@@ -238,7 +243,6 @@ export const createBaseElement =
       getLayoutObject,
       getComputedStyles,
       setComputedStyles,
-      isBody,
       isVisible
     } as CanvasElement
 
@@ -278,7 +282,6 @@ export const createBaseElement =
     }
 
     _computedStyles = { ..._createRenderStyles(element) }
-
     if (element.type === 'body') {
       ;(<CanvasBodyElement>element).context = context
       setComputedStyles('width', context.viewport.width)
@@ -321,15 +324,18 @@ function computeStyles(this: CanvasElement) {
   if (this.getContainer()) {
     EXTEND_STYLE_KEYS.forEach((key) => {
       const value = this.getContainerStyle(key)
-      if (value) this.getComputedStyles()[key] = value
+      if (value) this.setComputedStyles(key, value)
     })
-
-    Object.freeze(this.getComputedStyles())
   }
+
+  this.setComputedStyles(
+    'lineHeight',
+    computeLineHeight(this.getComputedStyles().fontSize)
+  )
 
   if (this.hasChildren()) {
     this.children.forEach((child) => {
-      child.computeStyles()
+      !isCanvasTextNode(child) && child.computeStyles()
     })
   }
 }
@@ -358,10 +364,6 @@ function getContainerStyle(
 
 function getContainer(this: CanvasElement) {
   return this.parentNode
-}
-
-export function isBody(this: CanvasElement | CanvasTextNode) {
-  return !isCanvasTextNode(this) && this.type === 'body'
 }
 
 function isVisible() {

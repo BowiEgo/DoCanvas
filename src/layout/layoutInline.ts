@@ -1,8 +1,14 @@
 import { CanvasElement } from '../element/element'
+import { Size, createSize } from '../geometry/size'
 import { pipe, withConstructor } from '../utils'
-import { createAnonymousLayoutBlock } from './layoutBlock'
-import { LayoutBox, createLayoutBox } from './layoutBox'
+import {
+  AnonymousLayoutBlock,
+  createAnonymousLayoutBlock,
+  isAnonymousLayoutBlock
+} from './layoutBlock'
+import { LayoutBox, createLayoutBox, isLayoutBox } from './layoutBox'
 import { LayoutBoxModelObject } from './layoutBoxModelObject'
+import { isLayoutInlineBlock } from './layoutInlineBlock'
 import {
   LayoutFlag,
   LayoutObject,
@@ -10,7 +16,8 @@ import {
   isLayoutObject,
   removeLayoutFlag
 } from './layoutObject'
-import { createLineBox } from './lineBox'
+import { isLayoutText } from './layoutText'
+import { LineBox, LineBoxs, createLineBoxs } from './lineBox'
 
 // LayoutInline is the LayoutObject associated with display: inline.
 // This is called an "inline box" in CSS 2.1.
@@ -101,8 +108,10 @@ export function generateInlineType() {
 }
 
 export interface LayoutInline extends LayoutObject {
-  updateLayout(): void
-  wrapByAnonymousBlock(): void
+  size: Size
+  lineBoxs: LineBoxs | null
+  getContainerSize(): Size
+  getAnonymousBlock(): AnonymousLayoutBlock | null
 }
 
 export const createLayoutInline = function LayoutInline(
@@ -120,57 +129,40 @@ export const createBaseLayoutInline =
     let layoutInline = {
       ...o,
       type: generateInlineType(),
-      updateLayout,
-      wrapByAnonymousBlock
+      size: null,
+      lineBoxs: null,
+      getContainerSize,
+      getAnonymousBlock
     } as LayoutInline
 
     return layoutInline
   }
 
-function wrapByAnonymousBlock(this: LayoutInline) {
-  if (this.layoutFlag & LayoutFlag.NEED_ANONYMOUS) {
-    let siblingsNeedWrapped = _getSiblingsNeedWrapped(this)
-    const container = this.parentNode as LayoutBox
-    const anonymousBlock = createAnonymousLayoutBlock(
-      this.getContainer().element
-    )
-
-    siblingsNeedWrapped.forEach((item) => {
-      item.parentNode.removeChildNode(item)
-      anonymousBlock.appendChild(item)
-    })
-
-    container.appendChild(anonymousBlock)
-    removeLayoutFlag(this, LayoutFlag.NEED_ANONYMOUS)
-    anonymousBlock.lineBox = createLineBox(
-      siblingsNeedWrapped,
-      container.size.width
-    )
-    anonymousBlock.setHeight(anonymousBlock.lineBox.height)
-    container.updateSize()
-
-    anonymousBlock.updateLayout()
-    // anonymousBlock.flow()
-  }
+function getContainerSize(this: LayoutInline): Size {
+  return _getSize(this)
 }
 
-function updateLayout(this: LayoutInline) {
-  // console.log('updateLayout-inline', this.element.type, this.element.id)
-  this.wrapByAnonymousBlock()
-}
-
-function _getSiblingsNeedWrapped(layoutInline: LayoutInline): LayoutInline[] {
-  let arr = [layoutInline]
-
-  function walkSibling(curr) {
-    if (!curr.nextSibling) return
-    if (isLayoutInline(curr.nextSibling)) {
-      arr.push(curr.nextSibling)
+function getAnonymousBlock(this: LayoutInline) {
+  let container = this.getContainer()
+  if (!isAnonymousLayoutBlock(container)) {
+    if (isLayoutInline(container)) {
+      return container.getAnonymousBlock()
+    } else {
+      return null
     }
-    walkSibling(curr.nextSibling)
+  } else {
+    return container
   }
+}
 
-  walkSibling(layoutInline)
+function _getSize(layout: LayoutObject): Size {
+  const container = layout.getContainer()
 
-  return arr
+  if (!container) {
+    return createSize()
+  } else if (isLayoutBox(container) && !isAnonymousLayoutBlock(container)) {
+    return container.size
+  } else {
+    return _getSize(container)
+  }
 }

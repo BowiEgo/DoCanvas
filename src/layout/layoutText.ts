@@ -1,12 +1,19 @@
+import { CanvasBodyElement } from '../element/element'
 import { CanvasTextNode } from '../element/textNode'
+import { createPoint } from '../geometry/point'
+import { createRect } from '../geometry/rect'
+import { createSize } from '../geometry/size'
+import { fromCodePoint, toCodePoints } from '../text/Util'
+import { LineBreaker } from '../text/lineBreak'
 import { createTreeNode } from '../tree-node'
-import { pipe, withConstructor } from '../utils'
+import { createPipeLine, pipe, when, withConstructor } from '../utils'
 import {
   LayoutObject,
   LayoutType,
   createBaseLayoutObject,
   isLayoutObject
 } from './layoutObject'
+import { createLineBox, lineBoxLogger } from './lineBox'
 
 // LayoutText is the root class for anything that represents
 // a text node (see core/dom/text.h).
@@ -88,3 +95,184 @@ function getTextStyles(this: LayoutText) {
 }
 
 function updateLayout(this: LayoutText) {}
+
+export function createTextLine(
+  text,
+  layoutText,
+  relativeX,
+  relativeY,
+  width,
+  height
+) {
+  let location = createPoint(relativeX, relativeY)
+  let size = createSize(width, height)
+
+  let textLine = {
+    text,
+    layoutText,
+    location,
+    size,
+    rect: createRect(location, size)
+  }
+
+  return textLine
+}
+
+// TODO: 用二分法进行优化，减少ctx.measureText()调用次数
+export const _breakTextLines = (layoutText) => (lineBoxs) => {
+  // TODO: cache context
+  const body = layoutText.element
+    .getContainer()
+    .getRootNode() as CanvasBodyElement
+  const ctx = body.context.renderer.ctx
+  const defaultFontFamily = body.context.renderer.defaultFontFamily
+  let { fontSize, lineHeight, fontFamily } = layoutText.getTextStyles()
+  lineHeight = Number(lineHeight)
+
+  lineBoxs.currLineHeight = Math.max(lineBoxs.currLineHeight, lineHeight)
+
+  ctx.save()
+  ctx.font = `normal ${fontSize}px ${fontFamily || defaultFontFamily}`
+
+  const words = _breakWords(
+    layoutText.element.text,
+    layoutText.element.getContainer().getComputedStyles()
+  )
+
+  let metrics = null
+  let testWidth = lineBoxs.end
+  let currTextLine = createTextLine(
+    '',
+    layoutText,
+    lineBoxs.end,
+    lineBoxs.lastLineBefore + lineBoxs.currLineHeight,
+    0,
+    0
+  )
+  let isOutOfBox = false
+
+  const initTest = (word) => (lineBoxs) => {
+    metrics = ctx.measureText(word)
+    testWidth += metrics.width
+
+    return lineBoxs
+  }
+
+  const appendWordToCurrLine = (word, index) => (lineBoxs) => {
+    currTextLine.text += word
+    currTextLine.rect.size.addWidth(metrics.width)
+    lineBoxs.currLineHeight = Math.max(lineBoxs.currLineHeight, lineHeight)
+
+    if (index === 0 && lineBoxs.end === 0) {
+      lineBoxs.after += lineBoxs.currLineHeight
+    }
+
+    lineBoxs.end += metrics.width
+    return lineBoxs
+  }
+
+  const appendWordToNewLine = (word) => (lineBoxs) => {
+    lineBoxs.currLine = createLineBox(
+      0,
+      lineBoxs.after,
+      metrics.width,
+      lineBoxs.currLineHeight
+    )
+    lineBoxs.currLineHeight = lineHeight
+    lineBoxs.after += lineBoxs.currLineHeight
+    lineBoxs.end = metrics.width
+
+    currTextLine = createTextLine(
+      word,
+      layoutText,
+      0,
+      lineBoxs.after,
+      metrics.width,
+      metrics.fontBoundingBoxAscent
+    )
+  }
+
+  const createNewLine = (word) => (lineBoxs) => {
+    lineBoxs.currLine.addChild(currTextLine)
+    lineBoxs.lineArray.push(lineBoxs.currLine)
+    appendWordToNewLine(word.trim())(lineBoxs)
+    testWidth = metrics.width
+
+    return lineBoxs
+  }
+
+  const checkIfOutOfBox = (index) => (lineBoxs) => {
+    isOutOfBox = testWidth >= lineBoxs.maxWidth && index > 0
+
+    return lineBoxs
+  }
+
+  const checkIsLastWord = (index) => (lineBoxs) => {
+    if (index === words.length - 1) {
+      lineBoxs.currLine.addChild(currTextLine)
+      // if current layout is the last of lineBoxs, push currLine to lineArray
+      if (
+        lineBoxs.layouts.indexOf(layoutText) ===
+        lineBoxs.layouts.length - 1
+      ) {
+        lineBoxs.lineArray.push(lineBoxs.currLine)
+      }
+    }
+    return lineBoxs
+  }
+
+  const { pipeLine, breakPipe } = createPipeLine()
+
+  words.forEach((word, index) =>
+    pipeLine(
+      initTest(word),
+      checkIfOutOfBox(index),
+      when(() => !isOutOfBox, appendWordToCurrLine(word, index)),
+      when(() => isOutOfBox, createNewLine(word)),
+      // when(() => isOutOfBox, lineBoxsLogger('after-text-createNewLine:')),
+      checkIsLastWord(index)
+    )(lineBoxs)
+  )
+
+  return lineBoxs
+}
+
+// https://drafts.csswg.org/css-text/#word-separator
+const wordSeparators = [
+  0x0020, 0x00a0, 0x1361, 0x10100, 0x10101, 0x1039, 0x1091
+]
+
+export const _breakWords = (str: string, styles): string[] => {
+  const breaker = LineBreaker(str, {
+    lineBreak: styles.lineBreak,
+    wordBreak: 'normal'
+  })
+
+  const words = []
+  let bk
+
+  while (!(bk = breaker.next()).done) {
+    if (bk.value) {
+      const value = bk.value.slice()
+      const codePoints = toCodePoints(value)
+      let word = ''
+      codePoints.forEach((codePoint) => {
+        if (wordSeparators.indexOf(codePoint) === -1) {
+          word += fromCodePoint(codePoint)
+        } else {
+          if (word.length) {
+            words.push(word)
+          }
+          words.push(fromCodePoint(codePoint))
+          word = ''
+        }
+      })
+
+      if (word.length) {
+        words.push(word)
+      }
+    }
+  }
+
+  return words
+}

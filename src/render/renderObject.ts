@@ -32,7 +32,6 @@ export type CreateRenderObjectFn = (
 ) => CanvasElement
 
 export interface RenderObject extends TreeNode<RenderObject> {
-  // TODO: enum type
   _isRenderObject: boolean
   type: RenderType
   options: RenderObjectOptions

@@ -8,6 +8,7 @@ import { BACKGROUND_CLIP } from '../css/property-descriptors/background-clip'
 import { Color } from '../css/types/color'
 import { CanvasElement } from '../element/element'
 import { isLayoutInlineBlock } from '../layout/layoutInlineBlock'
+import { isLayoutText } from '../layout/layoutText'
 import { getBackgroundValueForIndex } from './canvas/background'
 import { isBezierCurve } from './canvas/bezierCurve'
 import {
@@ -19,6 +20,7 @@ import {
 import { Path } from './canvas/path'
 import { Vector } from './canvas/vector'
 import { RenderObject, RenderType } from './renderObject'
+import { isRenderText } from './renderText'
 
 export type RenderConfigurations = RenderOptions & {
   backgroundColor: Color | null
@@ -28,7 +30,7 @@ export interface RenderOptions {
   canvas?: HTMLCanvasElement
   ctx: CanvasRenderingContext2D
   dpr?: number
-  defaultFontFamily: string
+  fontFamily: string
   width: number
   height: number
 }
@@ -53,7 +55,7 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
     canvas: options.canvas,
     ctx: options.ctx,
     dpr: options.dpr || 1,
-    defaultFontFamily: options.defaultFontFamily,
+    defaultFontFamily: options.fontFamily,
     root: null,
     render,
     paint,
@@ -161,20 +163,21 @@ function paintBlock(this: CanvasRenderer, renderObject) {
 }
 
 function paintInline(this: CanvasRenderer, renderObject) {
-  const lineArray = renderObject.element.getLayoutObject().getContainer()
-    .lineBox.lineArray
+  const anonymousBlock = renderObject.element
+    .getLayoutObject()
+    .getAnonymousBlock()
 
-  if (lineArray.isPainted) return
+  if (!anonymousBlock) return
 
-  lineArray.forEach((line) => {
+  const lineBoxs = anonymousBlock.lineBoxs
+
+  if (lineBoxs.isPainted) return
+
+  lineBoxs.lineArray.forEach((line) => {
     line.children.forEach((lineItem) => {
-      if (lineItem.isPainted) return
-      if (isLayoutInlineBlock(lineItem)) {
-        _paintBackGroundAndBorder(this.ctx, lineItem.element.renderObject)
-      } else {
-        if (renderObject.children.length === 0) return
+      if (!isLayoutInlineBlock(lineItem)) {
         const { ctx } = this
-        const styles = renderObject.children[0].getTextStyles()
+        const styles = lineItem.layoutText.getTextStyles()
 
         ctx.textBaseline = 'ideographic'
         ctx.font = `normal ${styles.fontSize}px ${
@@ -188,11 +191,24 @@ function paintInline(this: CanvasRenderer, renderObject) {
           lineItem.rect.before +
             renderObject.element.getLayoutObject().getContainer().rect.before
         )
+
+        // console.log(
+        //   'paintText',
+        //   line.rect.before,
+        //   line,
+        //   lineItem,
+        //   lineItem.layoutText,
+        //   styles.color,
+        //   lineItem.text,
+        //   lineItem.rect.start,
+        //   lineItem.rect.before,
+        //   renderObject.element.getLayoutObject().getContainer().rect.before
+        // )
       }
       lineItem.isPainted = true
     })
   })
-  lineArray.isPainted = true
+  lineBoxs.isPainted = true
 }
 
 function paintInlineBlock(this: CanvasRenderer, renderObject) {

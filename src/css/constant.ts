@@ -1,4 +1,4 @@
-const BODY_STYLES = {
+export const BODY_STYLES = {
   accentColor: 'rgb(94, 158, 255)',
   additiveSymbols: '',
   alignContent: 'normal',
@@ -115,7 +115,7 @@ const BODY_STYLES = {
   clip: 'auto',
   clipPath: 'none',
   clipRule: 'nonzero',
-  color: 'rgb(255, 255, 255)',
+  color: 'rgb(0, 0, 0)',
   colorInterpolation: 'srgb',
   colorInterpolationFilters: 'linearrgb',
   colorRendering: 'auto',
@@ -448,14 +448,26 @@ const BODY_STYLES = {
   parentRule: null
 }
 
-const DEFAULT_VIEW_STYLES = {
+export const DEFAULT_VIEW_STYLES = {
   display: 'block'
 }
-const DEFAULT_TEXT_STYLES = {
+export const DEFAULT_TEXT_STYLES = {
   display: 'inline'
 }
 
-const EXTEND_STYLE_KEYS = [
+export const DEFAULT_PARA_STYLES = {
+  display: 'block',
+  marginBottom: 20,
+  fontSize: 16,
+  lineHeight: 23
+}
+
+export const DEFAULT_STRONG_STYLES = {
+  display: 'inline',
+  fontWeight: 700
+}
+
+export const EXTEND_STYLE_KEYS = [
   'alignItems',
   'color',
   'fontFamily',
@@ -467,10 +479,3 @@ const EXTEND_STYLE_KEYS = [
   'visivility',
   'wordSpacing'
 ]
-
-export {
-  BODY_STYLES,
-  DEFAULT_VIEW_STYLES,
-  DEFAULT_TEXT_STYLES,
-  EXTEND_STYLE_KEYS
-}

@@ -1,5 +1,5 @@
 import { connectChildren, createTreeNode } from '../../tree-node'
-import { BFS, PostOrderDFS } from '../treeSearch'
+import { BFS, PostOrderDFS, PreOrderDFS } from '../treeSearch'
 
 describe('utils/traversal test', () => {
   const tree = createTreeNode({
@@ -39,7 +39,7 @@ describe('utils/traversal test', () => {
   test('transpile an nodeTree to a breathFirst array', () => {
     const breathArr = BFS(tree)
 
-    expect(breathArr.map((item) => item.textContent)).toEqual([
+    expect(breathArr.map((item) => item.options.textContent)).toEqual([
       'A',
       'B',
       'F',
@@ -54,7 +54,7 @@ describe('utils/traversal test', () => {
   test('transpile an nodeTree to an post-order deepFirst array', () => {
     const deepArr = PostOrderDFS(tree)
 
-    expect(deepArr.map((item) => item.textContent)).toEqual([
+    expect(deepArr.map((item) => item.options.textContent)).toEqual([
       'C',
       'E',
       'D',
@@ -63,6 +63,21 @@ describe('utils/traversal test', () => {
       'F',
       'H',
       'A'
+    ])
+  })
+
+  test('transpile an nodeTree to an pre-order deepFirst array', () => {
+    const deepArr = PreOrderDFS(tree)
+
+    expect(deepArr.map((item) => item.options.textContent)).toEqual([
+      'A',
+      'B',
+      'C',
+      'D',
+      'E',
+      'F',
+      'G',
+      'H'
     ])
   })
 })

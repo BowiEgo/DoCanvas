@@ -98,14 +98,13 @@ export const createLayoutBlock = function LayoutBlock(
   )(createLayoutBox(element))
 }
 
-export const createAnonymousLayoutBlock = function AnonymousLayoutBlock(
-  element
-): AnonymousLayoutBlock {
-  return pipe(
-    createBaseLayoutBlock(true),
-    withConstructor(AnonymousLayoutBlock)
-  )(createLayoutBox(element))
-}
+export const createAnonymousLayoutBlock =
+  function AnonymousLayoutBlock(): AnonymousLayoutBlock {
+    return pipe(
+      createBaseLayoutBlock(true),
+      withConstructor(AnonymousLayoutBlock)
+    )(createLayoutBox())
+  }
 
 const createBaseLayoutBlock =
   (isAnonymous?) =>
