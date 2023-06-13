@@ -1,23 +1,11 @@
 import { CanvasElement } from '../element/element'
 import { Size, createSize } from '../geometry/size'
 import { pipe, withConstructor } from '../utils'
-import {
-  AnonymousLayoutBlock,
-  createAnonymousLayoutBlock,
-  isAnonymousLayoutBlock
-} from './layoutBlock'
-import { LayoutBox, createLayoutBox, isLayoutBox } from './layoutBox'
+import { AnonymousLayoutBlock, isAnonymousLayoutBlock } from './layoutBlock'
+import { createLayoutBox, isLayoutBox } from './layoutBox'
 import { LayoutBoxModelObject } from './layoutBoxModelObject'
-import { isLayoutInlineBlock } from './layoutInlineBlock'
-import {
-  LayoutFlag,
-  LayoutObject,
-  LayoutType,
-  isLayoutObject,
-  removeLayoutFlag
-} from './layoutObject'
-import { isLayoutText } from './layoutText'
-import { LineBox, LineBoxs, createLineBoxs } from './lineBox'
+import { LayoutObject, LayoutType, isLayoutObject } from './layoutObject'
+import { LineBoxs } from './lineBox'
 
 // LayoutInline is the LayoutObject associated with display: inline.
 // This is called an "inline box" in CSS 2.1.

@@ -7,9 +7,6 @@ import { createCSSDeclaration } from '../css'
 import { BODY_STYLES, EXTEND_STYLE_KEYS } from '../css/constant'
 import { CanvasTextNode, createTextNode, isCanvasTextNode } from './textNode'
 import { LayoutObject, createLayoutObject } from '../layout/layoutObject'
-import { LayoutBlock } from '../layout/layoutBlock'
-import { LayoutInline } from '../layout/layoutInline'
-import { LayoutText } from '../layout/layoutText'
 import { computeLineHeight } from '../css/property-descriptors/line-height'
 
 export const DEFAULT_CONTAINER = {

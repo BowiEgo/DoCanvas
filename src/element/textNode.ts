@@ -1,4 +1,3 @@
-import { Engine } from '../engine'
 import { createLayoutObject } from '../layout/layoutObject'
 import { LayoutText } from '../layout/layoutText'
 import { RenderObject } from '../render/renderObject'

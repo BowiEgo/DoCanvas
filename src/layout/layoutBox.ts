@@ -1,20 +1,12 @@
 import {
   CanvasBodyElement,
   CanvasElement,
-  Layout,
   isCanvasBodyElement
 } from '../element/element'
 import { Point, createPoint } from '../geometry/point'
 import { Rect, createRect } from '../geometry/rect'
 import { Size, createSize } from '../geometry/size'
-import {
-  NOOP,
-  createPipeLine,
-  isAuto,
-  pipe,
-  when,
-  withConstructor
-} from '../utils'
+import { createPipeLine, isAuto, pipe, when, withConstructor } from '../utils'
 import { AnonymousLayoutBlock, isAnonymousLayoutBlock } from './layoutBlock'
 import {
   LayoutBoxModelObject,

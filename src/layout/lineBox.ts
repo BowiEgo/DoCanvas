@@ -1,14 +1,9 @@
 import { createPoint } from '../geometry/point'
 import { Rect, createRect } from '../geometry/rect'
 import { createSize } from '../geometry/size'
-import { fromCodePoint, toCodePoints } from '../text/Util'
 // import { splitGraphemes } from '../text/graphemeBreak'
 import { createPipeLine, when } from '../utils'
-import {
-  LayoutInlineBlock,
-  _breakBlockLines,
-  isLayoutInlineBlock
-} from './layoutInlineBlock'
+import { LayoutInlineBlock, _breakBlockLines } from './layoutInlineBlock'
 import { LayoutObject, LayoutType } from './layoutObject'
 import { _breakTextLines, isLayoutText } from './layoutText'
 
@@ -45,7 +40,7 @@ export function isLineBoxs(value: any): value is LineBoxs {
   return value && !!(value.type & LayoutType.LINE_BOXS)
 }
 
-export function createLineBoxs(maxWidth): LineBoxs {
+export function createLineBoxs(maxWidth: number): LineBoxs {
   let lineBoxs = {
     type: LayoutType.LINE_BOXS,
     layouts: [],
@@ -97,7 +92,7 @@ export function createLineBox(
   width: number = 0,
   height: number = 0,
   child?
-) {
+): LineBox {
   let lineBox = {
     children: [],
     rect: createRect(

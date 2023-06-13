@@ -3,7 +3,6 @@ import { createPipeLine, pipe, when, withConstructor } from '../utils'
 import { LayoutBox, createBaseLayoutBox } from './layoutBox'
 import { createLayoutInline } from './layoutInline'
 import { LayoutType, isLayoutObject } from './layoutObject'
-import { isLayoutText } from './layoutText'
 import { createLineBox, lineBoxLogger } from './lineBox'
 
 export interface LayoutInlineBlock extends LayoutBox {

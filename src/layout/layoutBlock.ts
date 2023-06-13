@@ -2,6 +2,7 @@ import { CanvasElement } from '../element/element'
 import { pipe, withConstructor } from '../utils'
 import { LayoutBox, createLayoutBox } from './layoutBox'
 import { LayoutFlag, LayoutType, isLayoutObject } from './layoutObject'
+import { LineBoxs } from './lineBox'
 
 // LayoutBlock is the class that is used by any LayoutObject
 // that is a containing block.
@@ -68,6 +69,7 @@ export interface LayoutBlock extends LayoutBox {
 export interface AnonymousLayoutBlock extends LayoutBlock {
   element: null
   layoutFlag: LayoutFlag.IS_ANONYMOUS
+  lineBoxs: LineBoxs
 }
 
 export function generateBlockType() {

@@ -8,7 +8,6 @@ import { BACKGROUND_CLIP } from '../css/property-descriptors/background-clip'
 import { Color } from '../css/types/color'
 import { CanvasElement } from '../element/element'
 import { isLayoutInlineBlock } from '../layout/layoutInlineBlock'
-import { isLayoutText } from '../layout/layoutText'
 import { getBackgroundValueForIndex } from './canvas/background'
 import { isBezierCurve } from './canvas/bezierCurve'
 import {
@@ -20,7 +19,6 @@ import {
 import { Path } from './canvas/path'
 import { Vector } from './canvas/vector'
 import { RenderObject, RenderType } from './renderObject'
-import { isRenderText } from './renderText'
 
 export type RenderConfigurations = RenderOptions & {
   backgroundColor: Color | null
