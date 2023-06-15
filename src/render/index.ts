@@ -242,11 +242,11 @@ function paintText(this: CanvasRenderer, renderObject) {
 }
 
 async function paintImage(this: CanvasRenderer, renderObject: RenderObject) {
-  console.log('paintImage-0', renderObject)
+  this.context.logger.debug(`paintImage-0`, renderObject)
   const image = await this.context.cache.match(
     renderObject.element._options.src
   )
-  console.log('paintImage-1', image)
+  this.context.logger.debug(`paintImage-1`, image)
   this.renderReplacedElement(renderObject.element, image)
 }
 

@@ -17,8 +17,6 @@ function initCanvas(fontFamily) {
   canvas.width = _w * dpr
   canvas.height = _h * dpr
 
-  console.log(_ctx, dpr, _w, _h)
-
   _ctx.scale(dpr, dpr)
 
   const DoCanvas = createDoCanvas({

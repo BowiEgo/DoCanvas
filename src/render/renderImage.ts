@@ -45,12 +45,14 @@ export const createBaseRenderImage =
       initCurves
     }
 
-    console.log(
-      'createBaseRenderImage',
-      element,
-      element.getContext(),
-      element._options
-    )
+    element
+      .getContext()
+      .logger.debug(
+        'createBaseRenderImage',
+        element,
+        element.getContext(),
+        element._options
+      )
 
     element.getContext().cache.addImage(element._options.src)
 

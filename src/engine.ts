@@ -17,7 +17,7 @@ export interface Engine {
   flow(elm: CanvasElement): void
   reflow(elm: CanvasElement): void
   paint(elm: CanvasElement): void
-  repaint(elm: CanvasElement): void
+  // repaint(elm: CanvasElement): void
 }
 
 let instanceCount = 1
@@ -36,15 +36,15 @@ export function createEngine(renderer: CanvasRenderer, options): Engine {
     DFSRenderArray: [],
     flow,
     reflow,
-    paint,
-    repaint
+    paint
+    // repaint
   }
 
   function flow(elm) {
     const startTime = Date.now()
     elm.computeStyles()
 
-    console.log(
+    this.logger.debug(
       'flow',
       elm,
       elm.getLayoutObject(),
@@ -59,37 +59,36 @@ export function createEngine(renderer: CanvasRenderer, options): Engine {
     elm.getLayoutObject().flow()
 
     elm.renderObject.initCurves()
-    elm.getRootElement().type === 'body' && paint(elm)
-
-    console.log(
+    elm.getRootElement().type === 'body' && this.paint(elm)
+    this.logger.debug(
       `渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`
     )
   }
 
   function reflow(elm) {
-    console.log('reflow', elm)
+    this.logger.debug('reflow', elm)
     elm.computeStyles()
     elm.renderObject.flow()
-    elm.getRootElement().type === 'body' && repaint(elm)
+    elm.getRootElement().type === 'body' && this.paint(elm)
   }
 
-  function paint(elm) {
-    console.log('paint', elm)
+  function paint(this: Engine, elm) {
+    this.logger.debug(`paint`, elm)
     if (!elm) {
-      renderer.paint(engine.rootRenderObject)
+      renderer.paint(this.rootRenderObject)
     } else {
       renderer.paint(elm.renderObject)
     }
   }
 
-  function repaint(elm) {
-    console.log('repaint', elm)
-    if (!elm) {
-      renderer.paint(engine.rootRenderObject)
-    } else {
-      renderer.paint(elm.renderObject)
-    }
-  }
+  // function repaint(elm) {
+  //   console.log('repaint', elm)
+  //   if (!elm) {
+  //     renderer.paint(engine.rootRenderObject)
+  //   } else {
+  //     renderer.paint(elm.renderObject)
+  //   }
+  // }
 
   engine.cache = createCache(engine, {
     imageTimeout: 200,
