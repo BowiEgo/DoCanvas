@@ -159,6 +159,7 @@ export interface CanvasElement
   appendChild(child: CanvasElement): void
   computeStyles(): void
   hasChildren(): boolean
+  getContext(): Engine
   getRootElement(): CanvasElement
   getContainerStyle(styleName: string): ComputedStyles
   getContainer(): CanvasElement | null
@@ -234,6 +235,7 @@ export const createBaseElement =
       appendChild,
       computeStyles,
       hasChildren,
+      getContext,
       getRootElement,
       getContainerStyle,
       getContainer,
@@ -339,6 +341,15 @@ function computeStyles(this: CanvasElement) {
 
 function hasChildren(this: CanvasElement) {
   return this.hasChildNode()
+}
+
+function getContext(this: CanvasElement) {
+  const root = this.getRootElement()
+  if (isCanvasBodyElement(root)) {
+    return root.context
+  } else {
+    return null
+  }
 }
 
 function getRootElement(this: CanvasElement) {

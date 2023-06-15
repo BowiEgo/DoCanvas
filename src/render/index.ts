@@ -7,6 +7,7 @@
 import { BACKGROUND_CLIP } from '../css/property-descriptors/background-clip'
 import { Color } from '../css/types/color'
 import { CanvasElement } from '../element/element'
+import { Engine } from '../engine'
 import { isLayoutInlineBlock } from '../layout/layoutInlineBlock'
 import { getBackgroundValueForIndex } from './canvas/background'
 import { isBezierCurve } from './canvas/bezierCurve'
@@ -18,6 +19,7 @@ import {
 } from './canvas/boundCurves'
 import { Path } from './canvas/path'
 import { Vector } from './canvas/vector'
+import { RenderImage } from './renderImage'
 import { RenderObject, RenderType } from './renderObject'
 
 export type RenderConfigurations = RenderOptions & {
@@ -34,6 +36,7 @@ export interface RenderOptions {
 }
 
 export interface CanvasRenderer {
+  context: Engine
   canvas: HTMLCanvasElement
   ctx: CanvasRenderingContext2D
   dpr?: number
@@ -45,11 +48,17 @@ export interface CanvasRenderer {
   paintInline(renderObject: RenderObject): void
   paintInlineBlock(renderObject: RenderObject): void
   paintText(renderObject: RenderObject): void
+  paintImage(renderObject: RenderObject): void
+  renderReplacedElement(
+    container: CanvasElement,
+    image: HTMLImageElement | HTMLCanvasElement
+  ): void
   mask(paths: Path[]): void
 }
 
 export function createRenderer(options: RenderConfigurations): CanvasRenderer {
   let renderer: CanvasRenderer = {
+    context: null,
     canvas: options.canvas,
     ctx: options.ctx,
     dpr: options.dpr || 1,
@@ -61,6 +70,8 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
     paintInline,
     paintInlineBlock,
     paintText,
+    paintImage,
+    renderReplacedElement,
     mask
   }
 
@@ -71,7 +82,7 @@ function render(this: CanvasRenderer, elm) {
   this.paint(elm.renderObject)
 }
 
-function paint(this: CanvasRenderer, renderObject: RenderObject) {
+async function paint(this: CanvasRenderer, renderObject: RenderObject) {
   switch (renderObject.type) {
     case RenderType.BLOCK:
       this.paintBlock(renderObject)
@@ -84,6 +95,9 @@ function paint(this: CanvasRenderer, renderObject: RenderObject) {
       break
     case RenderType.TEXT:
       // this.paintText(renderObject)
+      break
+    case RenderType.IMAGE:
+      await this.paintImage(renderObject)
       break
     default:
       break
@@ -225,6 +239,50 @@ function paintText(this: CanvasRenderer, renderObject) {
   renderObject.textLines.lines.forEach((line) =>
     ctx.fillText(line[0], line[1], line[2] + renderObject.layoutBox.top)
   )
+}
+
+async function paintImage(this: CanvasRenderer, renderObject: RenderObject) {
+  console.log('paintImage-0', renderObject)
+  const image = await this.context.cache.match(
+    renderObject.element._options.src
+  )
+  console.log('paintImage-1', image)
+  this.renderReplacedElement(renderObject.element, image)
+}
+
+function renderReplacedElement(
+  this: CanvasRenderer,
+  container: CanvasElement,
+  image: HTMLImageElement | HTMLCanvasElement
+): void {
+  const { ctx } = this
+  // if (image && container.intrinsicWidth > 0 && container.intrinsicHeight > 0) {
+  // const box = contentBox(container)
+  const box = {
+    left: 0,
+    top: 0,
+    width: 100,
+    height: 100
+  }
+  // const path = calculatePaddingBoxPath(curves)
+  // this.path(path)
+  ctx.save()
+  ctx.clip()
+  ctx.drawImage(
+    image,
+    0,
+    0,
+    100,
+    100,
+    // container.intrinsicWidth,
+    // container.intrinsicHeight,
+    box.left,
+    box.top,
+    box.width,
+    box.height
+  )
+  ctx.restore()
+  // }
 }
 
 const calculateBackgroundCurvedPaintingArea = (

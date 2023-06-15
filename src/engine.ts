@@ -1,12 +1,17 @@
+import { Cache, createCache } from './cache'
 import { CanvasElement } from './element/element'
 import { isLayoutBox } from './layout/layoutBox'
+import { Logger, createLogger } from './logger'
 import { CanvasRenderer } from './render'
 import { RenderObject } from './render/renderObject'
 import { BFS, PostOrderDFS, PreOrderDFS } from './utils/treeSearch'
 
 export interface Engine {
-  renderer: CanvasRenderer
+  instanceName: string
   viewport: { width: number; height: number }
+  cache: Cache
+  logger: Logger
+  renderer: CanvasRenderer
   rootRenderObject: RenderObject
   DFSRenderArray: RenderObject[]
   flow(elm: CanvasElement): void
@@ -15,13 +20,18 @@ export interface Engine {
   repaint(elm: CanvasElement): void
 }
 
-export function createEngine(renderer, options): Engine {
+let instanceCount = 1
+
+export function createEngine(renderer: CanvasRenderer, options): Engine {
   let engine: Engine = {
-    renderer,
+    instanceName: `#${instanceCount++}`,
     viewport: {
       width: options.width,
       height: options.height
     },
+    cache: null,
+    logger: null,
+    renderer,
     rootRenderObject: null,
     DFSRenderArray: [],
     flow,
@@ -81,7 +91,18 @@ export function createEngine(renderer, options): Engine {
     }
   }
 
-  renderer.engine = engine
+  engine.cache = createCache(engine, {
+    imageTimeout: 200,
+    useCORS: true,
+    allowTaint: true
+  })
+
+  engine.logger = createLogger({
+    id: engine.instanceName,
+    enabled: options.logging
+  })
+
+  renderer.context = engine
 
   return engine
 }

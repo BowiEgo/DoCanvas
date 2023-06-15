@@ -1,0 +1,58 @@
+import { CanvasElement } from '../element/element'
+import { createTreeNode } from '../tree-node'
+import { pipe, withConstructor } from '../utils'
+import { initCurves } from './renderBlock'
+import { RenderInline, createBaseRenderInline } from './renderInline'
+import { RenderInlineBlock, isRenderInlineBlock } from './renderInlineBlock'
+import {
+  RenderObject,
+  RenderObjectOptions,
+  RenderType,
+  createBaseRenderObject
+} from './renderObject'
+
+export type CreateRenderImageFn = (
+  element: CanvasElement,
+  options?: RenderObjectOptions
+) => RenderImage
+
+export interface RenderImage extends RenderInlineBlock {}
+
+export function isRenderImage(value: any): value is RenderImage {
+  if (!isRenderInlineBlock(value)) return false
+  return !!(value.type & RenderType.IMAGE)
+}
+
+export const createRenderImage: CreateRenderImageFn = function RenderImage(
+  element,
+  options
+) {
+  return pipe(
+    createTreeNode<RenderObject>(),
+    createBaseRenderObject(element, (options = {})),
+    createBaseRenderInline(),
+    createBaseRenderImage(element),
+    withConstructor(RenderImage)
+  )({} as RenderImage)
+}
+
+export const createBaseRenderImage =
+  (element) =>
+  (o: RenderInline): RenderImage => {
+    let renderImage: RenderImage = {
+      ...o,
+      type: RenderType.IMAGE,
+      initCurves
+    }
+
+    console.log(
+      'createBaseRenderImage',
+      element,
+      element.getContext(),
+      element._options
+    )
+
+    element.getContext().cache.addImage(element._options.src)
+
+    return renderImage
+  }

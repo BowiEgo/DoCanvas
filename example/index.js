@@ -29,6 +29,7 @@ function initCanvas(fontFamily) {
     height: _h,
     backgroundColor: '#fff',
     fontFamily,
+    logging: true,
     debug: false
   })
 
@@ -120,6 +121,10 @@ function initCanvas(fontFamily) {
   // console.log('1111111', textNode1.getPreviousNode())
   // console.log('1111111', spanElm1.getNextNode())
 
+  const imgElm = DoCanvas.createElement('img', {
+    src: 'https://img.21jingji.com/uploadfile/cover/20230419/1681869342661117.png'
+  })
+
   childElm1.appendChild(textElm1)
   childElm1.appendChild(inlineElm)
   childElm1.appendChild(textElm2)
@@ -129,7 +134,8 @@ function initCanvas(fontFamily) {
   elm.appendChild(childElm4)
   elm.appendChild(childElm5)
   // DoCanvas.body.appendChild(paraElm1)
-  DoCanvas.body.appendChild(elm)
+  DoCanvas.body.appendChild(imgElm)
+  // DoCanvas.body.appendChild(elm)
 
   // console.log(
   //   '0000',
