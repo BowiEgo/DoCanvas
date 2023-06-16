@@ -120,7 +120,7 @@ function initCanvas(fontFamily) {
   // console.log('1111111', spanElm1.getNextNode())
 
   const imgElm = DoCanvas.createElement('img', {
-    src: 'https://img.21jingji.com/uploadfile/cover/20230419/1681869342661117.png',
+    src: 'https://live-samples.mdn.mozilla.net/en-US/docs/Web/HTML/Element/img/clock-demo-400px.png',
     style: { width: 100 }
   })
 
@@ -207,7 +207,7 @@ function initHTMLELement() {
 
   imgElm.setAttribute(
     'src',
-    'https://img.21jingji.com/uploadfile/cover/20230419/1681869342661117.png'
+    'https://live-samples.mdn.mozilla.net/en-US/docs/Web/HTML/Element/img/clock-demo-400px.png'
   )
   imgElm.style = 'width: 100px;'
   imgContainer.style = 'display: block;width: 200px;height: 200px'

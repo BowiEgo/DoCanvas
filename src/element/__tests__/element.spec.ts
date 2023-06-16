@@ -1,5 +1,7 @@
 import DoCanvas from '../../__test__/index.spec'
 
+// typescript enum error on tests
+// see more https://github.com/kulshekhar/ts-jest/issues/3397
 describe('create canvasElement', () => {
   const elm = DoCanvas.createElement('view')
   const childElm = DoCanvas.createElement('view', {
