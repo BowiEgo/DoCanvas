@@ -48,6 +48,8 @@ export const display: IPropertyListDescriptor<Display> = {
         return 'inline'
       case 'strong':
         return 'inline'
+      case 'img':
+        return 'inline'
       default:
         return 'block'
     }

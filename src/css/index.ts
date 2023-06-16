@@ -1,5 +1,6 @@
 import { CSSPropertyDescriptor } from './IPropertyDescriptor'
 import {
+  DEFAULT_IMG_STYLES,
   DEFAULT_PARA_STYLES,
   DEFAULT_STRONG_STYLES,
   DEFAULT_TEXT_STYLES,
@@ -179,6 +180,8 @@ function getDefaultStyle(type) {
       return DEFAULT_PARA_STYLES
     case 'strong':
       return DEFAULT_STRONG_STYLES
+    case 'img':
+      return DEFAULT_IMG_STYLES
     default:
       return DEFAULT_VIEW_STYLES
   }

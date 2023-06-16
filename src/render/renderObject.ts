@@ -5,6 +5,7 @@ import { TreeNode } from '../tree-node'
 import { NOOP } from '../utils'
 import { BoundCurves } from './canvas/boundCurves'
 import { createRenderBlock } from './renderBlock'
+import { createRenderImage } from './renderImage'
 import { createRenderInline } from './renderInline'
 import { createRenderInlineBlock } from './renderInlineBlock'
 import { createRenderText } from './renderText'
@@ -21,7 +22,8 @@ export const enum RenderType {
   TEXT = 1 << 1,
   BLOCK = 1 << 2,
   INLINE = 1 << 3,
-  INLINE_BLOCK = 1 << 4
+  INLINE_BLOCK = 1 << 4,
+  IMAGE = 1 << 5
 }
 
 export type RenderObjectOptions = {}
@@ -58,6 +60,10 @@ export const createRenderObject = (element, options = {}) => {
   }
   if (isCanvasTextNode(element)) {
     return createRenderText(element, options)
+  }
+
+  if (element.type === 'img') {
+    return createRenderImage(element, options)
   }
 
   switch (element.styles.display) {

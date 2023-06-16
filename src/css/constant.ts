@@ -467,6 +467,12 @@ export const DEFAULT_STRONG_STYLES = {
   fontWeight: 700
 }
 
+export const DEFAULT_IMG_STYLES = {
+  display: 'inline',
+  width: 16,
+  height: 16
+}
+
 export const EXTEND_STYLE_KEYS = [
   'alignItems',
   'color',

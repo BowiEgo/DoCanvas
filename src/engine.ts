@@ -1,12 +1,17 @@
+import { Cache, createCache } from './cache'
 import { CanvasElement } from './element/element'
 import { isLayoutBox } from './layout/layoutBox'
+import { Logger, createLogger } from './logger'
 import { CanvasRenderer } from './render'
 import { RenderObject } from './render/renderObject'
 import { BFS, PostOrderDFS, PreOrderDFS } from './utils/treeSearch'
 
 export interface Engine {
-  renderer: CanvasRenderer
+  instanceName: string
   viewport: { width: number; height: number }
+  cache: Cache
+  logger: Logger
+  renderer: CanvasRenderer
   rootRenderObject: RenderObject
   DFSRenderArray: RenderObject[]
   flow(elm: CanvasElement): void
@@ -15,13 +20,18 @@ export interface Engine {
   repaint(elm: CanvasElement): void
 }
 
-export function createEngine(renderer, options): Engine {
+let instanceCount = 1
+
+export function createEngine(renderer: CanvasRenderer, options): Engine {
   let engine: Engine = {
-    renderer,
+    instanceName: `#${instanceCount++}`,
     viewport: {
       width: options.width,
       height: options.height
     },
+    cache: null,
+    logger: null,
+    renderer,
     rootRenderObject: null,
     DFSRenderArray: [],
     flow,
@@ -34,7 +44,7 @@ export function createEngine(renderer, options): Engine {
     const startTime = Date.now()
     elm.computeStyles()
 
-    console.log(
+    this.logger.debug(
       'flow',
       elm,
       elm.getLayoutObject(),
@@ -49,39 +59,62 @@ export function createEngine(renderer, options): Engine {
     elm.getLayoutObject().flow()
 
     elm.renderObject.initCurves()
-    elm.getRootElement().type === 'body' && paint(elm)
-
-    console.log(
+    elm.getRootElement().type === 'body' && this.paint(elm)
+    this.logger.debug(
       `渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`
     )
   }
 
   function reflow(elm) {
-    console.log('reflow', elm)
+    const startTime = Date.now()
     elm.computeStyles()
-    elm.renderObject.flow()
-    elm.getRootElement().type === 'body' && repaint(elm)
+    this.logger.debug(
+      'reflow',
+      elm,
+      elm.getLayoutObject(),
+      BFS(elm.getLayoutObject()).map((item) => item)
+    )
+
+    BFS(elm.getLayoutObject())
+      .filter((item) => isLayoutBox(item))
+      .reverse()
+      .forEach((item) => item.updateWidthSize())
+
+    elm.getLayoutObject().flow()
+
+    this.repaint(elm)
+    this.logger.debug(
+      `重新渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`
+    )
   }
 
-  function paint(elm) {
-    console.log('paint', elm)
+  function paint(this: Engine, elm) {
+    this.logger.debug(`paint`, elm)
     if (!elm) {
-      renderer.paint(engine.rootRenderObject)
+      renderer.paint(this.rootRenderObject)
     } else {
       renderer.paint(elm.renderObject)
     }
   }
 
   function repaint(elm) {
-    console.log('repaint', elm)
-    if (!elm) {
-      renderer.paint(engine.rootRenderObject)
-    } else {
-      renderer.paint(elm.renderObject)
-    }
+    this.logger.debug(`repaint`, elm)
+
+    renderer.render(elm)
   }
 
-  renderer.engine = engine
+  engine.cache = createCache(engine, {
+    imageTimeout: 200,
+    useCORS: true,
+    allowTaint: true
+  })
+
+  engine.logger = createLogger({
+    id: engine.instanceName,
+    enabled: options.logging
+  })
+
+  renderer.context = engine
 
   return engine
 }

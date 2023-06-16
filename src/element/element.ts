@@ -7,10 +7,10 @@ import { createCSSDeclaration } from '../css'
 import { BODY_STYLES, EXTEND_STYLE_KEYS } from '../css/constant'
 import { CanvasTextNode, createTextNode, isCanvasTextNode } from './textNode'
 import { LayoutObject, createLayoutObject } from '../layout/layoutObject'
+import { computeLineHeight } from '../css/property-descriptors/line-height'
 import { LayoutBlock } from '../layout/layoutBlock'
 import { LayoutInline } from '../layout/layoutInline'
-import { LayoutText } from '../layout/layoutText'
-import { computeLineHeight } from '../css/property-descriptors/line-height'
+import { LayoutInlineBlock } from '../layout/layoutInlineBlock'
 
 export const DEFAULT_CONTAINER = {
   styles: {},
@@ -141,6 +141,7 @@ export type ElementOptions = {
   id?: string
   style?: ElementStyleType
   text?: string
+  src?: string
 }
 
 export interface CanvasBodyElement extends CanvasElement {
@@ -162,10 +163,11 @@ export interface CanvasElement
   appendChild(child: CanvasElement): void
   computeStyles(): void
   hasChildren(): boolean
+  getContext(): Engine
   getRootElement(): CanvasElement
   getContainerStyle(styleName: string): ComputedStyles
   getContainer(): CanvasElement | null
-  getLayoutObject(): LayoutObject | null
+  getLayoutObject(): LayoutBlock | LayoutInline | LayoutInlineBlock
   getComputedStyles(): ComputedStyles
   setComputedStyles(styleName: string, value: any): void
   isVisible(): boolean
@@ -237,6 +239,7 @@ export const createBaseElement =
       appendChild,
       computeStyles,
       hasChildren,
+      getContext,
       getRootElement,
       getContainerStyle,
       getContainer,
@@ -344,7 +347,18 @@ function hasChildren(this: CanvasElement) {
   return this.hasChildNode()
 }
 
-function getRootElement(this: CanvasElement) {
+function getContext(this: CanvasElement): Engine {
+  const root = this.getRootElement()
+  if (isCanvasBodyElement(root)) {
+    return root.context
+  } else {
+    return null
+  }
+}
+
+function getRootElement(
+  this: CanvasElement
+): TreeNode<CanvasElement | CanvasTextNode> | null {
   return this.getRootNode()
 }
 
@@ -362,7 +376,9 @@ function getContainerStyle(
   }
 }
 
-function getContainer(this: CanvasElement) {
+function getContainer(
+  this: CanvasElement
+): TreeNode<CanvasElement | CanvasTextNode> {
   return this.parentNode
 }
 

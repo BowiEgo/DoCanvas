@@ -165,6 +165,10 @@ export const createLayoutObject = function LayoutObject(
     return createLayoutText(element)
   }
 
+  if (element.type === 'img') {
+    return createLayoutInlineBlock(element)
+  }
+
   switch (element.getComputedStyles().display) {
     case 'block':
       return createLayoutBlock(element)
@@ -199,7 +203,7 @@ export const createBaseLayoutObject =
   }
 
 function getStyles(this: LayoutObject) {
-  return (<CanvasElement>this.element).getComputedStyles()
+  return this.element ? (<CanvasElement>this.element).getComputedStyles() : null
 }
 
 function getContainer(this: LayoutObject) {

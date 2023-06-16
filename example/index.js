@@ -17,8 +17,6 @@ function initCanvas(fontFamily) {
   canvas.width = _w * dpr
   canvas.height = _h * dpr
 
-  console.log(_ctx, dpr, _w, _h)
-
   _ctx.scale(dpr, dpr)
 
   const DoCanvas = createDoCanvas({
@@ -29,6 +27,7 @@ function initCanvas(fontFamily) {
     height: _h,
     backgroundColor: '#fff',
     fontFamily,
+    logging: true,
     debug: false
   })
 
@@ -120,16 +119,31 @@ function initCanvas(fontFamily) {
   // console.log('1111111', textNode1.getPreviousNode())
   // console.log('1111111', spanElm1.getNextNode())
 
+  const imgElm = DoCanvas.createElement('img', {
+    src: 'https://img.21jingji.com/uploadfile/cover/20230419/1681869342661117.png',
+    style: { width: 100 }
+  })
+
+  const imgContainer = DoCanvas.createElement('view', {
+    style: {
+      display: 'block',
+      width: 200,
+      height: 200
+    }
+  })
+
   childElm1.appendChild(textElm1)
   childElm1.appendChild(inlineElm)
   childElm1.appendChild(textElm2)
   elm.appendChild(childElm1)
   elm.appendChild(childElm2)
   elm.appendChild(childElm3)
+  elm.appendChild(imgElm)
   elm.appendChild(childElm4)
   elm.appendChild(childElm5)
   // DoCanvas.body.appendChild(paraElm1)
   DoCanvas.body.appendChild(elm)
+  // DoCanvas.body.appendChild(imgElm)
 
   // console.log(
   //   '0000',
@@ -187,6 +201,17 @@ function initHTMLELement() {
   const childElm7 = document.createElement('div')
   const childElm8 = document.createElement('div')
 
+  const imgElm = document.createElement('img')
+
+  const imgContainer = document.createElement('div')
+
+  imgElm.setAttribute(
+    'src',
+    'https://img.21jingji.com/uploadfile/cover/20230419/1681869342661117.png'
+  )
+  imgElm.style = 'width: 100px;'
+  imgContainer.style = 'display: block;width: 200px;height: 200px'
+
   textElm1.style = 'font-size: 16px; line-height: 23px'
   inlineElm.style =
     'display: inline-block; background-color: pink;width: 50px;height: 30px'
@@ -219,8 +244,10 @@ function initHTMLELement() {
   elm.appendChild(childElm1)
   elm.appendChild(childElm2)
   elm.appendChild(childElm3)
+  elm.appendChild(imgElm)
   elm.appendChild(childElm4)
   elm.appendChild(childElm5)
+  // elm.appendChild(imgContainer)
   // childElm3.innerText = 'hello'
   // childElm3.appendChild(childElm4)
   // childElm3.appendChild(childElm6)
