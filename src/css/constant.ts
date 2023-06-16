@@ -468,7 +468,9 @@ export const DEFAULT_STRONG_STYLES = {
 }
 
 export const DEFAULT_IMG_STYLES = {
-  display: 'inline-block'
+  display: 'inline',
+  width: 16,
+  height: 16
 }
 
 export const EXTEND_STYLE_KEYS = [

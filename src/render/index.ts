@@ -6,8 +6,9 @@
 
 import { BACKGROUND_CLIP } from '../css/property-descriptors/background-clip'
 import { Color } from '../css/types/color'
-import { CanvasElement } from '../element/element'
+import { CanvasElement, Layout } from '../element/element'
 import { Engine } from '../engine'
+import { LayoutBox, isLayoutBox } from '../layout/layoutBox'
 import { isLayoutInlineBlock } from '../layout/layoutInlineBlock'
 import { getBackgroundValueForIndex } from './canvas/background'
 import { isBezierCurve } from './canvas/bezierCurve'
@@ -42,6 +43,7 @@ export interface CanvasRenderer {
   dpr?: number
   defaultFontFamily: string
   root: RenderObject
+  clear(renderObject: RenderObject): void
   render(elm?: CanvasElement): void
   paint(renderObject: RenderObject): void
   paintBlock(renderObject: RenderObject): void
@@ -51,7 +53,8 @@ export interface CanvasRenderer {
   paintImage(renderObject: RenderObject): void
   renderReplacedElement(
     container: CanvasElement,
-    image: HTMLImageElement | HTMLCanvasElement
+    image: HTMLImageElement | HTMLCanvasElement,
+    curves: BoundCurves
   ): void
   mask(paths: Path[]): void
 }
@@ -64,6 +67,7 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
     dpr: options.dpr || 1,
     defaultFontFamily: options.fontFamily,
     root: null,
+    clear,
     render,
     paint,
     paintBlock,
@@ -78,7 +82,24 @@ export function createRenderer(options: RenderConfigurations): CanvasRenderer {
   return renderer
 }
 
-function render(this: CanvasRenderer, elm) {
+function _getContainerBox(elm: CanvasElement): LayoutBox {
+  let layoutBox = elm.getLayoutObject()
+  if (!isLayoutBox(layoutBox)) {
+    layoutBox = _getContainerBox(elm.getContainer())
+  }
+
+  return layoutBox
+}
+
+function clear(this: CanvasRenderer, renderObject: RenderObject) {
+  const { ctx } = this
+  const { rect } = _getContainerBox(renderObject.element)
+
+  ctx.clearRect(rect.x, rect.y, rect.width, rect.height)
+}
+
+function render(this: CanvasRenderer, elm: CanvasElement) {
+  this.clear(elm.renderObject)
   this.paint(elm.renderObject)
 }
 
@@ -152,12 +173,14 @@ function _paintBackGroundAndBorder(
   renderObject
 ) {
   const styles = renderObject.element.getComputedStyles()
-  !renderObject.curves && renderObject.initCurves()
+  renderObject.initCurves()
   const backgroundPaintingArea = calculateBackgroundCurvedPaintingArea(
     getBackgroundValueForIndex(styles.backgroundClip, 0),
     renderObject.curves
   )
+
   ctx.save()
+
   _path(ctx, backgroundPaintingArea)
   ctx.clip()
 
@@ -241,48 +264,47 @@ function paintText(this: CanvasRenderer, renderObject) {
   )
 }
 
-async function paintImage(this: CanvasRenderer, renderObject: RenderObject) {
+async function paintImage(this: CanvasRenderer, renderObject: RenderImage) {
   this.context.logger.debug(`paintImage-0`, renderObject)
+  renderObject.initCurves()
   const image = await this.context.cache.match(
     renderObject.element._options.src
   )
-  this.context.logger.debug(`paintImage-1`, image)
-  this.renderReplacedElement(renderObject.element, image)
+  this.context.logger.debug(
+    `paintImage-1`,
+    image,
+    image.naturalWidth,
+    renderObject.element
+  )
+  this.renderReplacedElement(renderObject.element, image, renderObject.curves)
 }
 
 function renderReplacedElement(
   this: CanvasRenderer,
   container: CanvasElement,
-  image: HTMLImageElement | HTMLCanvasElement
+  image: HTMLImageElement | HTMLCanvasElement,
+  curves: BoundCurves
 ): void {
   const { ctx } = this
-  // if (image && container.intrinsicWidth > 0 && container.intrinsicHeight > 0) {
-  // const box = contentBox(container)
-  const box = {
-    left: 0,
-    top: 0,
-    width: 100,
-    height: 100
-  }
-  // const path = calculatePaddingBoxPath(curves)
-  // this.path(path)
-  ctx.save()
+  const { rect } = container.getLayoutObject() as LayoutBox
+
+  const path = calculatePaddingBoxPath(curves)
+  _path(ctx, path)
   ctx.clip()
+  ctx.save()
   ctx.drawImage(
     image,
     0,
     0,
-    100,
-    100,
-    // container.intrinsicWidth,
-    // container.intrinsicHeight,
-    box.left,
-    box.top,
-    box.width,
-    box.height
+    image.naturalWidth,
+    image.naturalHeight,
+    rect.x,
+    rect.y,
+    rect.width,
+    rect.height
   )
+
   ctx.restore()
-  // }
 }
 
 const calculateBackgroundCurvedPaintingArea = (

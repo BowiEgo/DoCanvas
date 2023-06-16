@@ -253,6 +253,11 @@ const _measureWidth = (layoutBox: LayoutBox): number => {
 
   return pipeLine(
     when(
+      () => isAnonymousLayoutBlock(layoutBox),
+      _calcAnonymousBlockWidth(layoutBox as AnonymousLayoutBlock),
+      breakPipe
+    ),
+    when(
       () => isCanvasBodyElement(layoutBox.element),
       () => {
         let body = layoutBox.element as CanvasBodyElement
@@ -409,6 +414,12 @@ const _calcHeightByStyles =
   (layoutBox: LayoutBox) =>
   (o: number): number => {
     return Number(layoutBox.getStyles().height)
+  }
+
+const _calcAnonymousBlockWidth =
+  (anonymous: AnonymousLayoutBlock) =>
+  (o: number): number => {
+    return _calcWidthByAncestor(anonymous)(o)
   }
 
 const _calcAnonymousBlockHeight =

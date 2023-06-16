@@ -8,6 +8,9 @@ import { BODY_STYLES, EXTEND_STYLE_KEYS } from '../css/constant'
 import { CanvasTextNode, createTextNode, isCanvasTextNode } from './textNode'
 import { LayoutObject, createLayoutObject } from '../layout/layoutObject'
 import { computeLineHeight } from '../css/property-descriptors/line-height'
+import { LayoutBlock } from '../layout/layoutBlock'
+import { LayoutInline } from '../layout/layoutInline'
+import { LayoutInlineBlock } from '../layout/layoutInlineBlock'
 
 export const DEFAULT_CONTAINER = {
   styles: {},
@@ -138,6 +141,7 @@ export type ElementOptions = {
   id?: string
   style?: ElementStyleType
   text?: string
+  src?: string
 }
 
 export interface CanvasBodyElement extends CanvasElement {
@@ -163,7 +167,7 @@ export interface CanvasElement
   getRootElement(): CanvasElement
   getContainerStyle(styleName: string): ComputedStyles
   getContainer(): CanvasElement | null
-  getLayoutObject(): LayoutObject | null
+  getLayoutObject(): LayoutBlock | LayoutInline | LayoutInlineBlock
   getComputedStyles(): ComputedStyles
   setComputedStyles(styleName: string, value: any): void
   isVisible(): boolean
@@ -343,7 +347,7 @@ function hasChildren(this: CanvasElement) {
   return this.hasChildNode()
 }
 
-function getContext(this: CanvasElement) {
+function getContext(this: CanvasElement): Engine {
   const root = this.getRootElement()
   if (isCanvasBodyElement(root)) {
     return root.context
@@ -352,7 +356,9 @@ function getContext(this: CanvasElement) {
   }
 }
 
-function getRootElement(this: CanvasElement) {
+function getRootElement(
+  this: CanvasElement
+): TreeNode<CanvasElement | CanvasTextNode> | null {
   return this.getRootNode()
 }
 
@@ -370,7 +376,9 @@ function getContainerStyle(
   }
 }
 
-function getContainer(this: CanvasElement) {
+function getContainer(
+  this: CanvasElement
+): TreeNode<CanvasElement | CanvasTextNode> {
   return this.parentNode
 }
 

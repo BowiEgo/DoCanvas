@@ -17,7 +17,7 @@ export interface Engine {
   flow(elm: CanvasElement): void
   reflow(elm: CanvasElement): void
   paint(elm: CanvasElement): void
-  // repaint(elm: CanvasElement): void
+  repaint(elm: CanvasElement): void
 }
 
 let instanceCount = 1
@@ -36,8 +36,8 @@ export function createEngine(renderer: CanvasRenderer, options): Engine {
     DFSRenderArray: [],
     flow,
     reflow,
-    paint
-    // repaint
+    paint,
+    repaint
   }
 
   function flow(elm) {
@@ -66,10 +66,26 @@ export function createEngine(renderer: CanvasRenderer, options): Engine {
   }
 
   function reflow(elm) {
-    this.logger.debug('reflow', elm)
+    const startTime = Date.now()
     elm.computeStyles()
-    elm.renderObject.flow()
-    elm.getRootElement().type === 'body' && this.paint(elm)
+    this.logger.debug(
+      'reflow',
+      elm,
+      elm.getLayoutObject(),
+      BFS(elm.getLayoutObject()).map((item) => item)
+    )
+
+    BFS(elm.getLayoutObject())
+      .filter((item) => isLayoutBox(item))
+      .reverse()
+      .forEach((item) => item.updateWidthSize())
+
+    elm.getLayoutObject().flow()
+
+    this.repaint(elm)
+    this.logger.debug(
+      `重新渲染${BFS(elm).length}个元素 耗时 ${Date.now() - startTime} ms`
+    )
   }
 
   function paint(this: Engine, elm) {
@@ -81,14 +97,11 @@ export function createEngine(renderer: CanvasRenderer, options): Engine {
     }
   }
 
-  // function repaint(elm) {
-  //   console.log('repaint', elm)
-  //   if (!elm) {
-  //     renderer.paint(engine.rootRenderObject)
-  //   } else {
-  //     renderer.paint(elm.renderObject)
-  //   }
-  // }
+  function repaint(elm) {
+    this.logger.debug(`repaint`, elm)
+
+    renderer.render(elm)
+  }
 
   engine.cache = createCache(engine, {
     imageTimeout: 200,

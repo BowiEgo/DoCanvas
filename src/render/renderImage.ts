@@ -3,7 +3,11 @@ import { createTreeNode } from '../tree-node'
 import { pipe, withConstructor } from '../utils'
 import { initCurves } from './renderBlock'
 import { RenderInline, createBaseRenderInline } from './renderInline'
-import { RenderInlineBlock, isRenderInlineBlock } from './renderInlineBlock'
+import {
+  RenderInlineBlock,
+  createBaseRenderInlineBlock,
+  isRenderInlineBlock
+} from './renderInlineBlock'
 import {
   RenderObject,
   RenderObjectOptions,
@@ -30,14 +34,14 @@ export const createRenderImage: CreateRenderImageFn = function RenderImage(
   return pipe(
     createTreeNode<RenderObject>(),
     createBaseRenderObject(element, (options = {})),
-    createBaseRenderInline(),
+    createBaseRenderInlineBlock(),
     createBaseRenderImage(element),
     withConstructor(RenderImage)
   )({} as RenderImage)
 }
 
 export const createBaseRenderImage =
-  (element) =>
+  (element: CanvasElement) =>
   (o: RenderInline): RenderImage => {
     let renderImage: RenderImage = {
       ...o,
@@ -47,14 +51,18 @@ export const createBaseRenderImage =
 
     element
       .getContext()
-      .logger.debug(
-        'createBaseRenderImage',
-        element,
-        element.getContext(),
-        element._options
-      )
+      .cache.addImage(element._options.src)
+      .then((image) => {
+        element.setComputedStyles(
+          'height',
+          (image.naturalHeight / image.naturalWidth) *
+            Number(element.getComputedStyles().width)
+        )
 
-    element.getContext().cache.addImage(element._options.src)
+        element.getContext().reflow(element.getContainer())
+      })
+
+    // console.log(element.getContainer().getLayoutObject().rect)
 
     return renderImage
   }

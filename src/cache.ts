@@ -53,7 +53,7 @@ export interface ResourceOptions {
 
 export interface Cache {
   context: Engine
-  addImage(src: string): void
+  addImage(src: string): Promise<any>
   match(src: string): Promise<any>
   loadImage(key: string): Promise<any>
   has(key: string): boolean
@@ -75,21 +75,19 @@ export function createCache(context: Engine, options: ResourceOptions): Cache {
     proxy
   }
 
-  function addImage(this: Cache, src) {
-    console.log('addImage', src)
-    const result = Promise.resolve()
+  function addImage(this: Cache, src): Promise<any> {
     if (this.has(src)) {
-      return result
+      return Promise.resolve(_cache[src])
     }
 
     if (isBlobImage(src) || isRenderable(src)) {
       ;(_cache[src] = this.loadImage(src)).catch(() => {
         // prevent unhandled rejection
       })
-      return result
+      return Promise.resolve(_cache[src])
     }
 
-    return result
+    return Promise.resolve(_cache[src])
   }
 
   function match(this: Cache, src: string): Promise<any> {
@@ -139,7 +137,9 @@ export function createCache(context: Engine, options: ResourceOptions): Cache {
       img.src = src
       if (img.complete === true) {
         // Inline XML images may fail to parse, throwing an Error later on
-        setTimeout(() => resolve(img), 500)
+        this.context.logger.debug(`resolve`, img)
+        resolve(img)
+        // setTimeout(() => resolve(img), 500)
       }
       if (_options.imageTimeout > 0) {
         setTimeout(
@@ -178,7 +178,9 @@ export function createCache(context: Engine, options: ResourceOptions): Cache {
             const reader = new FileReader()
             reader.addEventListener(
               'load',
-              () => resolve(reader.result as string),
+              () => {
+                resolve(reader.result as string)
+              },
               false
             )
             reader.addEventListener('error', (e) => reject(e), false)
